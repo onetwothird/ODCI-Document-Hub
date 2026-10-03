@@ -1,0 +1,36 @@
+ALTER TABLE departments ADD COLUMN department_image VARCHAR(255);
+
+
+
+ALTER TABLE files 
+ADD COLUMN academic_year VARCHAR(10) NULL,
+ADD COLUMN semester ENUM('first', 'second') NOT NULL DEFAULT 'first';
+
+
+
+UPDATE departments SET department_image = '../../img/ITD.jpg' WHERE department_code = 'ITD';
+UPDATE departments SET department_image = '../../img/ASD.jpg' WHERE department_code = 'ASD';
+UPDATE departments SET department_image = '../../img/FASD.jpg' WHERE department_code = 'FASD';
+UPDATE departments SET department_image = '../../img/TED.jpg' WHERE department_code = 'TED';
+UPDATE departments SET department_image = '../../img/MD.jpg' WHERE department_code = 'MD';
+UPDATE departments SET department_image = '../../img/NSTP.jpg' WHERE department_code = 'NSTP';
+UPDATE departments SET department_image = '../../img/OTHR.jpg' WHERE department_code = 'OTHR';
+
+
+ALTER TABLE folders 
+ADD COLUMN category VARCHAR(50) NULL AFTER department_id;
+
+
+
+
+CREATE TABLE IF NOT EXISTS file_downloads (
+  id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  file_id int(11) NOT NULL,
+  user_id int(11) NOT NULL,
+  downloaded_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  user_ip varchar(45) DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY idx_file_downloads_file (file_id),
+  KEY idx_file_downloads_user (user_id),
+  KEY idx_file_downloads_date (downloaded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
