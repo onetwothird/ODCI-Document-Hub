@@ -1,0 +1,507 @@
+/* role_based.css - Role-specific styling and features */
+
+/* Role Badge Styling */
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 12px;
+}
+
+.role-badge.user {
+    background: #28a745;
+    color: white;
+}
+
+.role-badge.admin {
+    background: #fd7e14;
+    color: white;
+}
+
+.role-badge.super_admin {
+    background: #dc3545;
+    color: white;
+}
+
+/* Post Composer Role-Based Styling */
+.post-composer[data-role="admin"] {
+    border-left: 3px solid #fd7e14;
+}
+
+.post-composer[data-role="super_admin"] {
+    border-left: 3px solid #dc3545;
+}
+
+.post-composer[data-role="user"] {
+    border-left: 3px solid #28a745;
+}
+
+/* Announcement Mode */
+.post-composer.announcement-mode {
+    border: 2px solid #007bff !important;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    position: relative;
+}
+
+.post-composer.announcement-mode::before {
+    content: "📢 Announcement Mode Active";
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    background: #007bff;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 10;
+}
+
+/* Composer Controls */
+.composer-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.post-type-selector {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #007bff;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.post-type-selector:hover {
+    background: #f0f8ff;
+}
+
+.post-type-selector input[type="checkbox"] {
+    margin: 0;
+    margin-right: 5px;
+}
+
+/* Tool Limits Display */
+.composer-tool {
+    position: relative;
+}
+
+.tool-limit {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #007bff;
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 8px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.composer-limits {
+    display: flex;
+    align-items: center;
+    color: #666;
+    font-size: 12px;
+}
+
+/* Pin Toggle */
+.composer-tool#pinToggle.active {
+    background: #28a745;
+    color: white;
+}
+
+/* Role-Specific Post Styling */
+.post[data-user-role="admin"] .post-header {
+    border-left: 3px solid #fd7e14;
+    padding-left: 12px;
+}
+
+.post[data-user-role="super_admin"] .post-header {
+    border-left: 3px solid #dc3545;
+    padding-left: 12px;
+}
+
+.post[data-user-role="user"] .post-header {
+    border-left: 3px solid #28a745;
+    padding-left: 12px;
+}
+
+/* Announcement Posts */
+.post[data-post-type="announcement"] {
+    border: 2px solid #007bff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    position: relative;
+}
+
+.post[data-post-type="announcement"]::before {
+    content: "📢";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: #007bff;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 5;
+}
+
+.post[data-post-type="announcement"] .post-header {
+    padding-left: 55px;
+}
+
+/* Pinned Posts */
+.post.pinned {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+    border-top: 3px solid #ffc107;
+    position: relative;
+}
+
+.post.pinned::after {
+    content: "📌";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #ffc107;
+    font-size: 16px;
+}
+
+/* Reported Posts */
+.post[data-reported="true"] {
+    border-left: 4px solid #ff6b6b;
+    background: #fff5f5;
+}
+
+.post[data-reported="true"]::before {
+    content: "🚨";
+    position: absolute;
+    top: 15px;
+    right: 50px;
+    color: #ff6b6b;
+    font-size: 16px;
+}
+
+/* Hidden Posts */
+.post.hidden-post {
+    opacity: 0.5;
+    filter: grayscale(50%);
+}
+
+.post.hidden-post::after {
+    content: "👁️‍🗨️ Hidden";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #6c757d;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+/* Moderation Tools */
+.moderation-tools {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.mod-action {
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mod-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mod-action.danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.mod-action.danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.mod-action.warning {
+    color: #fd7e14;
+    border-color: #fd7e14;
+}
+
+.mod-action.warning:hover {
+    background: #fd7e14;
+    color: white;
+}
+
+.mod-action.success {
+    color: #28a745;
+    border-color: #28a745;
+}
+
+.mod-action.success:hover {
+    background: #28a745;
+    color: white;
+}
+
+/* Moderation Panel */
+.moderation-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+    min-width: 250px;
+}
+
+.moderation-panel.show {
+    display: block;
+    animation: slideInUp 0.3s ease;
+}
+
+.moderation-panel h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 16px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+
+.moderation-panel button {
+    width: 100%;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.moderation-panel button:hover {
+    background: #e9ecef;
+    transform: translateX(2px);
+}
+
+/* Moderation Toggle Button */
+.mod-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(220,53,69,0.4);
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.mod-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(220,53,69,0.6);
+}
+
+/* Analytics Button */
+.btn-analytics {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-analytics:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+/* Role-Based Tab Visibility */
+body[data-user-role="user"] .feed-tab[data-filter="reported"],
+body[data-user-role="user"] .feed-tab[data-filter="pinned"]:not(.force-show) {
+    display: none !important;
+}
+
+/* Visibility Options Styling */
+.visibility-dropdown .visibility-option[data-visibility="admin"] {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    border-left: 3px solid #dc3545;
+}
+
+.option-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Image Gallery Enhancements for Role-Based Limits */
+.post-image-gallery[data-count="1"] {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    max-height: 400px;
+}
+
+.post-image-gallery[data-count="2"] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-height: 300px;
+}
+
+.post-image-gallery[data-count="3"] {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+    max-height: 300px;
+}
+
+.post-image-gallery[data-count="4"],
+.post-image-gallery[data-count="5"],
+.post-image-gallery[data-count="6"] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-height: 300px;
+}
+
+/* Super Admin specific features */
+body[data-user-role="super_admin"] .post-composer {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+}
+
+body[data-user-role="super_admin"] .role-badge::after {
+    content: "🛡️";
+    margin-left: 4px;
+}
+
+/* Admin specific features */
+body[data-user-role="admin"] .post-composer {
+    background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+}
+
+body[data-user-role="admin"] .role-badge::after {
+    content: "🛡️";
+    margin-left: 4px;
+}
+
+/* User specific features */
+body[data-user-role="user"] .post-composer {
+    background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .composer-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .moderation-tools {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .mod-action {
+        flex: 1;
+        min-width: 80px;
+        justify-content: center;
+    }
+    
+    .moderation-panel {
+        right: 10px;
+        bottom: 10px;
+        left: 10px;
+        min-width: auto;
+    }
+    
+    .mod-toggle {
+        right: 15px;
+        bottom: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+    }
+}
+
+/* Dark Mode Support (if implemented) */
+@media (prefers-color-scheme: dark) {
+    .post-composer.announcement-mode {
+        background: linear-gradient(135deg, #1a1f3a 0%, #2d3748 100%);
+    }
+    
+    .post[data-post-type="announcement"] {
+        background: linear-gradient(135deg, #1a1f3a 0%, #2d3748 100%);
+    }
+    
+    .moderation-panel {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #f7fafc;
+    }
+    
+    .moderation-panel h4 {
+        color: #f7fafc;
+        border-bottom-color: #4a5568;
+    }
+}

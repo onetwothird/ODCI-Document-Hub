@@ -1,0 +1,96 @@
+.profile img {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover img {
+    border-color: var(--blue);
+}
+
+/* Profile icon for users without department image */
+.profile-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover .profile-icon {
+    border-color: var(--blue);
+}
+
+/* Department indicator */
+.profile {
+    position: relative;
+}
+
+/* Profile image container enhancements */
+#profilePreview {
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#profilePreview:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Image upload area styling */
+.profile-upload-area {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-upload-area:hover {
+    border-color: var(--blue);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+/* Remove button styling */
+.remove-image-btn {
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.remove-image-btn:hover {
+    background-color: #c82333 !important;
+    transform: scale(1.1);
+}
+
+/* Status indicators */
+.image-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-top: 8px;
+}
+
+.image-status.success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.image-status.error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.image-status.info {
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}

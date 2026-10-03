@@ -1,0 +1,89 @@
+<?php
+$current_page = basename($_SERVER['PHP_SELF']);
+?>
+
+<!-- Sidebar Component -->
+<section id="sidebar">
+    <div class="sidebar-header">
+        <a href="#" class="brand">
+            <img src="../../img/cvsu-logo.png" alt="CVSU logo">
+            <span class="text">
+                <span class="brand-title">ODCI Document Hub</span>
+                <span class="brand-subtitle">CVSU Naic</span>
+            </span>
+        </a>
+        <button class="cvsu-drawer-back" type="button" aria-label="Back to page">
+            <i class="bx bx-arrow-back" aria-hidden="true"></i>
+            <span>Back</span>
+        </button>
+    </div>
+
+    <ul class="side-menu top">
+        <li class="<?= $current_page == 'dashboard.php' ? 'active' : '' ?>">
+            <a href="dashboard.php" class="ajax-link" data-title="Dashboard">
+                <i class='bx bxs-dashboard'></i>
+                <span class="text">Dashboard</span>
+            </a>
+            <div class="tooltip">Dashboard</div>
+        </li>
+        <li class="<?= $current_page == 'social_feed.php' ? 'active' : '' ?>">
+            <a href="social_feed.php" class="ajax-link" data-title="Social Feed">
+                <i class='bx bx-news'></i>
+                <span class="text">Social Feed</span>
+            </a>
+            <div class="tooltip">Social Feed</div>
+        </li>
+        <li class="<?= $current_page == 'submission_tracker.php' ? 'active' : '' ?>">
+            <a href="submission_tracker.php" class="ajax-link" data-title="Submission Tracker">
+                <i class='bx bxs-check-square'></i>
+                <span class="text">Submission Tracker</span>
+            </a>
+            <div class="tooltip">Submission Tracker</div>
+        </li>
+        <li class="<?= $current_page == 'colleagues.php' ? 'active' : '' ?>">
+            <a href="colleagues.php" class="ajax-link" data-title="Colleagues">
+                <i class='bx bxs-group'></i>
+                <span class="text">Colleagues</span>
+            </a>
+            <div class="tooltip">Colleagues</div>
+        </li>
+        <li class="<?= $current_page == 'my_files.php' ? 'active' : '' ?>">
+            <a href="my_files.php" class="ajax-link" data-title="My Files">
+                <i class='bx bxs-file'></i>
+                <span class="text">My Files</span>
+            </a>
+            <div class="tooltip">My Files</div>
+        </li>
+        <li class="<?= $current_page == 'folders.php' ? 'active' : '' ?>">
+            <a href="folders.php" class="ajax-link" data-title="Department Folders">
+                <i class='bx bxs-folder'></i>
+                <span class="text">Department Folders</span>
+            </a>
+            <div class="tooltip">Department Folders</div>
+        </li>
+        <li class="<?= $current_page == 'my_reports.php' ? 'active' : '' ?>">
+            <a href="my_reports.php" class="ajax-link" data-title="My Reports">
+                <i class='bx bxs-report'></i>
+                <span class="text">My Reports</span>
+            </a>
+            <div class="tooltip">My Reports</div>
+        </li>
+
+        <li class="menu-divider" aria-hidden="true"></li>
+        
+        <li class="<?= $current_page == 'settings.php' ? 'active' : '' ?>">
+            <a href="settings.php" class="ajax-link" data-title="Settings">
+                <i class='bx bxs-cog'></i>
+                <span class="text">Settings</span>
+            </a>
+            <div class="tooltip">Settings</div>
+        </li>
+        <li class="logout-item">
+            <a href="../../logout.php" class="logout ajax-link" data-title="Logout">
+                <i class='bx bx-log-out'></i>
+                <span class="text">Logout</span>
+            </a>
+            <div class="tooltip">Logout</div>
+        </li>
+    </ul>
+</section>

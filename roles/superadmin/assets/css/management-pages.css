@@ -1,0 +1,756 @@
+/* Shared responsive presentation for the Superadmin management pages. */
+.superadmin-management-page {
+    --management-surface: #f5f7f5;
+    --management-white: #fff;
+    --management-green: #006b2e;
+    --management-green-dark: #004d24;
+    --management-green-soft: #f0f7f1;
+    --management-gold: #d7b454;
+    --management-line: #e2e9e3;
+    --management-ink: #202c25;
+    --management-muted: #68756d;
+    background: var(--management-surface) !important;
+    color: var(--management-ink);
+    overflow-x: hidden;
+}
+
+.superadmin-management-page #content {
+    min-width: 0;
+    overflow-x: clip;
+}
+
+/* These four pages use a white top bar; keep it distinct from the green rail. */
+.superadmin-management-page #content > nav,
+.superadmin-management-page #content nav.app-navbar,
+.superadmin-management-page #content nav.superadmin-navbar {
+    background: rgba(255,255,255,.98) !important;
+    color: var(--management-ink) !important;
+    border-bottom: 1px solid var(--management-line) !important;
+    box-shadow: 0 2px 10px rgba(24,47,31,.06) !important;
+    backdrop-filter: blur(12px);
+}
+
+.superadmin-management-page #content .toggle-sidebar,
+.superadmin-management-page #content .toggle-btn,
+.superadmin-management-page #content .menu-toggle,
+.superadmin-management-page #content .sidebar-toggle {
+    color: var(--management-green-dark) !important;
+    background: var(--management-green-soft) !important;
+}
+
+.superadmin-management-page #content .toggle-sidebar:hover,
+.superadmin-management-page #content .toggle-btn:hover,
+.superadmin-management-page #content .menu-toggle:hover,
+.superadmin-management-page #content .sidebar-toggle:hover {
+    color: var(--management-green-dark) !important;
+    background: #e4f0e6 !important;
+}
+
+.superadmin-management-page #content .toggle-sidebar:focus-visible,
+.superadmin-management-page #content .toggle-btn:focus-visible,
+.superadmin-management-page #content .menu-toggle:focus-visible,
+.superadmin-management-page #content .sidebar-toggle:focus-visible {
+    outline: 2px solid var(--management-gold) !important;
+    outline-offset: 2px;
+}
+
+.superadmin-management-page #content .page-title,
+.superadmin-management-page #content .app-navbar .page-title,
+.superadmin-management-page #content .superadmin-navbar .page-title,
+.superadmin-management-page #content .admin-name,
+.superadmin-management-page #content .user-name {
+    color: var(--management-ink) !important;
+}
+
+.superadmin-management-page #content .admin-role,
+.superadmin-management-page #content .user-role,
+.superadmin-management-page #content .user-department {
+    color: var(--management-muted) !important;
+}
+
+.superadmin-management-page #content .system-status,
+.superadmin-management-page #content .profile-section {
+    color: var(--management-ink) !important;
+    background: #fff !important;
+    border-color: var(--management-line) !important;
+}
+
+.superadmin-management-page #content .system-status > i,
+.superadmin-management-page #content .nav-action-btn,
+.superadmin-management-page #content .quick-link,
+.superadmin-management-page #content .notification-btn,
+.superadmin-management-page #content .admin-quick-access a {
+    color: var(--management-green) !important;
+}
+
+.superadmin-management-page #content .profile-section:hover,
+.superadmin-management-page #content .nav-action-btn:hover,
+.superadmin-management-page #content .quick-link:hover,
+.superadmin-management-page #content .notification-btn:hover,
+.superadmin-management-page #content .admin-quick-access a:hover {
+    color: var(--management-green-dark) !important;
+    background: var(--management-green-soft) !important;
+    border-color: #c8dccb !important;
+}
+
+.superadmin-management-page #content .notification-badge {
+    border-color: #fff !important;
+    background: var(--management-gold) !important;
+    color: var(--management-green-dark) !important;
+}
+
+/* Sidebar states are quiet, legible, and identical across the four pages. */
+.superadmin-management-page #sidebar .side-menu li a {
+    border-radius: 8px !important;
+    transition: background-color .16s ease, color .16s ease, transform .16s ease !important;
+}
+
+.superadmin-management-page #sidebar .side-menu li.active a,
+.superadmin-management-page #sidebar .side-menu li a.active {
+    color: #fff !important;
+    background: rgba(255,255,255,.15) !important;
+    box-shadow: inset 3px 0 var(--management-gold) !important;
+}
+
+.superadmin-management-page #sidebar .side-menu li.active a .bx,
+.superadmin-management-page #sidebar .side-menu li a.active .bx {
+    color: #f0d98e !important;
+}
+
+.superadmin-management-page #sidebar .side-menu li a:hover {
+    color: #fff !important;
+    background: rgba(255,255,255,.1) !important;
+}
+
+.superadmin-management-page #sidebar .side-menu li a:hover .bx {
+    color: #f0d98e !important;
+}
+
+.superadmin-management-page #content > .files-container,
+.superadmin-management-page #content > .container-fluid,
+.superadmin-management-page #content > .main-container,
+.superadmin-management-page #content > main {
+    width: min(100%, 1560px);
+    min-width: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.superadmin-management-page .files-container,
+.superadmin-management-page .main-container {
+    padding: 26px clamp(16px, 2.4vw, 36px) 42px !important;
+    background: transparent !important;
+}
+
+.superadmin-management-page .files-container,
+.superadmin-management-page .main-container,
+.superadmin-management-page .container-fluid {
+    margin-top: 68px !important;
+}
+
+.superadmin-management-page .files-header,
+.superadmin-management-page .search-filters,
+.superadmin-management-page .folders-sidebar,
+.superadmin-management-page .files-content,
+.superadmin-management-page .controls-bar,
+.superadmin-management-page .filters-card,
+.superadmin-management-page .logs-card,
+.superadmin-management-page .filter-section,
+.superadmin-management-page .report-nav,
+.superadmin-management-page .folder-card,
+.superadmin-management-page .card {
+    min-width: 0;
+    border: 1px solid var(--management-line) !important;
+    border-radius: 10px !important;
+    background: var(--management-white) !important;
+    box-shadow: 0 1px 3px rgba(24,47,31,.045) !important;
+}
+
+.superadmin-management-page .files-header,
+.superadmin-management-page .search-filters,
+.superadmin-management-page .folders-sidebar,
+.superadmin-management-page .files-content,
+.superadmin-management-page .controls-bar,
+.superadmin-management-page .filters-card,
+.superadmin-management-page .logs-card,
+.superadmin-management-page .filter-section,
+.superadmin-management-page .report-nav {
+    padding: clamp(16px, 2vw, 24px) !important;
+    margin-bottom: 18px !important;
+}
+
+.superadmin-management-page .files-header h1,
+.superadmin-management-page .files-header h2,
+.superadmin-management-page .page-title h1,
+.superadmin-management-page .page-header h1,
+.superadmin-management-page .page-header h2 {
+    color: var(--management-ink) !important;
+    font-size: clamp(21px, 2vw, 28px) !important;
+    font-weight: 650 !important;
+    letter-spacing: -.025em;
+    line-height: 1.25;
+}
+
+.superadmin-management-page .files-header p,
+.superadmin-management-page .page-header p {
+    color: var(--management-muted) !important;
+    font-size: 14px;
+}
+
+.superadmin-management-page .files-header,
+.superadmin-management-page .page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.superadmin-management-page .files-actions,
+.superadmin-management-page .header-actions,
+.superadmin-management-page .quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px !important;
+    min-width: 0;
+}
+
+/* Remove decorative top stripes and gradient container headings. */
+.superadmin-management-page .stat-card::before,
+.superadmin-management-page .card::before,
+.superadmin-management-page .files-header::before,
+.superadmin-management-page .page-header::before,
+.superadmin-management-page .filters-card::before,
+.superadmin-management-page .logs-card::before,
+.superadmin-management-page .files-content::before,
+.superadmin-management-page .folder-card::before {
+    display: none !important;
+}
+
+.superadmin-management-page .card-header,
+.superadmin-management-page .logs-header,
+.superadmin-management-page .filters-header,
+.superadmin-management-page .files-toolbar {
+    color: var(--management-ink) !important;
+    border-bottom: 1px solid var(--management-line) !important;
+    background: #fff !important;
+}
+
+.superadmin-management-page .card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.superadmin-management-page .stat-card,
+.superadmin-management-page .stats-cards .stat-card,
+.superadmin-management-page .stats-grid .stat-card {
+    min-width: 0;
+    border: 1px solid var(--management-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    color: var(--management-ink) !important;
+    box-shadow: 0 1px 3px rgba(24,47,31,.045) !important;
+}
+
+.superadmin-management-page .stats-cards,
+.superadmin-management-page .stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)) !important;
+    gap: 14px !important;
+    margin: 0 0 18px !important;
+}
+
+.superadmin-management-page .stat-number,
+.superadmin-management-page .stat-card h3,
+.superadmin-management-page .stat-info h3 {
+    color: var(--management-green-dark) !important;
+    font-size: clamp(22px, 2.4vw, 30px) !important;
+    font-weight: 680 !important;
+}
+
+.superadmin-management-page .stat-label,
+.superadmin-management-page .stat-info p {
+    color: var(--management-muted) !important;
+    font-size: 12px !important;
+}
+
+.superadmin-management-page .stat-icon,
+.superadmin-management-page .page-title .icon {
+    color: var(--management-green) !important;
+    background: var(--management-green-soft) !important;
+    border: 1px solid #e2eee4;
+}
+
+.superadmin-management-page .btn,
+.superadmin-management-page .btn-modern,
+.superadmin-management-page .btn-action,
+.superadmin-management-page .view-btn,
+.superadmin-management-page .pagination button {
+    min-height: 36px;
+    border-radius: 7px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease !important;
+}
+
+.superadmin-management-page .btn-primary,
+.superadmin-management-page .btn-primary-modern,
+.superadmin-management-page .btn-success,
+.superadmin-management-page .btn-success-modern,
+.superadmin-management-page .btn-download {
+    border: 1px solid var(--management-green) !important;
+    background: var(--management-green) !important;
+    color: #fff !important;
+}
+
+.superadmin-management-page .btn-primary:hover,
+.superadmin-management-page .btn-primary-modern:hover,
+.superadmin-management-page .btn-success:hover,
+.superadmin-management-page .btn-success-modern:hover,
+.superadmin-management-page .btn-download:hover {
+    border-color: var(--management-green-dark) !important;
+    background: var(--management-green-dark) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.superadmin-management-page .btn-warning {
+    border-color: #e9d49a !important;
+    background: #fbf5e5 !important;
+    color: #70551a !important;
+}
+
+.superadmin-management-page .btn-secondary,
+.superadmin-management-page .btn-outline,
+.superadmin-management-page .btn-light,
+.superadmin-management-page .view-btn,
+.superadmin-management-page .pagination button {
+    border: 1px solid var(--management-line) !important;
+    background: #fff !important;
+    color: var(--management-green-dark) !important;
+}
+
+.superadmin-management-page .btn-secondary:hover,
+.superadmin-management-page .btn-outline:hover,
+.superadmin-management-page .btn-light:hover,
+.superadmin-management-page .pagination button:hover:not(:disabled) {
+    border-color: #c3d8c7 !important;
+    background: var(--management-green-soft) !important;
+}
+
+.superadmin-management-page input:not([type="checkbox"]):not([type="radio"]),
+.superadmin-management-page select,
+.superadmin-management-page textarea,
+.superadmin-management-page .form-control,
+.superadmin-management-page .form-select,
+.superadmin-management-page .form-control-modern {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    border: 1px solid #d9e3da !important;
+    border-radius: 7px !important;
+    background: #fff !important;
+    color: var(--management-ink) !important;
+    box-shadow: none !important;
+}
+
+.superadmin-management-page input:focus,
+.superadmin-management-page select:focus,
+.superadmin-management-page textarea:focus {
+    border-color: #55ad6e !important;
+    outline: 2px solid rgba(0,107,46,.12);
+}
+
+.superadmin-management-page label,
+.superadmin-management-page .form-label {
+    color: #46554b !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+.superadmin-management-page .files-container .filter-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(130px, 1fr)) auto;
+    align-items: end;
+    gap: 12px !important;
+}
+
+.superadmin-management-page .files-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px !important;
+}
+
+.superadmin-management-page .files-grid > *,
+.superadmin-management-page .files-content,
+.superadmin-management-page .folders-sidebar,
+.superadmin-management-page .folder-info,
+.superadmin-management-page .folder-actions {
+    min-width: 0;
+}
+
+.superadmin-management-page .files-table,
+.superadmin-management-page .folders-table,
+.superadmin-management-page .logs-body table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.superadmin-management-page #filesTableContainer,
+.superadmin-management-page .table-view,
+.superadmin-management-page .table-responsive,
+.superadmin-management-page .logs-body {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+}
+
+.superadmin-management-page .files-table th,
+.superadmin-management-page .folders-table th,
+.superadmin-management-page .logs-body th {
+    background: #f6f8f6 !important;
+    color: #647168 !important;
+    border-color: var(--management-line) !important;
+    font-size: 11px !important;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+}
+
+.superadmin-management-page .files-table td,
+.superadmin-management-page .folders-table td,
+.superadmin-management-page .logs-body td {
+    border-color: #edf1ed !important;
+    color: #39473e;
+}
+
+.superadmin-management-page .storage-info {
+    border: 1px solid #dceade !important;
+    border-radius: 10px !important;
+    background: var(--management-green-soft) !important;
+    color: var(--management-ink) !important;
+    box-shadow: none !important;
+}
+
+.superadmin-management-page .storage-bar { background: #dceade !important; }
+.superadmin-management-page .storage-progress { background: var(--management-green) !important; }
+.superadmin-management-page .files-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px !important;
+}
+
+.superadmin-management-page .files-toolbar > div,
+.superadmin-management-page .view-toggle {
+    min-width: 0;
+}
+
+.superadmin-management-page .controls-bar {
+    display: grid !important;
+    grid-template-columns: minmax(180px, 1.2fr) auto minmax(140px, .8fr) minmax(130px, .7fr);
+    align-items: center;
+    gap: 12px !important;
+}
+
+.superadmin-management-page .controls-bar .search-box {
+    width: 100%;
+    max-width: none !important;
+}
+
+.superadmin-management-page .controls-bar .view-toggle {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 4px;
+    border: 1px solid var(--management-line);
+    border-radius: 8px;
+    background: #f7f9f7 !important;
+    overflow-x: auto;
+}
+
+.superadmin-management-page .controls-bar .view-btn {
+    min-height: 36px;
+    padding: 7px 10px !important;
+    white-space: nowrap;
+}
+
+.superadmin-management-page .controls-bar .view-btn.active,
+.superadmin-management-page .pagination button.active {
+    border-color: var(--management-green) !important;
+    background: var(--management-green) !important;
+    color: #fff !important;
+}
+
+.superadmin-management-page .folder-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)) !important;
+    gap: 14px !important;
+}
+
+.superadmin-management-page .folder-card {
+    padding: 18px !important;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+.superadmin-management-page .folder-card:hover {
+    border-color: #c8dccb !important;
+    box-shadow: 0 5px 16px rgba(24,47,31,.08) !important;
+    transform: translateY(-1px);
+}
+
+.superadmin-management-page .folder-header,
+.superadmin-management-page .folder-actions {
+    flex-wrap: wrap;
+}
+
+.superadmin-management-page .folder-actions .btn-action {
+    flex: 1 1 auto;
+    justify-content: center;
+}
+
+.reports-management-page .container-fluid {
+    padding: 24px clamp(16px, 2.4vw, 36px) 42px !important;
+}
+
+.reports-management-page .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px !important;
+    border: 1px solid var(--management-line) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    color: var(--management-ink) !important;
+    box-shadow: 0 1px 3px rgba(24,47,31,.045) !important;
+}
+
+.reports-management-page .page-header p { opacity: 1 !important; }
+
+.reports-management-page .report-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
+    gap: 4px;
+    overflow-x: auto;
+}
+
+.reports-management-page .report-nav .nav-item { flex: 0 0 auto; }
+.reports-management-page .report-nav .nav-link {
+    margin: 0 !important;
+    color: #59675e !important;
+    white-space: nowrap;
+}
+
+.reports-management-page .report-nav .nav-link:hover {
+    background: var(--management-green-soft) !important;
+    color: var(--management-green-dark) !important;
+}
+
+.reports-management-page .report-nav .nav-link.active {
+    background: var(--management-green) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.reports-management-page .row.mb-4 {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr));
+    gap: 14px;
+    margin: 0 0 18px !important;
+}
+
+.reports-management-page .row.mb-4 > [class*="col-"] {
+    width: auto;
+    max-width: none;
+    padding: 0;
+}
+
+.reports-management-page .card.stat-card {
+    min-height: 100%;
+    color: var(--management-ink) !important;
+    background: #fff !important;
+}
+
+.reports-management-page .card-header {
+    padding: 14px 18px !important;
+    border-bottom: 1px solid var(--management-line) !important;
+    background: #fff !important;
+    color: var(--management-ink) !important;
+}
+
+.reports-management-page .card-header h5 { color: var(--management-ink) !important; }
+.reports-management-page .stat-icon {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px;
+    border-radius: 10px !important;
+    background: var(--management-green-soft) !important;
+    color: var(--management-green) !important;
+    font-size: 18px !important;
+}
+
+.reports-management-page .table thead.table-dark th {
+    background: #f6f8f6 !important;
+    color: #59675e !important;
+    border-color: var(--management-line) !important;
+}
+
+.reports-management-page .chart-container { min-width: 0; }
+
+.activity-logs-page .filters-card,
+.activity-logs-page .logs-card { overflow: hidden; }
+
+.activity-logs-page .filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 14px !important;
+}
+
+.activity-logs-page .filter-row > .form-group:first-child:has(#searchFilter) {
+    grid-column: 1 / -1;
+}
+
+.activity-logs-page .filters-card > div[style*="justify-content"] {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.activity-logs-page .logs-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.activity-logs-page .logs-header .form-control-modern { width: auto; }
+.activity-logs-page .log-item {
+    display: grid;
+    grid-template-columns: 40px 32px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px !important;
+    border-bottom: 1px solid #edf1ed !important;
+}
+
+.activity-logs-page .log-content,
+.activity-logs-page .log-header,
+.activity-logs-page .log-meta { min-width: 0; }
+.activity-logs-page .log-header,
+.activity-logs-page .log-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.activity-logs-page .log-time { margin-left: auto; }
+.activity-logs-page .metadata-content { max-width: 100%; overflow-x: auto; }
+.activity-logs-page .metadata-content pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.activity-logs-page .pagination-modern {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+@media (max-width: 1100px) {
+    .superadmin-management-page .files-grid {
+        grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+    }
+
+    .superadmin-management-page .files-container .filter-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .superadmin-management-page .controls-bar {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    }
+
+    .superadmin-management-page .controls-bar .search-box,
+    .superadmin-management-page .controls-bar .view-toggle {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 760px) {
+    .superadmin-management-page .files-container,
+    .superadmin-management-page .main-container,
+    .superadmin-management-page .container-fluid {
+        margin-top: 60px !important;
+    }
+
+    .superadmin-management-page .files-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .superadmin-management-page .folders-sidebar { order: 0; }
+    .superadmin-management-page .files-container .filter-row { grid-template-columns: minmax(0, 1fr); }
+
+    .superadmin-management-page .files-header,
+    .superadmin-management-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .superadmin-management-page .files-actions,
+    .superadmin-management-page .header-actions {
+        width: 100%;
+    }
+
+    .superadmin-management-page .files-actions .btn,
+    .superadmin-management-page .header-actions .btn-modern {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .reports-management-page .row.mb-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .superadmin-management-page .files-container,
+    .superadmin-management-page .main-container,
+    .reports-management-page .container-fluid {
+        padding-right: 12px !important;
+        padding-left: 12px !important;
+    }
+
+    .superadmin-management-page .stats-cards,
+    .superadmin-management-page .stats-grid,
+    .reports-management-page .row.mb-4 {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .superadmin-management-page .controls-bar {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .superadmin-management-page .controls-bar .view-toggle {
+        grid-column: 1;
+        width: 100%;
+    }
+
+    .superadmin-management-page .controls-bar .view-btn { flex: 1 0 auto; }
+    .activity-logs-page .log-item { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+    .activity-logs-page .log-icon { display: none; }
+    .activity-logs-page .log-time { width: 100%; margin-left: 0; }
+    .activity-logs-page .pagination-modern { align-items: stretch; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .superadmin-management-page *,
+    .superadmin-management-page *::before,
+    .superadmin-management-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}

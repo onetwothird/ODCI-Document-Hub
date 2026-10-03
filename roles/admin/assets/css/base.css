@@ -1,0 +1,496 @@
+/* Import Inter font to match login theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+}
+
+li {
+    list-style: none;
+}
+
+/* Updated CSS Variables - Matching Login Theme */
+:root {
+    /* Updated font family */
+    --poppins: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --lato: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Updated color scheme */
+    --light: #f8fafc;
+    --blue: #28a745; /* Changed from blue to green to match login */
+    --light-blue: #f0fdf4; /* Light green instead of blue */
+    --grey: #f1f5f9;
+    --dark-grey: #94a3b8;
+    --dark: #1f2937;
+    --red: #dc2626;
+    --yellow: #eab308;
+    --light-yellow: #fef3c7;
+    --orange: #f97316;
+    --light-orange: #fed7aa;
+    
+    /* Additional green variations */
+    --green-primary: #28a745;
+    --green-hover: #1e7e34;
+    --green-light: #f0fdf4;
+    --green-lighter: rgba(40, 167, 69, 0.1);
+    
+    /* Text colors */
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+}
+
+/* Dark Mode Variables */
+body.dark {
+    --light: #1e293b;
+    --grey: #0f172a;
+    --dark: #f8fafc;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+}
+
+/* Base Body Styles */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    background: var(--grey);
+    overflow-x: hidden;
+    font-family: var(--poppins);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Main Content Area */
+#content main {
+    width: 100%;
+    padding: 36px 24px;
+    font-family: var(--poppins);
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+}
+
+/* Common Head Title */
+#content main .head-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    grid-gap: 16px;
+    flex-wrap: wrap;
+}
+
+#content main .head-title .left h1 {
+    font-size: 36px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+#content main .head-title .left .breadcrumb {
+    display: flex;
+    align-items: center;
+    grid-gap: 16px;
+}
+
+#content main .head-title .left .breadcrumb li {
+    color: var(--text-primary);
+}
+
+#content main .head-title .left .breadcrumb li a {
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+#content main .head-title .left .breadcrumb li a.active {
+    color: var(--blue); /* This will now be green */
+    pointer-events: unset;
+}
+
+/* Updated Download Button - Green Theme */
+#content main .head-title .btn-download {
+    height: 44px; /* Increased height to match login buttons */
+    padding: 0 24px; /* Increased padding */
+    border-radius: 12px; /* Updated border radius to match login */
+    background: linear-gradient(135deg, var(--blue) 0%, var(--green-hover) 100%);
+    color: var(--light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-gap: 10px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(40, 167, 69, 0.1);
+}
+
+#content main .head-title .btn-download:hover {
+    background: linear-gradient(135deg, var(--green-hover) 0%, #155724 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Common Box Info */
+#content main .box-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-gap: 24px;
+    margin-top: 36px;
+}
+
+#content main .box-info li {
+    padding: 24px;
+    background: var(--light);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    grid-gap: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+#content main .box-info li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+#content main .box-info li .bx {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px; /* More rounded to match login style */
+    font-size: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#content main .box-info li:nth-child(1) .bx {
+    background: var(--light-blue);
+    color: var(--blue);
+}
+
+#content main .box-info li:nth-child(2) .bx {
+    background: var(--light-yellow);
+    color: var(--yellow);
+}
+
+#content main .box-info li:nth-child(3) .bx {
+    background: var(--light-orange);
+    color: var(--orange);
+}
+
+#content main .box-info li .text h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#content main .box-info li .text p {
+    color: var(--text-secondary);
+}
+
+/* Common Table Data */
+#content main .table-data {
+    display: flex;
+    flex-wrap: wrap;
+    grid-gap: 24px;
+    margin-top: 24px;
+    width: 100%;
+    color: var(--text-primary);
+}
+
+#content main .table-data > div {
+    border-radius: 20px;
+    background: var(--light);
+    padding: 24px;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+#content main .table-data > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+#content main .table-data .head {
+    display: flex;
+    align-items: center;
+    grid-gap: 16px;
+    margin-bottom: 24px;
+}
+
+#content main .table-data .head h3 {
+    margin-right: auto;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#content main .table-data .head .bx {
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+#content main .table-data .head .bx:hover {
+    color: var(--blue);
+}
+
+/* Base Table Styles */
+#content main .table-data .order {
+    flex-grow: 1;
+    flex-basis: 500px;
+}
+
+#content main .table-data .order table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#content main .table-data .order table th {
+    padding-bottom: 12px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--grey);
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#content main .table-data .order table td {
+    padding: 16px 0;
+    color: var(--text-primary);
+}
+
+#content main .table-data .order table tr td:first-child {
+    display: flex;
+    align-items: center;
+    grid-gap: 12px;
+    padding-left: 6px;
+}
+
+#content main .table-data .order table td img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+}
+
+#content main .table-data .order table tbody tr:hover {
+    background: var(--grey);
+}
+
+#content main .table-data .order table tr td .status {
+    font-size: 10px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Updated status colors to match green theme */
+#content main .table-data .order table tr td .status.completed {
+    background: var(--green-light);
+    color: var(--blue);
+}
+
+#content main .table-data .order table tr td .status.process {
+    background: var(--light-yellow);
+    color: var(--yellow);
+}
+
+#content main .table-data .order table tr td .status.pending {
+    background: var(--light-orange);
+    color: var(--orange);
+}
+
+/* Todo Styles */
+#content main .table-data .todo {
+    flex-grow: 1;
+    flex-basis: 300px;
+}
+
+#content main .table-data .todo .todo-list {
+    width: 100%;
+}
+
+#content main .table-data .todo .todo-list li {
+    width: 100%;
+    margin-bottom: 16px;
+    background: var(--grey);
+    border-radius: 12px; /* Updated to match login style */
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+#content main .table-data .todo .todo-list li:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+#content main .table-data .todo .todo-list li .bx {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+#content main .table-data .todo .todo-list li .bx:hover {
+    color: var(--blue);
+}
+
+#content main .table-data .todo .todo-list li.completed {
+    border-left: 4px solid var(--blue);
+    background: var(--green-light);
+}
+
+#content main .table-data .todo .todo-list li.not-completed {
+    border-left: 4px solid var(--orange);
+}
+
+#content main .table-data .todo .todo-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Button Styles - Matching Login Theme */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--poppins);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--green-hover) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--green-hover) 0%, #155724 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--text-secondary);
+    border-color: #e2e8f0;
+}
+
+.btn-secondary:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--green-light);
+}
+
+/* Form Controls - Matching Login Style */
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: var(--poppins);
+    color: var(--text-primary);
+    background: white;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Mobile Base Responsiveness */
+@media screen and (max-width: 768px) {
+    #content main {
+        padding: 24px 16px;
+    }
+    
+    #content main .head-title .left h1 {
+        font-size: 28px;
+    }
+    
+    #content main .box-info {
+        grid-template-columns: 1fr;
+        grid-gap: 16px;
+    }
+    
+    #content main .box-info li {
+        padding: 20px;
+    }
+    
+    #content main .box-info li .bx {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    #content main .table-data {
+        grid-gap: 16px;
+    }
+    
+    #content main .table-data > div {
+        padding: 20px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    #content main .box-info {
+        grid-template-columns: 1fr;
+    }
+
+    #content main .table-data .head {
+        min-width: 420px;
+    }
+    
+    #content main .table-data .order table {
+        min-width: 420px;
+    }
+    
+    #content main .table-data .todo .todo-list {
+        min-width: 420px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+    
+    .form-control {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+}

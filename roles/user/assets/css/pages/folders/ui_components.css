@@ -1,0 +1,175 @@
+.upload-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.upload-btn:hover::before {
+    left: 100%;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.upload-btn:hover i {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.upload-btn i {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.search-section {
+    background: var(--grey);
+    border-radius: 12px;
+    margin-bottom: 36px;
+    margin-top: 18px;
+}
+
+.search-bar {
+    position: relative;
+    max-width: 400px;
+}
+.search-bar input {
+    width: 100%;
+    padding: 12px 16px 12px 48px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-bar i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 18px;
+}
+
+.profile img {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover img {
+    border-color: var(--blue);
+}
+
+.profile-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover .profile-icon {
+    border-color: var(--blue);
+}
+
+.profile {
+    position: relative;
+}
+
+.profile::after {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: var(--blue);
+    color: white;
+    font-size: 8px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px 15px;
+    color: #64748b;
+    grid-column: 1 / -1;
+}
+
+.empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    color: #cbd5e1;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 30px 15px;
+    color: #64748b;
+    grid-column: 1 / -1;
+}
+
+.loading-state i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: #10b981;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 600px;
+    }
+}
+
+/* Pulse animation for download stats */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}

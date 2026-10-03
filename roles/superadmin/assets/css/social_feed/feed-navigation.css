@@ -1,0 +1,270 @@
+/* Enhanced Feed Navigation - Smooth animations and professional design */
+
+.feed-navigation {
+    flex-shrink: 0;
+    margin-bottom: 32px;
+}
+
+.feed-tabs {
+    display: flex;
+    background: var(--color-surface);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 6px;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--color-border-subtle);
+    overflow-x: auto;
+    gap: 4px;
+    position: relative;
+    font-family: var(--font-family-primary);
+}
+
+.feed-tabs::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left var(--duration-slow) var(--transition-smooth);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.feed-tabs:hover::before {
+    left: 100%;
+}
+
+.feed-tab {
+    flex: 1;
+    min-width: max-content;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    transition: all var(--duration-normal) var(--transition-ultra-smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    white-space: nowrap;
+    font-family: var(--font-family-primary);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: -0.01em;
+}
+
+.feed-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.02) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: all var(--duration-normal) var(--transition-bounce);
+    border-radius: 16px;
+}
+
+.feed-tab:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--gray-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+}
+
+.feed-tab:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.feed-tab.active {
+    background: linear-gradient(135deg, var(--primary-green) 0%, #059669 100%);
+    color: white;
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-1px) scale(1.02);
+    font-weight: 600;
+    position: relative;
+}
+
+.feed-tab.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left var(--duration-normal) var(--transition-smooth);
+    border-radius: 16px;
+}
+
+.feed-tab.active:hover::after {
+    left: 100%;
+}
+
+.feed-tab:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.feed-tab i {
+    font-size: 1.1rem;
+    transition: transform var(--duration-normal) var(--transition-smooth);
+}
+
+.feed-tab:hover i {
+    transform: scale(1.1);
+}
+
+.feed-tab.active i {
+    transform: scale(1.05);
+}
+
+/* Tab switching animation */
+.feed-tab.switching-out {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.feed-tab.switching-in {
+    animation: tabSwitchIn var(--duration-normal) var(--transition-bounce);
+}
+
+@keyframes tabSwitchIn {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.95) translateY(5px);
+    }
+    60% {
+        transform: scale(1.05) translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.02) translateY(-1px);
+    }
+}
+
+/* Enhanced focus states */
+.feed-tab:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px hsla(142, 71%, 45%, 0.3);
+}
+
+.feed-tab.active:focus {
+    box-shadow: var(--shadow-medium), 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Custom scrollbar for horizontal overflow */
+.feed-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.feed-tabs::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 2px;
+}
+
+.feed-tabs::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    transition: background var(--duration-normal) var(--transition-smooth);
+}
+
+.feed-tabs::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Loading state for tabs */
+.feed-tab.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.feed-tab.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translateY(-50%);
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .feed-navigation {
+        margin-bottom: 24px;
+    }
+
+    .feed-tabs {
+        padding: 4px;
+        gap: 2px;
+        border-radius: 16px;
+        margin: 0 4px;
+    }
+
+    .feed-tab {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        min-width: auto;
+        border-radius: 12px;
+    }
+
+    .feed-tab i {
+        font-size: 1rem;
+    }
+
+    /* Hide text on very small screens, show icons only */
+    @media (max-width: 480px) {
+        .feed-tab span {
+            display: none;
+        }
+
+        .feed-tab {
+            padding: 12px;
+            min-width: 48px;
+        }
+
+        .feed-tab i {
+            font-size: 1.2rem;
+        }
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .feed-tabs {
+        border: 2px solid var(--text-primary);
+    }
+    
+    .feed-tab.active {
+        background: var(--text-primary);
+        color: var(--white);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .feed-tab,
+    .feed-tabs::before,
+    .feed-tab::before,
+    .feed-tab::after {
+        transition: none;
+        animation: none;
+    }
+}

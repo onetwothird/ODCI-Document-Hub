@@ -1,0 +1,144 @@
+<?php
+require_once '../../includes/config.php';
+
+// Default profile image path
+$defaultProfileImage = '../../img/cvsu-logo.png';
+
+// Get user ID from session
+$userId = $_SESSION['user_id'] ?? null;
+
+// Initialize profile image and name variables
+$profileImage = $defaultProfileImage;
+$userName = 'Profile';
+$userRole = 'Faculty';
+$userDepartment = '';
+
+// Fetch user data from database if logged in
+if ($userId) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT u.profile_image, u.name, u.mi, u.surname, u.role, u.position, 
+                   d.department_name, d.department_code 
+            FROM users u 
+            LEFT JOIN departments d ON u.department_id = d.id 
+            WHERE u.id = ?
+        ");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user) {
+            // Construct full name
+            $fullName = trim($user['name'] . ' ' . (!empty($user['mi']) ? $user['mi'] . '. ' : '') . $user['surname']);
+            $userName = htmlspecialchars($fullName);
+            
+            // Set user role/position
+            if (!empty($user['position'])) {
+                $userRole = htmlspecialchars($user['position']);
+            } elseif (!empty($user['role'])) {
+                $userRole = htmlspecialchars(ucfirst($user['role']));
+            }
+            
+            // Set department
+            if (!empty($user['department_name'])) {
+                $userDepartment = htmlspecialchars($user['department_name']);
+            }
+            
+            // Set profile image if exists in database
+            if (!empty($user['profile_image'])) {
+                $dbImagePath = $user['profile_image'];
+                $webImagePath = '../../' . ltrim($dbImagePath, '/');
+                $fileSystemPath = '../../' . ltrim($dbImagePath, '/');
+                
+                if (file_exists($fileSystemPath)) {
+                    $profileImage = $webImagePath . '?v=' . filemtime($fileSystemPath);
+                } else {
+                    error_log("Profile image not found at: " . $fileSystemPath);
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Database error fetching profile: " . $e->getMessage());
+    }
+}
+
+// Get notification count
+$notificationCount = 0;
+if ($userId) {
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt->execute([$userId]);
+        $notificationCount = $stmt->fetchColumn();
+    } catch (PDOException $e) {
+        error_log("Database error fetching notifications: " . $e->getMessage());
+    }
+}
+?>
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+<nav class="app-navbar user-navbar">
+    <div class="nav-left">
+        <button type="button" class="toggle-sidebar" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+            <i class='bx bx-menu' aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div class="nav-right">
+        <!-- Quick Actions -->
+        <div class="nav-actions">
+            <button type="button" class="nav-action-btn" title="New Post" aria-label="Create a post" data-action="new-post">
+                <i class='bx bx-plus' aria-hidden="true"></i>
+            </button>
+            
+            <button type="button" class="nav-action-btn" title="Upload File" aria-label="Upload a file" data-action="upload">
+                <i class='bx bx-upload' aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notification-container">
+            <button class="notification-btn" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notificationDropdown">
+                <i class='bx bx-bell'></i>
+                <span class="notification-badge"<?= $notificationCount > 0 ? '' : ' hidden' ?>><?= (int)$notificationCount ?></span>
+            </button>
+            <div class="notification-dropdown" id="notificationDropdown" data-endpoint="ajax/notifications.php" data-feed-url="social_feed.php">
+                <div class="notification-header">
+                    <h4>Notifications</h4>
+                    <button class="mark-all-read" type="button">Mark all read</button>
+                </div>
+                <div class="notification-list" id="notificationList" data-csrf-token="<?= htmlspecialchars(generateCSRFToken(), ENT_QUOTES, 'UTF-8') ?>" aria-live="polite">
+                    <div class="cvsu-notification-loading" aria-label="Loading notifications">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+                <div class="notification-footer">
+                    <a href="social_feed.php">Open Social Feed</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile -->
+        <div class="profile-section">
+            <div class="profile-info">
+                <span class="user-name"><?php echo $userName; ?></span>
+                <span class="user-department"><?php echo $userDepartment ?: $userRole; ?></span>
+            </div>
+            
+            <a href="../user/settings.php" class="profile-image">
+                <img src="<?php echo htmlspecialchars($profileImage); ?>" alt="<?php echo $userName; ?>">
+            </a>
+            
+            <div class="profile-dropdown">
+                <div class="dropdown-item">
+                    <i class='bx bx-cog'></i>
+                    <a href="../user/settings.php">Account Settings</a>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item">
+                    <i class='bx bx-log-out'></i>
+                    <a href="../../logout.php">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+

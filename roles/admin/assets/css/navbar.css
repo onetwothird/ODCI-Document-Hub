@@ -1,0 +1,249 @@
+/* Navbar Component Styles - Green Theme */
+
+/* Import required fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Navbar CSS Variables - Green Theme */
+:root {
+    --navbar-poppins: 'Poppins';
+    /* --navbar-lato: 'Lato', sans-serif; */
+    --navbar-background: #04500f; /* Green background */
+    --navbar-light: #ffffff; /* White text and elements */
+    --navbar-green: #ffffff; /* White for contrast */
+    --navbar-grey: rgba(255, 255, 255, 0.2); /* Transparent white for inputs */
+    --navbar-dark-grey: #AAAAAA;
+    --navbar-dark: #ffffff; /* White text */
+    --navbar-red: #ff6b6b; /* Light red for notifications */
+    --navbar-blue: #1e7e34; /* Darker green for accents */
+    --navbar-hover: rgba(255, 255, 255, 0.1); /* White hover overlay */
+}
+
+/* Dark mode overrides for navbar */
+body.dark {
+    --navbar-background: #1e7e34; /* Darker green for dark mode */
+    --navbar-light: #ffffff;
+    --navbar-dark: #ffffff;
+    --navbar-blue: #ffffff;
+}
+
+/* NAVBAR */
+#content nav {
+    height: 56px;
+    background: var(--navbar-background);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    grid-gap: 24px;
+    font-family: var(--navbar-poppins);
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#content nav::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    bottom: -40px;
+    left: 0;
+    border-radius: 50%;
+    box-shadow: -20px -20px 0 var(--navbar-background);
+}
+
+#content nav a {
+    color: var(--navbar-dark);
+    text-decoration: none;
+}
+
+#content nav .bx.bx-menu {
+    cursor: pointer;
+    color: var(--navbar-dark);
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+#content nav .bx.bx-menu:hover {
+    background: var(--navbar-hover);
+}
+
+#content nav .nav-link {
+    font-size: 16px;
+    transition: .3s ease;
+    font-weight: 500;
+}
+
+#content nav .nav-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#content nav form {
+    max-width: 400px;
+    width: 100%;
+    margin-right: auto;
+}
+
+#content nav form .form-input {
+    display: flex;
+    align-items: center;
+    height: 36px;
+}
+
+#content nav form .form-input input {
+    flex-grow: 1;
+    padding: 0 16px;
+    height: 100%;
+    border: none;
+    background: var(--navbar-grey);
+    border-radius: 36px 0 0 36px;
+    outline: none;
+    width: 100%;
+    color: var(--navbar-dark);
+}
+
+#content nav form .form-input input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#content nav form .form-input button {
+    width: 36px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--navbar-blue);
+    color: var(--navbar-light);
+    font-size: 18px;
+    border: none;
+    outline: none;
+    border-radius: 0 36px 36px 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#content nav form .form-input button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#content nav .notification {
+    font-size: 20px;
+    position: relative;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+#content nav .notification:hover {
+    background: var(--navbar-hover);
+}
+
+#content nav .notification .num {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--navbar-background);
+    background: var(--navbar-red);
+    color: var(--navbar-light);
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#content nav .profile {
+    text-decoration: none;
+    padding: 2px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+#content nav .profile:hover {
+    background: var(--navbar-hover);
+}
+
+#content nav .profile img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+#content nav .switch-mode {
+    display: block;
+    min-width: 50px;
+    height: 25px;
+    border-radius: 25px;
+    background: var(--navbar-grey);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+#content nav .switch-mode:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+#content nav .switch-mode::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    width: calc(25px - 4px);
+    background: var(--navbar-light);
+    border-radius: 50%;
+    transition: all .3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#content nav #switch-mode:checked + .switch-mode::before {
+    left: calc(100% - (25px - 4px) - 2px);
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    #content nav .nav-link {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    #content nav form .form-input input {
+        display: none;
+    }
+
+    #content nav form .form-input button {
+        width: auto;
+        height: auto;
+        background: transparent;
+        border-radius: none;
+        color: var(--navbar-dark);
+    }
+
+    #content nav form.show .form-input input {
+        display: block;
+        width: 100%;
+    }
+    
+    #content nav form.show .form-input button {
+        width: 36px;
+        height: 100%;
+        border-radius: 0 36px 36px 0;
+        color: var(--navbar-light);
+        background: var(--navbar-blue);
+    }
+
+    #content nav form.show ~ .notification,
+    #content nav form.show ~ .profile {
+        display: none;
+    }
+}

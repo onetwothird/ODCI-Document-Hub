@@ -1,0 +1,82 @@
+/* Categories Grid */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.category-item {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.category-item:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    border-color: #d1d5db;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fafafa;
+}
+
+.category-header:hover {
+    background: #f5f5f5;
+}
+
+.category-header.active {
+    background: #f0f9ff;
+    border-bottom-color: #e0f2fe;
+}
+
+.category-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.category-info {
+    flex: 1;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--dark);
+    margin-bottom: 3px;
+    line-height: 1.3;
+}
+
+.category-count {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.category-semester-content {
+    display: none;
+    background: white;
+}
+
+.category-semester-content.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}

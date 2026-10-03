@@ -1,0 +1,33 @@
+.profile img {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover img {
+    border-color: var(--blue);
+}
+
+.profile-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #e0e6ed;
+    transition: border-color 0.3s ease;
+}
+
+.profile:hover .profile-icon {
+    border-color: var(--blue);
+}
+
+.profile {
+    position: relative;
+}

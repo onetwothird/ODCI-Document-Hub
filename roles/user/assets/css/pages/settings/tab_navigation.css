@@ -1,0 +1,27 @@
+.tab-btn:not(.active):hover {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--blue);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--blue) 0%, #2980b9 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+@media (max-width: 768px) {
+    .settings-tabs {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    main {
+        padding: 0 16px;
+    }
+}

@@ -1,0 +1,103 @@
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+    
+    .files-grid {
+        grid-template-columns: 1fr;
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .department-header,
+    .category-header {
+        padding: 12px 16px;
+    }
+    
+    .department-name,
+    .category-name {
+        font-size: 13px;
+    }
+    
+    .department-notice {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .category-item {
+        margin-bottom: 12px;
+    }
+    
+    .semester-tabs {
+        flex-direction: column;
+    }
+    
+    .semester-tab {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .semester-tab:last-child {
+        border-bottom: none;
+    }
+    
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .department-tree,
+    .search-section {
+        padding: 16px;
+    }
+    
+    .categories-grid {
+        gap: 12px;
+    }
+    
+    .file-card {
+        padding: 12px;
+    }
+    
+    .file-name {
+        font-size: 12px;
+    }
+    
+    .file-meta {
+        font-size: 10px;
+    }
+    
+    .upload-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    .upload-btn .text {
+        display: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .upload-btn,
+    .search-section,
+    .file-card {
+        box-shadow: none !important;
+    }
+    
+    .file-card::before {
+        display: none;
+    }
+}

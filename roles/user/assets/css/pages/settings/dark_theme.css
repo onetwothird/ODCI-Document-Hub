@@ -1,0 +1,14 @@
+.dark div[style*="background: linear-gradient(135deg, var(--light)"] {
+    background: linear-gradient(135deg, var(--dark-light) 0%, #2c3e50 100%) !important;
+}
+
+.dark input, .dark select, .dark textarea {
+    background: var(--dark) !important;
+    border-color: var(--dark-grey) !important;
+    color: var(--light) !important;
+}
+
+.dark input[readonly], .dark select[readonly] {
+    background: linear-gradient(135deg, #34495e, #2c3e50) !important;
+    color: #95a5a6 !important;
+}

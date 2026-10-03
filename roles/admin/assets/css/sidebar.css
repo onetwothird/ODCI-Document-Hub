@@ -1,0 +1,271 @@
+/* Sidebar Component Styles - Green Theme */
+
+/* Import required fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Sidebar CSS Variables - Green Theme */
+:root {
+    --sidebar-poppins: 'Poppins';
+    --sidebar-background: #04500f; /* Green background for sidebar */
+    --sidebar-green: #ffffff; /* White for icons and text */
+    --sidebar-green-hover: #266d10; /* Light green for hover */
+    --sidebar-green-light: #eee; /* Transparent white */
+    --sidebar-green-lighter: rgba(255, 255, 255, 0.05); /* Very transparent white */
+    --sidebar-grey: rgba(255, 255, 255, 0.2);
+    --sidebar-dark-grey: #AAAAAA;
+    --sidebar-dark: #ffffff; /* White text */
+    --sidebar-red: #ff6b6b; /* Lighter red for logout */
+}
+
+/* Dark mode overrides for sidebar */
+body.dark { 
+    --sidebar-background: #1e7e34; /* Darker green for dark mode */
+    --sidebar-green: #ffffff;
+    --sidebar-dark: #ffffff;
+}
+
+/* SIDEBAR */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px; /* Start collapsed */
+    height: 100%;
+    background: var(--sidebar-background);
+    z-index: 2000;
+    font-family: var(--sidebar-poppins);
+    transition: .3s ease;
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
+#sidebar::--webkit-scrollbar {
+    display: none;
+}
+
+/* Remove the hide class logic and make expanded the special state */
+#sidebar.expanded {
+    width: 280px;
+}
+
+#sidebar .brand {
+    font-size: 24px;
+    font-weight: 700;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    color: var(--sidebar-green);
+    position: sticky;
+    top: 0;
+    left: 0;
+    background: var(--sidebar-background);
+    z-index: 500;
+    padding-bottom: 20px;
+    box-sizing: content-box;
+    text-decoration: none;
+}
+
+#sidebar .brand .bx {
+    min-width: 60px;
+    display: flex;
+    justify-content: center;
+}
+
+/* FIX: Remove default list styling and ensure consistent spacing */
+#sidebar .side-menu {
+    width: 100%;
+    margin: 48px 0 0 0; /* Reset all margins */
+    padding: 0; /* Remove default padding */
+    list-style: none; /* Remove bullet points */
+}
+
+#sidebar .side-menu li {
+    height: 48px;
+    background: transparent;
+    margin: 0 0 0 6px; /* Only left margin, reset others */
+    padding: 4px;
+    border-radius: 48px 0 0 48px;
+    position: relative;
+    list-style: none; /* Ensure no bullets */
+}
+
+#sidebar .side-menu li.active {
+    background: var(--sidebar-green-light);
+    position: relative;
+}
+
+#sidebar .side-menu li.active::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    top: -40px;
+    right: 0;
+    box-shadow: 20px 20px 0 var(--sidebar-green-light);
+    z-index: -1;
+}
+
+#sidebar .side-menu li.active::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    bottom: -40px;
+    right: 0;
+    box-shadow: 20px -20px 0 var(--sidebar-green-light);
+    z-index: -1;
+}
+
+#sidebar .side-menu li a {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    border-radius: 48px;
+    font-size: 16px;
+    color: var(--sidebar-dark);
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin: 0; /* Remove any default margins */
+    padding: 0; /* Remove any default padding */
+}
+
+#sidebar .side-menu.top li.active a {
+    color: var(--sidebar-background);
+    background: var(--sidebar-green);
+    font-weight: 600;
+}
+
+/* When collapsed, make links smaller */
+#sidebar:not(.expanded) .side-menu li a {
+    width: calc(48px - (4px * 2));
+}
+
+/* When expanded, show full width */
+#sidebar.expanded .side-menu li a {
+    width: 100%;
+}
+
+#sidebar .side-menu li a.logout {
+    color: var(--sidebar-red);
+}
+
+#sidebar .side-menu.top li a:hover {
+    color: var(--sidebar-green-light);
+    background: var(--sidebar-green-lighter);
+    transform: scale(1.05);
+}
+
+#sidebar .side-menu li a .bx {
+    min-width: calc(60px - ((4px + 6px) * 2));
+    display: flex;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+#sidebar .side-menu li a:hover .bx {
+    transform: scale(1.1);
+    color: var(--sidebar-green-hover);
+}
+/* TOOLTIP STYLES */
+#sidebar .side-menu li .tooltip {
+    position: fixed !important;
+    background: linear-gradient(135deg, var(--sidebar-green) 0%, rgba(255, 255, 255, 0.9) 100%);
+    color: var(--sidebar-background);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+    pointer-events: none;
+    z-index: 99999 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-family: var(--sidebar-poppins);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Tooltip arrow */
+#sidebar .side-menu li .tooltip::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--sidebar-green);
+}
+
+/* Show tooltip with JavaScript class */
+#sidebar .side-menu li .tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* Ensure tooltips are hidden when sidebar is expanded */
+#sidebar.expanded .side-menu li .tooltip {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Content adjustment when sidebar is present */
+#content {
+    position: relative;
+    width: calc(100% - 60px); 
+    left: 60px;
+    transition: .3s ease;
+}
+
+#sidebar.expanded ~ #content {
+    width: calc(100% - 280px);
+    left: 280px;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    #sidebar.expanded {
+        width: 200px;
+    }
+    
+    #sidebar.expanded ~ #content {
+        width: calc(100% - 200px);
+        left: 200px;
+    }
+    
+    /* Hide tooltips on mobile */
+    #sidebar .side-menu li .tooltip {
+        display: none !important;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    #sidebar {
+        width: 60px;
+    }
+    
+    #sidebar.expanded {
+        width: 200px;
+    }
+    
+    #content {
+        width: calc(100% - 60px);
+        left: 60px;
+    }
+    
+    #sidebar.expanded ~ #content {
+        width: calc(100% - 200px);
+        left: 200px;
+    }
+}

@@ -1,0 +1,182 @@
+-- SQL Script to ensure folders table has proper department relationship
+
+-- First, check if department_id column exists and add it if not
+ALTER TABLE `folders` 
+ADD COLUMN IF NOT EXISTS `department_id` INT(11) NULL AFTER `deleted_by`;
+
+-- Add foreign key constraint to ensure data integrity
+ALTER TABLE `folders` 
+ADD CONSTRAINT `fk_folders_department` 
+FOREIGN KEY (`department_id`) REFERENCES `departments`(`id`) 
+ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Add index for better performance on department-based queries
+CREATE INDEX IF NOT EXISTS `idx_folders_department` ON `folders`(`department_id`);
+
+-- Add index for better performance on department + deleted status queries
+CREATE INDEX IF NOT EXISTS `idx_folders_dept_deleted` ON `folders`(`department_id`, `is_deleted`);
+
+-- Add index for better performance on department + parent folder queries
+CREATE INDEX IF NOT EXISTS `idx_folders_dept_parent` ON `folders`(`department_id`, `parent_id`);
+
+-- Optional: Add a check constraint to ensure department_id is not null for new records
+-- (Uncomment if you want to enforce this rule)
+-- ALTER TABLE `folders` 
+-- ADD CONSTRAINT `chk_folders_department_required` 
+-- CHECK (`department_id` IS NOT NULL);
+
+-- Create a view for easier department-folder queries
+CREATE OR REPLACE VIEW `v_department_folders` AS
+SELECT 
+    f.id as folder_id,
+    f.folder_name,
+    f.description as folder_description,
+    f.created_by,
+    f.created_at,
+    f.parent_id,
+    f.updated_at,
+    f.is_deleted,
+    f.deleted_at,
+    f.deleted_by,
+    f.department_id,
+    f.folder_path,
+    f.folder_level,
+    f.is_public,
+    f.permissions,
+    f.folder_size,
+    f.file_count,
+    f.folder_color,
+    f.folder_icon,
+    d.department_code,
+    d.department_name,
+    d.description as department_description,
+    u.name as created_by_name,
+    u.username as created_by_username
+FROM folders f
+LEFT JOIN departments d ON f.department_id = d.id
+LEFT JOIN users u ON f.created_by = u.id
+WHERE f.is_deleted = 0 AND d.is_active = 1;
+
+-- Insert sample semester folders for each department (optional)
+-- This creates the basic semester structure for each active department
+
+INSERT IGNORE INTO `folders` (
+    folder_name, 
+    description, 
+    created_by, 
+    department_id, 
+    folder_path, 
+    folder_level, 
+    created_at,
+    is_public,
+    permissions
+)
+SELECT 
+    CONCAT(YEAR(NOW()), '-', (YEAR(NOW()) + 1), ' - First Semester') as folder_name,
+    CONCAT('Academic files for First Semester ', YEAR(NOW()), '-', (YEAR(NOW()) + 1)) as description,
+    1 as created_by, -- Assuming admin user has ID 1
+    d.id as department_id,
+    CONCAT('/departments/', d.id, '/first') as folder_path,
+    1 as folder_level,
+    NOW() as created_at,
+    0 as is_public,
+    'read,write' as permissions
+FROM departments d 
+WHERE d.is_active = 1;
+
+INSERT IGNORE INTO `folders` (
+    folder_name, 
+    description, 
+    created_by, 
+    department_id, 
+    folder_path, 
+    folder_level, 
+    created_at,
+    is_public,
+    permissions
+)
+SELECT 
+    CONCAT(YEAR(NOW()), '-', (YEAR(NOW()) + 1), ' - Second Semester') as folder_name,
+    CONCAT('Academic files for Second Semester ', YEAR(NOW()), '-', (YEAR(NOW()) + 1)) as description,
+    1 as created_by, -- Assuming admin user has ID 1
+    d.id as department_id,
+    CONCAT('/departments/', d.id, '/second') as folder_path,
+    1 as folder_level,
+    NOW() as created_at,
+    0 as is_public,
+    'read,write' as permissions
+FROM departments d 
+WHERE d.is_active = 1;
+
+-- Update any existing folders without department_id to belong to a default department
+-- (Uncomment and modify if needed)
+-- UPDATE folders SET department_id = 1 WHERE department_id IS NULL;
+
+-- Create stored procedure to get department folders
+DELIMITER //
+
+CREATE PROCEDURE GetDepartmentFolders(IN dept_id INT)
+BEGIN
+    SELECT 
+        f.*,
+        d.department_name,
+        d.department_code,
+        u.name as creator_name
+    FROM folders f
+    JOIN departments d ON f.department_id = d.id
+    LEFT JOIN users u ON f.created_by = u.id
+    WHERE f.department_id = dept_id 
+    AND f.is_deleted = 0
+    AND d.is_active = 1
+    ORDER BY f.folder_level ASC, f.created_at ASC;
+END //
+
+DELIMITER ;
+
+-- Create stored procedure to check if user can access department folder
+DELIMITER //
+
+CREATE PROCEDURE CheckFolderAccess(
+    IN user_id INT, 
+    IN folder_id INT, 
+    OUT can_access BOOLEAN
+)
+BEGIN
+    DECLARE user_dept_id INT;
+    DECLARE folder_dept_id INT;
+    
+    -- Get user's department
+    SELECT department_id INTO user_dept_id 
+    FROM users 
+    WHERE id = user_id;
+    
+    -- Get folder's department
+    SELECT department_id INTO folder_dept_id 
+    FROM folders 
+    WHERE id = folder_id AND is_deleted = 0;
+    
+    -- Check if user can access (same department or admin)
+    SET can_access = (
+        user_dept_id = folder_dept_id OR 
+        (SELECT role FROM users WHERE id = user_id) = 'admin'
+    );
+END //
+
+DELIMITER ;
+
+-- Show the current structure of the folders table
+DESCRIBE folders;
+
+-- Show existing indexes
+SHOW INDEX FROM folders;
+
+-- Verify the foreign key constraints
+SELECT 
+    CONSTRAINT_NAME,
+    COLUMN_NAME,
+    REFERENCED_TABLE_NAME,
+    REFERENCED_COLUMN_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_NAME = 'folders' 
+AND TABLE_SCHEMA = DATABASE()
+AND REFERENCED_TABLE_NAME IS NOT NULL;
