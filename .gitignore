@@ -1,0 +1,76 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Dependencies
+vendor/
+node_modules/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+storage/logs/
+*.log.*
+
+# Cache
+*.cache
+bootstrap/cache/
+var/cache/
+
+# Uploads (keep directory structure but ignore uploaded files)
+uploads/documents/**/*
+uploads/profile_images/**/*
+uploads/profiles/**/*
+roles/uploads/**/*
+social_feed/uploads/**/*
+!uploads/.gitkeep
+!uploads/documents/.gitkeep
+!uploads/profile_images/.gitkeep
+!uploads/profiles/.gitkeep
+!roles/uploads/.gitkeep
+!social_feed/uploads/.gitkeep
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Test and debug files
+_qa*.php
+_probe_tmp.php
+_sess_tmp.php
+_shot.php
+emetoto.php
+test_images.php
+changepass.php
+
+# Backup/copy folders
+copy/
+
+# Database dumps
+*.sql
+!database/migrations/*.sql
+
+# Composer
+composer.phar
+
+# PHPUnit
+.phpunit.result.cache
+
+# Misc
+*.bak
+*.orig
