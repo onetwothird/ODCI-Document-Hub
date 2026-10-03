@@ -1,0 +1,279 @@
+/* File System - Green Theme */
+
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 16px;
+}
+
+.files-grid .empty-state {
+    grid-column: 1 / -1;
+    padding: 40px 20px;
+}
+
+.files-grid .empty-state i {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+
+.files-grid .empty-state p {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.files-grid .empty-state small {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* File Item in Grid */
+.file-item-grid {
+    background: var(--light);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.file-item-grid:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.file-item-grid .file-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 16px;
+    color: white;
+}
+
+.file-item-grid .file-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.file-item-grid .file-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* File Table */
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.file-table th,
+.file-table td {
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.file-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-bottom: 2px solid var(--grey);
+}
+
+.file-table td {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--grey);
+}
+
+.file-table tbody tr:hover {
+    background: var(--grey);
+}
+
+.file-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-info-cell .file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.file-info-cell .file-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-info-cell .file-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.file-info-cell .file-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-size-cell {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.file-date-cell {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Action Buttons */
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.file-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: var(--grey);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.file-action-btn:hover {
+    background: var(--blue);
+    color: white;
+}
+
+.file-action-btn.delete:hover {
+    background: var(--red);
+    color: white;
+}
+
+/* Folder Tree */
+.folder-tree {
+    padding: 8px 0;
+}
+
+.folder-tree-item {
+    margin: 2px 0;
+}
+
+.folder-tree-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.folder-tree-header:hover {
+    background: var(--grey);
+}
+
+.folder-tree-header .bx-chevron-right {
+    transition: transform 0.2s ease;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.folder-tree-item.expanded .folder-tree-header .bx-chevron-right {
+    transform: rotate(90deg);
+}
+
+.folder-tree-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.folder-tree-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folder-tree-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--grey);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.folder-tree-children {
+    margin-left: 24px;
+    border-left: 1px solid var(--grey);
+    padding-left: 8px;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .files-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    
+    .file-table th:nth-child(3),
+    .file-table td:nth-child(3),
+    .file-table th:nth-child(4),
+    .file-table td:nth-child(4) {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .files-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,118 @@
+/* Files Table - Green Theme */
+
+.files-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.files-table th,
+.files-table td {
+    padding: 12px 8px;
+    text-align: left;
+}
+
+.files-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-bottom: 1px solid var(--grey);
+}
+
+.files-table td {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--grey);
+}
+
+.files-table tbody tr:hover {
+    background: var(--grey);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--light-blue);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.file-details p {
+    margin: 0;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.file-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.status-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-block;
+}
+
+.status-badge.status-favorite {
+    background: var(--light-yellow);
+    color: var(--yellow);
+}
+
+.status-badge.status-public {
+    background: var(--light-blue);
+    color: var(--blue);
+}
+
+.status-badge.status-private {
+    background: var(--grey);
+    color: var(--text-secondary);
+}
+
+/* Responsive table */
+@media screen and (max-width: 768px) {
+    .files-table {
+        font-size: 12px;
+    }
+    
+    .files-table th,
+    .files-table td {
+        padding: 8px 4px;
+    }
+    
+    .file-info {
+        gap: 8px;
+    }
+    
+    .file-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .files-table th:nth-child(3),
+    .files-table td:nth-child(3) {
+        display: none; /* Hide size column on mobile */
+    }
+    
+    .files-table th:nth-child(4),
+    .files-table td:nth-child(4) {
+        display: none; /* Hide status column on mobile */
+    }
+}

@@ -5,17 +5,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Dashboard - CVSU Naic</title>
+    <title>Admin Dashboard - CVSU Naic</title>
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="assets/css/sidebar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/dashboard.css?v=<?= time() ?>">
-
+    
+    <!-- Modular CSS - Base & Components -->
+    <link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/navbar.css?v=<?= time() ?>">
+    
+    <!-- Page-specific CSS -->
+    <link rel="stylesheet" href="assets/css/pages/dashboard/stats_card.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/pages/dashboard/grid_layout.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/pages/dashboard/file_table.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/pages/dashboard/responsive.css?v=<?= time() ?>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body>
-
+<body class="admin-dashboard-page">
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -37,11 +47,11 @@
                     </ul>
                 </div>
                 <div class="right">
-                    <button class="btn-secondary">
+                    <button class="btn btn-secondary" title="Refresh">
                         <i class='bx bx-refresh'></i>
                         <span>Refresh</span>
                     </button>
-                    <button class="btn-download">
+                    <button class="btn btn-primary" title="Upload File">
                         <i class='bx bxs-cloud-upload'></i>
                         <span>Upload File</span>
                     </button>
@@ -49,33 +59,42 @@
             </div>
 
             <!-- System Status Overview -->
-            <div class="stats-overview slide up">
-                <div class="status-item healthy">
-                    <h4>Server Status</h4>
-                    <div class="status-value">99.9%</div>
-                    <p>Uptime</p>
-                </div>
-                <div class="status-item healthy">
-                    <h4>Database</h4>
-                    <div class="status-value">Healthy</div>
-                    <p>All systems operational</p>
-                </div>
-                <div class="status-item warning">
-                    <h4>Storage</h4>
-                    <div class="status-value">78%</div>
-                    <p>Used capacity</p>
-                </div>
-                <div class="status-item healthy">
-                    <h4>Active Users</h4>
-                    <div class="status-value">1,247</div>
-                    <p>Currently online</p>
-                </div>
-            </div>
+            <ul class="box-info stats-overview">
+                <li class="status-item healthy">
+                    <i class='bx bx-server'></i>
+                    <span class="text">
+                        <h3>99.9%</h3>
+                        <p>Server Uptime</p>
+                    </span>
+                </li>
+                <li class="status-item healthy">
+                    <i class='bx bx-data'></i>
+                    <span class="text">
+                        <h3>Healthy</h3>
+                        <p>Database Status</p>
+                    </span>
+                </li>
+                <li class="status-item warning">
+                    <i class='bx bx-hard-drive'></i>
+                    <span class="text">
+                        <h3>78%</h3>
+                        <p>Storage Used</p>
+                    </span>
+                </li>
+                <li class="status-item healthy">
+                    <i class='bx bxs-user-account'></i>
+                    <span class="text">
+                        <h3>1,247</h3>
+                        <p>Active Users</p>
+                    </span>
+                </li>
+            </ul>
 
             <!-- Enhanced Statistics Cards -->
-            <div class="stats-overview slide-up">
-                <div class="stat-card">
-                    <div class="stat-info">
+            <ul class="box-info">
+                <li>
+                    <i class='bx bxs-file'></i>
+                    <span class="text">
                         <h3>12,847</h3>
                         <p>Total Files</p>
                         <div class="change positive">
@@ -85,14 +104,12 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 75%;"></div>
                         </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class='bx bxs-file'></i>
-                    </div>
-                </div>
+                    </span>
+                </li>
 
-                <div class="stat-card">
-                    <div class="stat-info">
+                <li>
+                    <i class='bx bxs-folder'></i>
+                    <span class="text">
                         <h3>3,564</h3>
                         <p>Total Folders</p>
                         <div class="change positive">
@@ -102,14 +119,12 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 60%;"></div>
                         </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class='bx bxs-folder'></i>
-                    </div>
-                </div>
+                    </span>
+                </li>
 
-                <div class="stat-card">
-                    <div class="stat-info">
+                <li>
+                    <i class='bx bxs-cloud'></i>
+                    <span class="text">
                         <h3>2.4 TB</h3>
                         <p>Storage Used</p>
                         <div class="change negative">
@@ -119,14 +134,12 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 45%;"></div>
                         </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class='bx bxs-cloud'></i>
-                    </div>
-                </div>
+                    </span>
+                </li>
 
-                <div class="stat-card">
-                    <div class="stat-info">
+                <li>
+                    <i class='bx bxs-user-account'></i>
+                    <span class="text">
                         <h3>8,291</h3>
                         <p>Active Users</p>
                         <div class="change positive">
@@ -136,12 +149,9 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 82%;"></div>
                         </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class='bx bxs-user-account'></i>
-                    </div>
-                </div>
-            </div>
+                    </span>
+                </li>
+            </ul>
 
             <!-- Main Dashboard Content -->
             <div class="dashboard-grid">
@@ -165,7 +175,7 @@
                         </div>
                     </div>
 
-                    <table class="enhanced-table">
+                    <table class="files-table enhanced-table">
                         <thead>
                             <tr>
                                 <th>File/Action</th>
@@ -178,71 +188,87 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <div class="file-item">
+                                    <div class="file-info">
                                         <div class="file-icon">
                                             <i class='bx bxs-file-pdf'></i>
                                         </div>
-                                        <div class="file-info">
-                                            <h4>Research_Proposal_2024.pdf</h4>
-                                            <p>File uploaded</p>
+                                        <div class="file-details">
+                                            <p>Research_Proposal_2024.pdf</p>
+                                            <div class="file-meta">File uploaded</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>Dr. Maria Santos</td>
                                 <td>Computer Science</td>
                                 <td>2 minutes ago</td>
-                                <td><span style="background: var(--success); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Complete</span></td>
+                                <td>
+                                    <span class="status-badge status-completed">
+                                        <i class='bx bx-check'></i> Complete
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="file-item">
+                                    <div class="file-info">
                                         <div class="file-icon">
                                             <i class='bx bxs-folder'></i>
                                         </div>
-                                        <div class="file-info">
-                                            <h4>Q1_Reports</h4>
-                                            <p>Folder created</p>
+                                        <div class="file-details">
+                                            <p>Q1_Reports</p>
+                                            <div class="file-meta">Folder created</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>Prof. Juan Cruz</td>
                                 <td>Mathematics</td>
                                 <td>15 minutes ago</td>
-                                <td><span style="background: var(--info); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">New</span></td>
+                                <td>
+                                    <span class="status-badge status-public">
+                                        <i class='bx bx-globe'></i> New
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="file-item">
+                                    <div class="file-info">
                                         <div class="file-icon">
                                             <i class='bx bxs-file-doc'></i>
                                         </div>
-                                        <div class="file-info">
-                                            <h4>Curriculum_Update.docx</h4>
-                                            <p>File shared</p>
+                                        <div class="file-details">
+                                            <p>Curriculum_Update.docx</p>
+                                            <div class="file-meta">File shared</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>Dr. Ana Reyes</td>
                                 <td>Engineering</td>
                                 <td>1 hour ago</td>
-                                <td><span style="background: var(--warning); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Shared</span></td>
+                                <td>
+                                    <span class="status-badge status-private">
+                                        <i class='bx bx-share'></i> Shared
+                                    </span>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="file-item">
+                                    <div class="file-info">
                                         <div class="file-icon">
                                             <i class='bx bxs-user-plus'></i>
                                         </div>
-                                        <div class="file-info">
-                                            <h4>New User Registration</h4>
-                                            <p>System action</p>
+                                        <div class="file-details">
+                                            <p>New User Registration</p>
+                                            <div class="file-meta">System action</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>System</td>
                                 <td>Admin</td>
                                 <td>2 hours ago</td>
-                                <td><span style="background: var(--blue); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">System</span></td>
+                                <td>
+                                    <span class="status-badge status-favorite">
+                                        <i class='bx bx-cog'></i> System
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -258,8 +284,8 @@
                     </div>
 
                     <div class="quick-actions">
-                        <div class="action-item" onclick="location.href='upload.php'">
-                            <div class="action-info">
+                        <a href="files.php" class="action-item">
+                            <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-upload'></i>
                                 </div>
@@ -268,11 +294,11 @@
                                     <p>Add new documents</p>
                                 </div>
                             </div>
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
+                            <i class='bx bx-chevron-right action-arrow'></i>
+                        </a>
 
-                        <div class="action-item" onclick="location.href='folders.php'">
-                            <div class="action-info">
+                        <a href="folders.php" class="action-item">
+                            <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-folder-plus'></i>
                                 </div>
@@ -281,11 +307,11 @@
                                     <p>Organize your files</p>
                                 </div>
                             </div>
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
+                            <i class='bx bx-chevron-right action-arrow'></i>
+                        </a>
 
-                        <div class="action-item" onclick="location.href='view-faculty-staff.php'">
-                            <div class="action-info">
+                        <a href="view-faculty-staff.php" class="action-item">
+                            <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-user-plus'></i>
                                 </div>
@@ -294,11 +320,11 @@
                                     <p>Add or edit users</p>
                                 </div>
                             </div>
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
+                            <i class='bx bx-chevron-right action-arrow'></i>
+                        </a>
 
-                        <div class="action-item" onclick="location.href='reports.php'">
-                            <div class="action-info">
+                        <a href="reports.php" class="action-item">
+                            <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-bar-chart-alt-2'></i>
                                 </div>
@@ -307,11 +333,11 @@
                                     <p>View analytics</p>
                                 </div>
                             </div>
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
+                            <i class='bx bx-chevron-right action-arrow'></i>
+                        </a>
 
-                        <div class="action-item" onclick="location.href='settings.php'">
-                            <div class="action-info">
+                        <a href="settings.php" class="action-item">
+                            <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-cog'></i>
                                 </div>
@@ -320,15 +346,16 @@
                                     <p>Configure system</p>
                                 </div>
                             </div>
-                            <i class='bx bx-chevron-right'></i>
-                        </div>
+                            <i class='bx bx-chevron-right action-arrow'></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Additional Information Cards -->
-            <div class="dashboard-grid">
-                <div class="dashboard-card fade-in">
+            <div class="dashboard-grid" style="margin-top: 24px;">
+                <!-- Storage & Activity -->
+                <div class="dashboard-card">
                     <div class="card-header">
                         <h3>
                             <i class='bx bxs-pie-chart-alt-2'></i>
@@ -340,32 +367,36 @@
                             </button>
                         </div>
                     </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--blue); margin-bottom: 8px;">2.4TB</div>
-                            <div style="font-size: 14px; color: var(--dark-grey); margin-bottom: 12px;">Used Storage</div>
-                            <div class="progress-bar">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 16px;">
+                        <div class="info-item">
+                            <div class="info-label">Used Storage</div>
+                            <div class="info-value" style="color: var(--blue); font-size: 24px; font-weight: 700;">2.4 TB</div>
+                            <div class="progress-bar" style="margin-top: 8px;">
                                 <div class="progress-fill" style="width: 78%;"></div>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--orange); margin-bottom: 8px;">845GB</div>
-                            <div style="font-size: 14px; color: var(--dark-grey); margin-bottom: 12px;">Available</div>
-                            <div class="progress-bar">
+                        <div class="info-item">
+                            <div class="info-label">Available</div>
+                            <div class="info-value" style="color: var(--orange); font-size: 24px; font-weight: 700;">845 GB</div>
+                            <div class="progress-bar" style="margin-top: 8px;">
                                 <div class="progress-fill" style="width: 22%; background: var(--orange);"></div>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--success); margin-bottom: 8px;">12.5%</div>
-                            <div style="font-size: 14px; color: var(--dark-grey); margin-bottom: 12px;">Growth Rate</div>
-                            <div style="color: var(--success); font-size: 12px;">
+                        <div class="info-item">
+                            <div class="info-label">Growth Rate</div>
+                            <div class="info-value" style="color: var(--green-primary); font-size: 24px; font-weight: 700;">12.5%</div>
+                            <div style="color: var(--green-primary); font-size: 12px; margin-top: 8px;">
                                 <i class='bx bx-trending-up'></i> Monthly
                             </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Recent Activity</div>
+                            <div class="info-value">12 uploads this week</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- System Status -->
                 <div class="dashboard-card slide-up">
                     <div class="card-header">
                         <h3>
@@ -379,43 +410,31 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; gap: 20px;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), #20c997); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">
-                                A
-                            </div>
-                            <div>
-                                <h4 style="font-size: 18px; font-weight: 600; color: var(--dark); margin-bottom: 4px;">Administrator</h4>
-                                <p style="color: var(--dark-grey); font-size: 14px;">Super Admin</p>
-                            </div>
+                    <div class="account-info">
+                        <div class="info-item">
+                            <div class="info-label">Department</div>
+                            <div class="info-value">Information Technology</div>
                         </div>
-
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
-                            <div>
-                                <strong style="color: var(--dark);">Department:</strong><br>
-                                <span style="color: var(--dark-grey);">Information Technology</span>
-                            </div>
-                            <div>
-                                <strong style="color: var(--dark);">Employee ID:</strong><br>
-                                <span style="color: var(--dark-grey);">ADM-001</span>
-                            </div>
-                            <div>
-                                <strong style="color: var(--dark);">Last Login:</strong><br>
-                                <span style="color: var(--dark-grey);">Today at 9:30 AM</span>
-                            </div>
-                            <div>
-                                <strong style="color: var(--dark);">Member Since:</strong><br>
-                                <span style="color: var(--dark-grey);">Jan 15, 2024</span>
-                            </div>
+                        <div class="info-item">
+                            <div class="info-label">Employee ID</div>
+                            <div class="info-value">ADM-001</div>
                         </div>
-
-                        <div style="background: var(--grey); border-radius: 12px; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 14px; font-weight: 500; color: var(--dark);">Account Status</span>
-                                <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                    <i class='bx bx-check-circle'></i> Active
-                                </span>
-                            </div>
+                        <div class="info-item">
+                            <div class="info-label">Last Login</div>
+                            <div class="info-value">Today at 9:30 AM</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Member Since</div>
+                            <div class="info-value">Jan 15, 2024</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; background: var(--green-light); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 500; color: var(--dark);">Account Status</span>
+                            <span style="background: var(--green-primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                <i class='bx bx-check-circle'></i> Active
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -439,8 +458,8 @@
                 </div>
 
                 <div style="display: grid; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(40, 167, 69, 0.05); border-radius: 12px; border-left: 4px solid var(--success);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; color: white;">
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(40, 167, 69, 0.05); border-radius: 12px; border-left: 4px solid var(--green-primary);">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--green-primary); display: flex; align-items: center; justify-content: center; color: white;">
                             <i class='bx bx-check'></i>
                         </div>
                         <div style="flex: 1;">
@@ -450,8 +469,8 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(255, 193, 7, 0.05); border-radius: 12px; border-left: 4px solid var(--warning);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--warning); display: flex; align-items: center; justify-content: center; color: white;">
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(249, 115, 22, 0.05); border-radius: 12px; border-left: 4px solid var(--orange);">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; color: white;">
                             <i class='bx bx-error'></i>
                         </div>
                         <div style="flex: 1;">
@@ -461,8 +480,8 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(23, 162, 184, 0.05); border-radius: 12px; border-left: 4px solid var(--info);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--info); display: flex; align-items: center; justify-content: center; color: white;">
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(6, 182, 212, 0.05); border-radius: 12px; border-left: 4px solid var(--info-cyan);">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--info-cyan); display: flex; align-items: center; justify-content: center; color: white;">
                             <i class='bx bx-user-plus'></i>
                         </div>
                         <div style="flex: 1;">
@@ -476,7 +495,8 @@
         </main>
     </section>
 
-    <script src="assets/js/script.js?v=<?= time() ?>"></script>
-    <script src="assets/js/dashboard.js?v=<?= time() ?>"></script>
+    <script src="assets/js/components/sidebar.js?v=<?= time() ?>"></script>
+    <script src="assets/js/components/navbar.js?v=<?= time() ?>"></script>
+    <script src="assets/js/pages/dashboard.js?v=<?= time() ?>"></script>
 </body>
 </html>

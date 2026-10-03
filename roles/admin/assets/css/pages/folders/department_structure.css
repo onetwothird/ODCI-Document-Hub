@@ -1,0 +1,238 @@
+/* Department Structure - Green Theme */
+
+.department-card {
+    background: var(--light);
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.department-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.department-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.department-header:hover {
+    background: var(--grey);
+}
+
+.department-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.department-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.department-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.department-code {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.department-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.department-stats span {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.expand-controls {
+    flex-shrink: 0;
+}
+
+.expand-icon {
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    font-size: 20px;
+}
+
+.department-card.expanded .expand-icon {
+    transform: rotate(90deg);
+}
+
+.department-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    border-top: 1px solid #e2e8f0;
+}
+
+.department-card.expanded .department-content {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+}
+
+.section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: var(--grey);
+}
+
+.section-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.category-card {
+    background: var(--light);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-header:hover {
+    background: var(--grey);
+}
+
+.category-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.category-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.category-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.category-delete-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.category-delete-button:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--red);
+}
+
+.category-card.expanded .expand-icon {
+    transform: rotate(90deg);
+}
+
+.category-semester-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    border-top: 1px solid #e2e8f0;
+    background: var(--grey);
+}
+
+.category-card.expanded .category-semester-content {
+    max-height: 1000px;
+    transition: max-height 0.5s ease-in;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .department-header {
+        padding: 16px;
+    }
+    
+    .department-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+}
