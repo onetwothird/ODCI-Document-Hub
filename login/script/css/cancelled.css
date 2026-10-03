@@ -1,0 +1,207 @@
+/* OAuth Cancelled Page Styles - Matching Login Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Authentication Page Layout - Same as login page */
+.auth-page {
+    width: 100%;
+    min-height: 100vh;
+    background-image: url('../../img/cvsu-naic-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 20px;
+    z-index: 0;
+}
+
+/* Cancelled Container - Similar to login container */
+.cancelled-container {
+    position: relative;
+    z-index: 2; 
+    width: 100%;
+    max-width: 450px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: center;
+}
+
+.sub-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2d3748;
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+
+/* Content Section */
+.content-section {
+    margin-bottom: 24px;
+}
+
+.status-icon {
+    font-size: 4rem;
+    color: #ff6b6b;
+    margin-bottom: 16px;
+}
+
+.status-icon i {
+    display: block;
+}
+
+.status-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+.status-message {
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Redirect Info */
+.redirect-info {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.countdown {
+    font-weight: 600;
+    color: #28a745;
+}
+
+/* Spinner */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Submit Button - Same green theme as login */
+.submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+.submit-btn i {
+    font-size: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-page {
+        padding: 16px;
+    }
+    
+    .cancelled-container {
+        padding: 28px 24px;
+        max-width: 400px;
+    }
+    
+    .status-title {
+        font-size: 22px;
+    }
+    
+    .status-message {
+        font-size: 15px;
+    }
+    
+    .status-icon {
+        font-size: 3.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cancelled-container {
+        padding: 24px 20px;
+        max-width: 100%;
+    }
+    
+    .status-title {
+        font-size: 20px;
+    }
+    
+    .status-message {
+        font-size: 14px;
+    }
+    
+    .status-icon {
+        font-size: 3rem;
+    }
+    
+    .submit-btn {
+        height: 44px;
+        font-size: 15px;
+    }
+    
+    .redirect-info {
+        padding: 14px;
+        font-size: 13px;
+    }
+}
