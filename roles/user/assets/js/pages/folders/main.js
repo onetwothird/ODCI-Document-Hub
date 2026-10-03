@@ -8,7 +8,10 @@ const userDepartmentId = window.userDepartmentId || null;
 const fileCategories = window.fileCategories || {};
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeSidebar();
+    // The sidebar toggle is owned by assets/js/components/navbar.js, which binds
+    // the hamburger on every user page via initializeComponents(). Binding it a
+    // second time here would toggle `.expanded` twice per click and leave the
+    // sidebar stuck, so it is deliberately not initialised from this page.
     initializeSearch();
     initializeDarkMode();
     initializeResponsive();
