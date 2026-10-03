@@ -1508,7 +1508,7 @@ table tbody tr:last-child td { border-bottom: none !important; }
     padding: 44px 20px;
     color: var(--cvsu-grey-500) !important;
 }
-.empty-state i, .no-data i, .no-results i { font-size: 1.5rem; color: var(--cvsu-green-300) !important; margin-bottom: 26px; display: block; }
+.empty-state i, .no-data i, .no-results i { font-size: 1.5rem; color: var(--cvsu-green-300) !important; display: block; }
 .empty-state p, .no-data p { color: var(--cvsu-grey-500) !important; font-size: .92rem; }
 .empty-state a { color: var(--cvsu-green-600) !important; font-weight: 600; display: inline-block; margin-top: 10px; }
 
@@ -1532,7 +1532,6 @@ table tbody tr:last-child td { border-bottom: none !important; }
     position: absolute;
     left: 0; right: 0; top: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
 }
 .modal-body { padding: 22px !important; }
 .modal-footer {
