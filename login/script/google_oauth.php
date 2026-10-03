@@ -2,16 +2,20 @@
 
 require_once dirname(__DIR__, 2) . '/includes/config.php';
 
-// Google OAuth Configuration
-define('GOOGLE_CLIENT_ID', 'getenv('GOOGLE_CLIENT_ID') ?: ''');
-define('GOOGLE_CLIENT_SECRET', 'getenv('GOOGLE_CLIENT_SECRET') ?: ''');
-define('GOOGLE_REDIRECT_URI', 'http://localhost/ODCI/login/script/google_callback.php'); 
+// Google OAuth Configuration - Load from environment variables
+define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+define('GOOGLE_REDIRECT_URI', getenv('GOOGLE_REDIRECT_URI') ?: 'http://localhost/ODCI/login/script/google_callback.php');
 
 class GoogleOAuth {
     
     public static function getAuthUrl() {
+        $clientId = GOOGLE_CLIENT_ID;
+        if (empty($clientId)) {
+            return '';
+        }
         $params = [
-            'client_id' => GOOGLE_CLIENT_ID,
+            'client_id' => $clientId,
             'redirect_uri' => GOOGLE_REDIRECT_URI,
             'scope' => 'openid email profile',
             'response_type' => 'code',
@@ -23,9 +27,14 @@ class GoogleOAuth {
     }
     
     public static function getAccessToken($code) {
+        $clientId = GOOGLE_CLIENT_ID;
+        $clientSecret = GOOGLE_CLIENT_SECRET;
+        if (empty($clientId) || empty($clientSecret)) {
+            return false;
+        }
         $data = [
-            'client_id' => GOOGLE_CLIENT_ID,
-            'client_secret' => GOOGLE_CLIENT_SECRET,
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
             'redirect_uri' => GOOGLE_REDIRECT_URI,
             'grant_type' => 'authorization_code',
             'code' => $code
