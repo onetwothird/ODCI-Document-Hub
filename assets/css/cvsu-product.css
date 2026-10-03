@@ -437,7 +437,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
 #content .toggle-btn:hover,
 #content .menu-toggle:hover,
 #content .sidebar-toggle:hover {
-    background: var(--cvsu-gold-100) !important;
+    background: var(--cvsu-line) !important;
     color: var(--cvsu-green-900) !important;
 }
 #content .toggle-sidebar:active,
