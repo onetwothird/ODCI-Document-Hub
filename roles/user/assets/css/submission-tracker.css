@@ -972,7 +972,6 @@ body {
 .category-overview-card:focus,
 .pending-card:focus,
 .completed-card:focus {
-    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
