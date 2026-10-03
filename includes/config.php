@@ -1,27 +1,41 @@
 <?php
+// Load environment variables from .env file (suppress phpdotenv deprecation warnings)
+$previousErrorReporting = error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+// Also populate getenv() for legacy code compatibility
+foreach ($_ENV as $key => $value) {
+    putenv("$key=$value");
+}
+
+error_reporting($previousErrorReporting);
+
 // Database configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'odci_db');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'odci_db');
 
 // File Upload Configuration
 define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10MB
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 define('ALLOWED_DOCUMENT_TYPES', ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt']);
 
-// Security Configuration
-define('HASH_ALGORITHM', 'sha256');
-define('SESSION_LIFETIME', 3600 * 8); // 8 hours
-define('MAX_LOGIN_ATTEMPTS', 5);
-define('LOCKOUT_TIME', 30 * 60); // 30 minutes
-
-// Directory Configuration (add your actual paths)
-define('BASE_URL', 'http://localhost/ODCI');
+// Directory Configuration
+define('BASE_URL', getenv('APP_URL') ?: 'http://localhost/ODCI');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('PROFILE_IMAGES_DIR', __DIR__ . '/../uploads/profile_images/');
 define('DOCUMENT_UPLOADS_DIR', __DIR__ . '/../uploads/documents/');
 define('TEMP_DIR', __DIR__ . '/../temp/');
+
+// Security Configuration (from env with defaults)
+define('HASH_ALGORITHM', getenv('HASH_ALGORITHM') ?: 'sha256');
+define('SESSION_LIFETIME', (int)(getenv('SESSION_LIFETIME') ?: 28800));
+define('MAX_LOGIN_ATTEMPTS', (int)(getenv('MAX_LOGIN_ATTEMPTS') ?: 5));
+define('LOCKOUT_TIME', (int)(getenv('LOCKOUT_TIME') ?: 1800));
 
 // Image type constants (if not already defined by PHP)
 if (!defined('IMAGETYPE_JPEG')) define('IMAGETYPE_JPEG', 2);
