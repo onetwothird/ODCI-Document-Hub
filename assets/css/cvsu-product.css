@@ -1846,7 +1846,7 @@ body.user-folders-page #customFolderUploadContext[hidden] {
 .user-submission-tracker-page .filter-tab:not(.active) .badge {
     border: 1px solid var(--cvsu-line) !important;
     background: #fff !important;
-    color: var(--cvsu-grey-600) !important;
+    color: var(--cvsu-green-500);
 }
 .user-submission-tracker-page .search-box input,
 .user-submission-tracker-page .filter-select,
@@ -1883,6 +1883,7 @@ body.user-folders-page #customFolderUploadContext[hidden] {
 .user-submission-tracker-page .empty-state .upload-btn:hover {
     background: var(--cvsu-green-800) !important;
     transform: none !important;
+    
 }
 .user-submission-tracker-page .btn-secondary,
 .user-submission-tracker-page .btn-secondary:hover {
