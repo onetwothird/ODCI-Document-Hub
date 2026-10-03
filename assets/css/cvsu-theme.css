@@ -1,0 +1,1938 @@
+/* ==========================================================================
+   CVSU NAIC - Office of Document Control & Information (ODCI)
+   Shared Design System  --  ONE theme for all three roles
+   --------------------------------------------------------------------------
+   Loaded LAST on every page, so these rules win over the legacy per-role
+   stylesheets. Brand colours are taken from the CVSU logo and the login
+   screen: green #008000/#28a745, gold #F0C000/#E0A000, white.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS
+   -------------------------------------------------------------------------- */
+:root {
+    /* --- CVSU Green (primary) --- */
+    --cvsu-green-900: #0b3d1e;
+    --cvsu-green-800: #14532d;
+    --cvsu-green-700: #166534;
+    --cvsu-green-600: #1e7e34;
+    --cvsu-green-500: #28a745;
+    --cvsu-green-400: #34c759;
+    --cvsu-green-300: #6ee7a0;
+    --cvsu-green-100: #dcfce7;
+    --cvsu-green-50:  #f0fdf4;
+
+    /* --- CVSU Gold (accent) --- */
+    --cvsu-gold-700: #8a6300;
+    --cvsu-gold-600: #b8860b;
+    --cvsu-gold-500: #e0a000;
+    --cvsu-gold-400: #f0c000;
+    --cvsu-gold-300: #ffd24d;
+    --cvsu-gold-100: #fff6d6;
+    --cvsu-gold-50:  #fffaeb;
+
+    /* --- Neutrals --- */
+    --cvsu-white:   #ffffff;
+    --cvsu-surface: #fafbfa;
+    --cvsu-line:    #e6ebe7;
+    --cvsu-muted-bg:#f1f5f2;
+    --cvsu-grey-400:#9ca3af;
+    --cvsu-grey-500:#6b7280;
+    --cvsu-grey-700:#374151;
+    --cvsu-ink:     #16241c;
+
+    /* --- Semantic --- */
+    --cvsu-success: var(--cvsu-green-500);
+    --cvsu-warning: var(--cvsu-gold-500);
+    --cvsu-danger:  #dc2626;
+    --cvsu-info:    #1e7e34;
+
+    /* --- Semantic aliases used by the legacy markup --- */
+    --primary-color:   var(--cvsu-green-500);
+    --secondary-color: var(--cvsu-gold-400);
+    --accent-color:    var(--cvsu-green-600);
+    --text-color:      var(--cvsu-ink);
+    --text-muted:      var(--cvsu-grey-500);
+    --border-color:    var(--cvsu-line);
+    --bg-color:        var(--cvsu-surface);
+    --card-bg:         var(--cvsu-white);
+
+    /* --- Elevation: soft, green-tinted --- */
+    --cvsu-shadow-sm: 0 1px 2px rgba(11, 61, 30, .06);
+    --cvsu-shadow:    0 2px 8px rgba(11, 61, 30, .07), 0 1px 2px rgba(11, 61, 30, .04);
+    --cvsu-shadow-md: 0 6px 20px rgba(11, 61, 30, .10), 0 2px 6px rgba(11, 61, 30, .05);
+    --cvsu-shadow-lg: 0 16px 40px rgba(11, 61, 30, .14);
+    --cvsu-ring:      0 0 0 2px rgba(40, 167, 69, .14);
+
+    /* --- Shape & motion --- */
+    --cvsu-radius:    12px;
+    --cvsu-radius-sm: 8px;
+    --cvsu-radius-lg: 18px;
+    --cvsu-transition: 180ms cubic-bezier(.4, 0, .2, 1);
+    /* The sidebar and navbar keep their ORIGINAL design, which is owned by the
+       untouched per-role stylesheets. These two tokens only feed the responsive
+       drawer, so they are pinned to the legacy dimensions rather than to the
+       dimensions the theme used to impose:
+         --cvsu-sidebar-w  the legacy #sidebar.expanded width
+         --cvsu-navbar-h   the legacy #content nav height                    */
+    --cvsu-sidebar-w:  280px;
+    --cvsu-navbar-h:   56px;
+
+    /* --- Legacy variable aliases --- */
+    --blue:    var(--cvsu-green-500);
+    --green:   var(--cvsu-green-500);
+    --gold:    var(--cvsu-gold-400);
+    --gray:    var(--cvsu-grey-500);
+
+    /* ----------------------------------------------------------------------
+       SPACING SCALE  --  4px base. Everything in the UI snaps to these.
+       Using the scale everywhere is what stops a page from looking assembled.
+       ---------------------------------------------------------------------- */
+    --sp-1:  4px;
+    --sp-2:  8px;
+    --sp-3:  12px;
+    --sp-4:  16px;
+    --sp-5:  20px;
+    --sp-6:  24px;
+    --sp-8:  32px;
+    --sp-10: 40px;
+    --sp-12: 48px;
+    --sp-16: 64px;
+
+    /* ----------------------------------------------------------------------
+       TYPE SCALE  --  one ramp, used for every level of hierarchy.
+       ---------------------------------------------------------------------- */
+    --fs-xs:   .6875rem;  /* 11px  micro labels, table meta        */
+    --fs-sm:   .8125rem;  /* 13px  captions, badges, helper text   */
+    --fs-base: .875rem;   /* 14px  UI default / table body         */
+    --fs-md:   1rem;      /* 16px  comfortable body copy           */
+    --fs-lg:   1.125rem;  /* 18px  card + panel titles             */
+    --fs-xl:   1.375rem;  /* 22px  page titles                     */
+    --fs-2xl:  1.75rem;   /* 28px  hero / large stat figures       */
+    --fs-3xl:  2.25rem;   /* 36px  reserved for true hero moments  */
+
+    --lh-tight: 1.25;
+    --lh-snug:  1.4;
+    --lh-base:  1.55;
+
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semi:   600;
+    --fw-bold:   700;
+
+    /* ----------------------------------------------------------------------
+       CONTROL SIZES  --  every interactive element on the same rhythm.
+       ---------------------------------------------------------------------- */
+    --ctl-sm: 30px;
+    --ctl-md: 38px;
+    --ctl-lg: 44px;   /* 44px is the minimum comfortable touch target */
+
+    /* --- Legacy variable aliases ---
+       Older per-role stylesheets reference these names. Re-pointing them at
+       the CVSU palette means those sheets recolour too, instead of keeping a
+       competing palette alive underneath the theme. */
+    --blue:    var(--cvsu-green-500);
+    --green:   var(--cvsu-green-500);
+    --gold:    var(--cvsu-gold-400);
+    --gray:    var(--cvsu-grey-500);
+    --font-size-sm: var(--fs-sm);
+    --border-radius: var(--cvsu-radius);
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE
+   -------------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    background: var(--cvsu-surface) !important;
+    color: var(--cvsu-ink) !important;
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+/* One type ramp. Every heading level has exactly one job. */
+h1, h2, h3, h4, h5, h6 {
+    font-family: inherit;
+    color: var(--cvsu-ink) !important;
+    letter-spacing: -.015em;
+    line-height: var(--lh-tight);
+    margin: 0;
+}
+h1 { font-size: var(--fs-xl) !important; font-weight: var(--fw-bold) !important; }
+h2 { font-size: var(--fs-lg) !important; font-weight: var(--fw-semi) !important; }
+h3 { font-size: var(--fs-md) !important; font-weight: var(--fw-semi) !important; }
+h4, h5, h6 { font-size: var(--fs-base) !important; font-weight: var(--fw-semi) !important; }
+
+p { line-height: var(--lh-base); margin: 0 0 var(--sp-3); }
+p:last-child { margin-bottom: 0; }
+
+small { font-size: var(--fs-sm); }
+
+/* Prose inside long-form pages (report descriptions, shared docs, posts) */
+.prose, .post-content, .rich-text {
+    font-size: var(--fs-md);
+    line-height: 1.7;
+    color: var(--cvsu-grey-700);
+}
+.prose h1, .prose h2, .prose h3 { margin: var(--sp-6) 0 var(--sp-3); }
+.prose p { margin-bottom: var(--sp-4); }
+.prose ul, .prose ol { margin: 0 0 var(--sp-4); padding-left: var(--sp-5); }
+.prose li { margin-bottom: var(--sp-2); }
+
+a { color: var(--cvsu-green-600) !important; text-decoration: none; transition: color var(--cvsu-transition); }
+a:hover { color: var(--cvsu-green-500) !important; }
+
+/* Consistent focus ring everywhere (accessibility + consistency) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: none !important;
+    box-shadow: var(--cvsu-ring) !important;
+    border-radius: var(--cvsu-radius-sm);
+}
+
+/* Slim, branded scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--cvsu-green-300) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+    background: var(--cvsu-green-300);
+    border: 2px solid transparent;
+    border-radius: 99px;
+    background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--cvsu-green-400); background-clip: content-box; }
+
+
+@media (max-width: 992px) {
+    #sidebar {
+        width: var(--cvsu-sidebar-w) !important;
+        max-width: 86vw;
+        /* Off-canvas by default; `.expanded` (toggled by the app's own script)
+           is what slides it in. */
+        transform: translateX(-100%) !important;
+        transition: transform .3s ease !important;
+        z-index: 2001 !important;
+        box-shadow: 12px 0 40px rgba(0, 0, 0, .28) !important;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    #sidebar.expanded {
+        transform: translateX(0) !important;
+    }
+
+    /* Reclaim the full viewport - this is the whole point of the breakpoint. */
+    #sidebar.expanded ~ #content,
+    #content {
+        width: 100% !important;
+        left: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    /* An off-canvas panel must not be reachable by keyboard while closed. */
+    #sidebar:not(.expanded) {
+        visibility: hidden;
+    }
+    #sidebar.expanded { visibility: visible; }
+}
+
+/* Backdrop behind the open drawer. Toggled by cvsu-theme.js, which mirrors
+   the `.expanded` class rather than owning the click itself. */
+.cvsu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--cvsu-transition), visibility var(--cvsu-transition);
+}
+.cvsu-backdrop.show { opacity: 1; visibility: visible; }
+
+/* --------------------------------------------------------------------------
+   4. NAVBAR / TOPBAR
+   --------------------------------------------------------------------------
+   The navbar bar is back to its ORIGINAL design and is owned by the legacy
+   stylesheets again:
+
+       #content nav {
+           height: 56px;
+           background: #04500f;
+           padding: 0 24px;
+           position: sticky; top: 0;
+           box-shadow: 0 2px 10px rgba(0,0,0,.1);
+       }
+       #content nav::before { ...the decorative notch... }
+
+   So this section sets NO background, height, border, shadow or padding on the
+   bar - doing so would re-impose the flat white topbar the theme used to have.
+
+   What is left here is the part the original could not supply. The inline
+   <style> blocks that used to live in each components/navbar.html styled the
+   navbar's inner controls (.profile-section, .nav-action-btn, .notification-btn,
+   .system-status, .page-title), and those partials are untracked, so their CSS
+   is not recoverable. The rules below rebuild those controls to sit correctly
+   on the original GREEN bar: white text and icons, translucent white chips.
+   Panels that drop downward (notifications, profile) stay white, because a
+   floating panel reads as a surface rather than as chrome.
+   ------------------------------------------------------------------------ */
+.app-navbar,
+.user-navbar,
+.superadmin-navbar {
+    /* Layout only. The visual treatment is legacy #content nav. */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.app-navbar .nav-left,
+.user-navbar .nav-left,
+.superadmin-navbar .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.app-navbar .nav-right,
+.user-navbar .nav-right,
+.superadmin-navbar .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+/* Hamburger. Original treatment, from legacy navbar.css:
+   `#content nav .bx.bx-menu { color: #fff; padding: 8px; border-radius: 6px }`
+   with a translucent white fill on hover. Those legacy selectors are more
+   specific than a bare class, so the colour and hover fill are pinned here to
+   put the original white-on-green icon back. */
+.toggle-sidebar,
+.toggle-btn,
+.menu-toggle,
+.sidebar-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: #fff !important;
+    font-size: 1.5rem !important;
+    line-height: 1 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    border: none !important;
+    transition: background-color .3s ease;
+}
+.toggle-sidebar:hover,
+.toggle-btn:hover,
+.menu-toggle:hover,
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, .12) !important;
+    color: #fff !important;
+}
+
+/* Page title in the navbar - white on the original green bar. */
+.page-title,
+.app-navbar .page-title,
+.user-navbar .page-title,
+.superadmin-navbar .page-title {
+    font-size: 1.06rem !important;
+    font-weight: 650 !important;
+    color: #fff !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* System status chip - translucent white on green, matching the original
+   navbar's white-on-green treatment. */
+.system-status {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, .12) !important;
+    border: 1px solid rgba(255, 255, 255, .22);
+    color: #fff !important;
+    font-size: .78rem;
+    font-weight: 600;
+}
+.status-indicator {
+    width: 8px; height: 8px;
+    border-radius: 99px;
+    background: #7dffa8;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .18);
+}
+.status-indicator.offline { background: #ffb4b4; box-shadow: 0 0 0 3px rgba(255, 255, 255, .18); }
+
+/* Icon buttons (quick links, nav actions, notifications) - white on green with
+   the original navbar's translucent-white hover fill. */
+.nav-actions,
+.admin-quick-access {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-action-btn,
+.quick-link,
+.notification-btn,
+.admin-quick-access a {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    background: transparent !important;
+    color: #fff !important;
+    border: none !important;
+    font-size: 1.25rem;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    transition: background-color .3s ease;
+}
+.nav-action-btn:hover,
+.quick-link:hover,
+.notification-btn:hover,
+.admin-quick-access a:hover {
+    background: rgba(255, 255, 255, .12) !important;
+    color: #fff !important;
+}
+
+/* Notification counter. Original treatment from legacy navbar.css:
+   a red disc ringed in the navbar's own background colour. */
+.notification-badge {
+    position: absolute !important;
+    top: -5px;
+    right: -5px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 99px;
+    background: #ff6b6b !important;
+    color: #fff !important;
+    font-size: .68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #04500f;
+}
+
+/* Notification panel */
+.notification-container { position: relative; }
+
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    display: none;
+    z-index: 1060;
+}
+.notification-dropdown.show,
+.notification-container:hover .notification-dropdown { display: block; }
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--cvsu-line);
+    background: var(--cvsu-green-50);
+}
+.notification-header h4 { margin: 0; font-size: .95rem; font-weight: 650; color: var(--cvsu-ink) !important; }
+
+.mark-all-read {
+    background: transparent;
+    border: none;
+    color: var(--cvsu-green-600) !important;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.mark-all-read:hover { background: var(--cvsu-green-100); }
+
+.notification-list { max-height: 340px; overflow-y: auto; }
+
+.notification-item {
+    display: flex;
+    gap: 11px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--cvsu-muted-bg);
+    transition: background var(--cvsu-transition);
+}
+.notification-item:hover { background: var(--cvsu-green-50); }
+.notification-item.unread { background: var(--cvsu-green-50) !important; border-left: 3px solid var(--cvsu-gold-400) !important; }
+.notification-item i {
+    width: 34px; height: 34px;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700) !important;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+.notification-content { min-width: 0; flex: 1; }
+.notification-content p { margin: 0; font-size: .85rem; color: var(--cvsu-grey-700) !important; }
+.notification-time { font-size: .72rem; color: var(--cvsu-grey-400) !important; margin-top: 3px; display: block; }
+
+.notification-footer {
+    padding: 11px 16px;
+    text-align: center;
+    background: var(--cvsu-surface);
+    border-top: 1px solid var(--cvsu-line);
+}
+.notification-footer a { font-size: .82rem; font-weight: 600; color: var(--cvsu-green-600) !important; }
+
+/* Profile block - translucent white on the original green bar, mirroring the
+   navbar's other controls. */
+.profile-section {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 4px 6px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, .10) !important;
+    border: 1px solid rgba(255, 255, 255, .14);
+    cursor: pointer;
+    position: relative;
+    transition: background-color .3s ease;
+}
+.profile-section:hover {
+    background: rgba(255, 255, 255, .18) !important;
+}
+.profile-info { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+
+/* admin/user name + role share one treatment across every role */
+.admin-name,
+.user-name {
+    font-weight: 650;
+    font-size: .84rem !important;
+    color: #fff !important;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+.admin-role,
+.user-role,
+.user-department {
+    font-size: .68rem !important;
+    color: rgba(255, 255, 255, .75) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* 40px avatar everywhere. The old superadmin navbar.css pinned 40px with
+   `#content nav .profile img !important`, which out-specified the other two. */
+.profile-image,
+#content nav .profile {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    border-radius: 99px;
+    overflow: hidden;
+    display: block;
+    flex-shrink: 0;
+    text-decoration: none;
+    transition: transform var(--cvsu-transition);
+}
+.profile-section:hover .profile-image { transform: scale(1.05); }
+
+.profile-image img,
+#content nav .profile img,
+.profile-section img {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    border-radius: 99px;
+    object-fit: cover !important;
+    object-position: center;
+    /* White ring, as on the original green navbar. */
+    border: 2px solid #fff;
+    background: var(--cvsu-white);
+}
+
+.profile-dropdown,
+.notification-dropdown {
+    background: var(--cvsu-white) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    border-radius: var(--cvsu-radius) !important;
+    box-shadow: var(--cvsu-shadow-lg) !important;
+    overflow: hidden;
+}
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 210px;
+    display: none;
+    z-index: 1060;
+}
+.profile-dropdown.show,
+.profile-section:hover .profile-dropdown { display: block; }
+
+.profile-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    color: var(--cvsu-ink) !important;
+    border-bottom: 1px solid var(--cvsu-muted-bg);
+    font-size: .88rem;
+    transition: background var(--cvsu-transition);
+}
+.profile-dropdown .dropdown-item:last-child { border-bottom: none; }
+.profile-dropdown .dropdown-item:hover { background: var(--cvsu-green-50) !important; }
+.profile-dropdown .dropdown-item i { color: var(--cvsu-green-600) !important; font-size: 1.15rem; }
+.profile-dropdown .dropdown-item a { color: var(--cvsu-ink) !important; }
+.profile-dropdown .dropdown-item a:hover { color: var(--cvsu-green-600) !important; }
+.dropdown-divider { height: 1px; background: var(--cvsu-line); margin: 0; }
+
+/* --------------------------------------------------------------------------
+   5. CARDS & PANELS
+   -------------------------------------------------------------------------- */
+/* Canonical surface. Every container in the app is built from this one recipe:
+   white fill, hairline border, 12px radius, soft green-tinted shadow.          */
+.card,
+.panel,
+.form-card,
+.dashboard-card,
+.stat-card,
+.folder-card,
+.category-card,
+.department-card,
+.summary-card,
+.stat-item,
+.file-card,
+.profile-card,
+.post-card,
+.report-card,
+.activity-card {
+    background: var(--cvsu-white) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    border-radius: var(--cvsu-radius) !important;
+    box-shadow: var(--cvsu-shadow) !important;
+    color: var(--cvsu-grey-700) !important;
+    transition: transform var(--cvsu-transition), box-shadow var(--cvsu-transition),
+                border-color var(--cvsu-transition);
+}
+
+/* Only interactive cards lift. Static panels must not, or the page reads noisy. */
+.card:hover,
+.folder-card:hover,
+.category-card:hover,
+.department-card:hover,
+.post-card:hover,
+.file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cvsu-shadow-md) !important;
+    border-color: var(--cvsu-green-300) !important;
+}
+
+/* Clickable cards get a pointer and a keyboard affordance to match. */
+a.card, a.folder-card, a.category-card, a.department-card,
+.card[role="button"], .folder-card[role="button"] {
+    cursor: pointer;
+}
+
+.card-header,
+.panel-header,
+.card-header-custom {
+    background: var(--cvsu-white) !important;
+    border-bottom: 1px solid var(--cvsu-line) !important;
+    padding: var(--sp-4) var(--sp-5) !important;
+    font-weight: var(--fw-semi);
+    color: var(--cvsu-ink) !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    min-height: 56px;
+}
+
+.card-body,
+.panel-body {
+    padding: var(--sp-5) !important;
+}
+
+.card-footer,
+.panel-footer,
+.card-actions {
+    padding: var(--sp-4) var(--sp-5) !important;
+    border-top: 1px solid var(--cvsu-muted-bg) !important;
+    background: var(--cvsu-surface);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+}
+
+.card-header h2,
+.card-header h3,
+.card-header-custom h2,
+.card-title {
+    color: var(--cvsu-ink) !important;
+    font-weight: var(--fw-semi) !important;
+    margin: 0;
+}
+
+/* Gold rule to tie cards to the brand */
+.card-header::after {
+    content: '';
+    display: block;
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
+}
+
+/* --------------------------------------------------------------------------
+   6. STAT CARDS
+   -------------------------------------------------------------------------- */
+/* A stat tile is the most-repeated object in the app, so it gets one exact
+   recipe: icon tile on the left, figure + label on the right, a coloured rail
+   down the edge. Rails alternate green/gold so a row scans as a set rather than
+   as four identical boxes. */
+.stat-card,
+.stats-card,
+.summary-card,
+.stat-item {
+    background: var(--cvsu-white) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    border-left: 3px solid var(--cvsu-green-500) !important;
+    border-radius: var(--cvsu-radius) !important;
+    box-shadow: var(--cvsu-shadow) !important;
+    padding: var(--sp-5) !important;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    transition: transform var(--cvsu-transition), box-shadow var(--cvsu-transition),
+                border-color var(--cvsu-transition);
+}
+.stat-card:hover,
+.summary-card:hover { transform: translateY(-2px); box-shadow: var(--cvsu-shadow-md) !important; }
+
+/* Gold rail on every second tile in the row. */
+.stat-card:nth-child(even),
+.stats-card:nth-child(even),
+.summary-card:nth-child(even),
+.stat-item:nth-child(even) { border-left-color: var(--cvsu-gold-400) !important; }
+
+.stat-icon,
+.stats-card .stat-icon,
+.summary-card .stat-icon {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    border-radius: var(--cvsu-radius-sm) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem !important;
+    background: var(--cvsu-green-50) !important;
+    color: var(--cvsu-green-600) !important;
+    flex-shrink: 0;
+}
+.stat-card:nth-child(even) .stat-icon,
+.summary-card:nth-child(even) .stat-icon {
+    background: var(--cvsu-gold-50) !important;
+    color: var(--cvsu-gold-600) !important;
+}
+
+/* Text column. min-width:0 stops long labels from stretching the tile. */
+.stat-info,
+.stat-content,
+.stat-details,
+.summary-card-body { min-width: 0; flex: 1; }
+
+.stat-value,
+.stat-number,
+.summary-card-value {
+    font-size: var(--fs-2xl) !important;
+    font-weight: var(--fw-bold) !important;
+    color: var(--cvsu-ink) !important;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    display: block;
+}
+
+.stat-label,
+.summary-card-label {
+    font-size: var(--fs-sm) !important;
+    color: var(--cvsu-grey-500) !important;
+    font-weight: var(--fw-medium);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Secondary breakdown under the headline figure */
+.stat-detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: 6px 0;
+    font-size: var(--fs-sm);
+    color: var(--cvsu-grey-500);
+    border-top: 1px solid var(--cvsu-muted-bg);
+}
+.stat-detail-item + .stat-detail-item { margin-top: 2px; }
+.stat-detail-item strong { color: var(--cvsu-ink); font-weight: var(--fw-semi); }
+
+/* Trend chip: green when up, red when down, gold when flat */
+.stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi);
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: var(--cvsu-green-100) !important;
+    color: var(--cvsu-green-800) !important;
+}
+.stat-trend.down { background: #fee2e2 !important; color: #991b1b !important; }
+.stat-trend.flat { background: var(--cvsu-gold-100) !important; color: var(--cvsu-gold-700) !important; }
+
+.stat-badge {
+    background: var(--cvsu-green-50) !important;
+    color: var(--cvsu-green-700) !important;
+    border: 1px solid var(--cvsu-green-100);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi);
+}
+
+.stat-value,
+.status-value {
+    font-size: var(--fs-lg) !important;
+    font-weight: var(--fw-bold) !important;
+    color: var(--cvsu-ink) !important;
+    line-height: 1.2;
+}
+.status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3) 0;
+    border-bottom: 1px solid var(--cvsu-muted-bg);
+    font-size: var(--fs-sm);
+    color: var(--cvsu-grey-500) !important;
+}
+.status-item:last-child { border-bottom: none; }
+
+/* --------------------------------------------------------------------------
+   7. BUTTONS
+   -------------------------------------------------------------------------- */
+/* Buttons are the most-combined component in the app: a single element can
+   carry a size, a shape and a colour at once (`btn btn-sm btn-icon btn-danger`).
+   This section is therefore ordered by ROLE, not by importance:
+
+       1. BASE     geometry, typography and the neutral colour
+       2. SIZE     height / padding scale
+       3. SHAPE    icon-only square, pill, block
+       4. COLOUR   green / gold / outline / danger  <- always wins
+       5. STATES   hover, active, disabled, focus
+
+   Because colour is declared last, `btn-icon btn-danger` renders as a red icon
+   button and `btn btn-primary` as a green one, without any of these rules
+   needing !important to fight each other. Only the base rule uses !important,
+   to beat the many per-page stylesheets that predate this theme. */
+
+.btn,
+button.btn,
+.action-btn,
+.nav-btn,
+.btn-action,
+.btn-modern,
+.view-btn,
+.admin-action-btn,
+.detail-action-btn,
+.post-btn,
+.upload-btn,
+.back-btn,
+.load-more-btn,
+.select-all-btn,
+.page-btn,
+.department-confirm-btn {
+    /* --- 1. BASE --- */
+    font-family: inherit !important;
+    font-weight: var(--fw-semi) !important;
+    line-height: 1 !important;
+    font-size: var(--fs-base) !important;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    max-width: 100%;
+    min-width: 0;
+    transition: background var(--cvsu-transition), color var(--cvsu-transition),
+                border-color var(--cvsu-transition), box-shadow var(--cvsu-transition),
+                transform var(--cvsu-transition);
+}
+
+/* --- 2. SIZE --- */
+/* The neutral default. Note this list deliberately includes the variant class
+   names too: much of the app writes `class="btn-small btn-secondary"` or
+   `class="btn-icon btn-warning"` WITHOUT the `btn` base class. If a variant
+   were only handled in the colour block, such a button would receive no
+   background at all and would fall through to whatever the page's own
+   stylesheet happens to say. Listing them here means every button in the app
+   gets this baseline, and the colour block then overrides it. */
+.btn,
+button.btn,
+.action-btn,
+.nav-btn,
+.btn-action,
+.btn-modern,
+.view-btn,
+.admin-action-btn,
+.detail-action-btn,
+.post-btn,
+.upload-btn,
+.back-btn,
+.load-more-btn,
+.select-all-btn,
+.page-btn,
+.department-confirm-btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-light,
+.btn-outline,
+.btn-outline-secondary,
+.btn-gold,
+.btn-accent,
+.btn-delete,
+.btn-download,
+.btn-small,
+.btn-icon,
+.close-btn {
+    height: var(--ctl-md) !important;
+    padding: 0 var(--sp-5) !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--cvsu-line) !important;
+    background: var(--cvsu-white) !important;
+    color: var(--cvsu-green-700) !important;
+}
+
+.btn-sm,
+.btn-small {
+    height: var(--ctl-sm) !important;
+    padding: 0 var(--sp-3) !important;
+    font-size: var(--fs-sm) !important;
+    border-radius: 8px !important;
+    gap: 6px !important;
+}
+
+.btn-lg {
+    height: var(--ctl-lg) !important;
+    padding: 0 var(--sp-6) !important;
+    font-size: var(--fs-md) !important;
+    border-radius: 12px !important;
+}
+
+.btn-block {
+    width: 100% !important;
+}
+
+/* --- 3. SHAPE ---
+   Icon-only controls set geometry only. Colour is left to section 4 so that
+   `btn-icon btn-warning` is a gold icon button rather than a white one. */
+.btn-icon,
+.view-btn,
+.admin-action-btn,
+.detail-action-btn {
+    width: var(--ctl-md) !important;
+    height: var(--ctl-md) !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    flex-shrink: 0;
+    font-size: 1.1rem !important;
+    gap: 0 !important;
+}
+
+/* Rounder control for secondary / low-emphasis actions */
+.btn-soft,
+.btn-ghost {
+    background: var(--cvsu-green-50) !important;
+    color: var(--cvsu-green-800) !important;
+    border-color: var(--cvsu-green-100) !important;
+}
+
+.btn-pill { border-radius: 99px !important; }
+
+/* --- 4. COLOUR ---
+   Declared after every shape and size rule so it always wins. Each block is
+   keyed on the plain class as well as the `.btn.` pair, because some pages
+   emit `btn-icon btn-danger` without the `btn` base class. */
+
+/* Primary - CVSU green. One primary action per view. */
+.btn-primary,
+.btn-success,
+.btn-green,
+.btn-action,
+.btn-modern,
+.upload-btn,
+.department-confirm-btn,
+.post-btn,
+button[type="submit"]:not(.btn-danger):not(.btn-secondary):not(.btn-light):not(.btn-outline) {
+    background: var(--cvsu-green-500) !important;
+    color: var(--cvsu-white) !important;
+    border-color: var(--cvsu-green-500) !important;
+    box-shadow: 0 1px 2px rgba(11, 61, 30, .14);
+}
+
+/* Accent - CVSU gold. Important, but not the page's primary action. */
+.btn-warning,
+.btn-gold,
+.btn-accent,
+.btn-download {
+    background: var(--cvsu-gold-400) !important;
+    color: var(--cvsu-green-900) !important;
+    border-color: var(--cvsu-gold-400) !important;
+    font-weight: var(--fw-bold) !important;
+}
+
+/* Destructive. Reserved for delete / revoke / sign-out - never decorative. */
+.btn-danger,
+.btn-delete {
+    background: var(--cvsu-danger) !important;
+    color: var(--cvsu-white) !important;
+    border-color: var(--cvsu-danger) !important;
+}
+
+/* Informational - the one non-brand hue, for system / informational notices */
+.btn-info {
+    background: var(--cvsu-green-600) !important;
+    color: var(--cvsu-white) !important;
+    border-color: var(--cvsu-green-600) !important;
+}
+
+/* Explicit outline, for when a secondary action needs presence on a tinted panel */
+.btn-outline,
+.btn-outline-secondary {
+    background: transparent !important;
+    color: var(--cvsu-green-700) !important;
+    border-color: var(--cvsu-green-400) !important;
+}
+
+/* Neutral secondary is the base look, restated here so it sits with the other
+   colours and is immune to a page stylesheet that redefines it. */
+.btn-secondary,
+.btn-light {
+    background: var(--cvsu-white) !important;
+    color: var(--cvsu-green-700) !important;
+    border-color: var(--cvsu-line) !important;
+}
+
+/* --- 5. STATES --- */
+.btn-primary:hover, .btn-success:hover, .btn-green:hover, .btn-action:hover,
+.btn-modern:hover, .upload-btn:hover, .department-confirm-btn:hover, .post-btn:hover,
+button[type="submit"]:not(.btn-danger):hover {
+    background: var(--cvsu-green-600) !important;
+    border-color: var(--cvsu-green-600) !important;
+    color: var(--cvsu-white) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--cvsu-shadow-md) !important;
+}
+
+.btn-warning:hover, .btn-gold:hover, .btn-accent:hover, .btn-download:hover {
+    background: var(--cvsu-gold-500) !important;
+    border-color: var(--cvsu-gold-500) !important;
+    color: var(--cvsu-green-900) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--cvsu-shadow-md) !important;
+}
+
+.btn-info:hover {
+    background: var(--cvsu-green-700) !important;
+    border-color: var(--cvsu-green-700) !important;
+    color: var(--cvsu-white) !important;
+    transform: translateY(-1px);
+}
+
+.btn-danger:hover, .btn-delete:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    color: var(--cvsu-white) !important;
+    transform: translateY(-1px);
+}
+
+/* Neutral buttons (the base look) tint green on hover rather than filling. */
+.btn:hover,
+.btn-secondary:hover,
+.btn-light:hover,
+.back-btn:hover,
+.load-more-btn:hover,
+.page-btn:hover,
+.select-all-btn:hover,
+.nav-btn:hover,
+.view-btn:hover,
+.admin-action-btn:hover,
+.detail-action-btn:hover {
+    background: var(--cvsu-green-50) !important;
+    border-color: var(--cvsu-green-300) !important;
+    color: var(--cvsu-green-800) !important;
+}
+
+.btn-soft:hover, .btn-ghost:hover {
+    background: var(--cvsu-green-100) !important;
+    border-color: var(--cvsu-green-300) !important;
+}
+
+.btn-outline:hover, .btn-outline-secondary:hover {
+    background: var(--cvsu-green-50) !important;
+    border-color: var(--cvsu-green-600) !important;
+    color: var(--cvsu-green-800) !important;
+}
+
+.btn:active,
+button:active { transform: translateY(0) !important; }
+
+.btn:disabled,
+.btn.disabled,
+button:disabled,
+.btn[aria-disabled="true"] {
+    opacity: .5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    filter: grayscale(.2);
+}
+
+/* Modal dismiss control: always neutral, never takes a variant colour. */
+.btn-close,
+.close-btn,
+.modal-close {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border-radius: 99px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: var(--cvsu-grey-500) !important;
+    font-size: 1.3rem !important;
+    line-height: 1 !important;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.btn-close:hover, .close-btn:hover, .modal-close:hover {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: transparent !important;
+}
+
+/* A row of related actions keeps one gap regardless of who wrote it. */
+.action-buttons,
+.card-actions,
+.modal-actions,
+.form-actions,
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   8. FORMS
+   -------------------------------------------------------------------------- */
+/* Single-line controls get an explicit height from the control scale, so a
+   filter input, a text field and a select are always the same height no matter
+   what padding the legacy stylesheet gave them. */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+input[type="date"], input[type="search"], input[type="tel"], input[type="url"],
+input[type="time"], input[type="month"], input[type="file"],
+select, .form-control, .form-input, .form-select {
+    font-family: inherit !important;
+    background: var(--cvsu-white) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    border-radius: 10px !important;
+    color: var(--cvsu-ink) !important;
+    padding: 0 var(--sp-3) !important;
+    height: var(--ctl-md) !important;
+    font-size: var(--fs-base) !important;
+    line-height: normal !important;
+    transition: border-color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+    max-width: 100%;
+}
+
+/* Multi-line controls keep their natural height. */
+textarea,
+textarea.form-control,
+textarea.form-input {
+    font-family: inherit !important;
+    background: var(--cvsu-white) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    border-radius: 10px !important;
+    color: var(--cvsu-ink) !important;
+    padding: var(--sp-3) !important;
+    font-size: var(--fs-base) !important;
+    line-height: var(--lh-base) !important;
+    min-height: 96px;
+    resize: vertical;
+    max-width: 100%;
+}
+
+input[type="checkbox"], input[type="radio"] {
+    accent-color: var(--cvsu-green-500) !important;
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+}
+
+input:focus, select:focus, textarea:focus, .form-control:focus, .form-input:focus {
+    border-color: var(--cvsu-green-500) !important;
+    box-shadow: var(--cvsu-ring) !important;
+    outline: none !important;
+}
+input:disabled, select:disabled, textarea:disabled,
+.form-control:disabled, .form-input:disabled {
+    background: var(--cvsu-muted-bg) !important;
+    color: var(--cvsu-grey-400) !important;
+    cursor: not-allowed;
+}
+input::placeholder, textarea::placeholder { color: var(--cvsu-grey-400) !important; }
+
+/* select needs an explicit background or the native arrow sits on white-on-white */
+select, .form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--cvsu-grey-500) 50%),
+        linear-gradient(135deg, var(--cvsu-grey-500) 50%, transparent 50%);
+    background-position: calc(100% - 17px) calc(50% + 1px), calc(100% - 12px) calc(50% + 1px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: var(--sp-8) !important;
+}
+
+/* File inputs: keep the native control but align it to the field rhythm. */
+input[type="file"] { padding: var(--sp-2) var(--sp-3) !important; cursor: pointer; }
+input[type="file"]::file-selector-button {
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semi);
+    margin-right: var(--sp-3);
+    padding: 6px 12px;
+    border: 1px solid var(--cvsu-green-300);
+    border-radius: 8px;
+    background: var(--cvsu-green-50);
+    color: var(--cvsu-green-700);
+    cursor: pointer;
+}
+
+label, .form-label, .form-group label {
+    color: var(--cvsu-grey-700) !important;
+    font-weight: var(--fw-semi) !important;
+    font-size: var(--fs-sm) !important;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Required-field marker */
+label.required::after,
+.form-label.required::after,
+.form-group label.required::after {
+    content: ' *';
+    color: var(--cvsu-danger);
+}
+
+.form-group { margin-bottom: var(--sp-4); }
+
+.form-check-input { accent-color: var(--cvsu-green-500) !important; }
+
+/* Hint / helper text under a field */
+.form-hint, .help-text, .field-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: var(--fs-sm);
+    color: var(--cvsu-grey-500) !important;
+}
+
+/* Validation */
+.is-invalid, .form-control.is-invalid, .form-input.is-invalid {
+    border-color: var(--cvsu-danger) !important;
+}
+.is-invalid + .form-hint, .invalid-feedback {
+    color: #991b1b !important;
+    font-size: var(--fs-sm);
+    display: block;
+    margin-top: 5px;
+}
+
+/* Form actions sit right and stay put */
+.form-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-top: var(--sp-5); }
+
+/* --------------------------------------------------------------------------
+   9. TABLES
+   -------------------------------------------------------------------------- */
+table, .table, .data-table, .file-table {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0;
+    background: var(--cvsu-white) !important;
+    border-radius: var(--cvsu-radius);
+    overflow: hidden;
+    box-shadow: var(--cvsu-shadow);
+    font-size: var(--fs-base) !important;
+    color: var(--cvsu-grey-700) !important;
+}
+
+table thead th,
+.table thead th,
+.data-table thead th,
+.file-table thead th {
+    background: var(--cvsu-green-800) !important;
+    color: var(--cvsu-white) !important;
+    font-weight: var(--fw-semi) !important;
+    font-size: var(--fs-xs) !important;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 13px 15px !important;
+    text-align: left;
+    border: none !important;
+    white-space: nowrap;
+}
+
+table tbody td,
+.table tbody td,
+.data-table tbody td,
+.file-table tbody td {
+    padding: var(--sp-3) 15px !important;
+    border-bottom: 1px solid var(--cvsu-muted-bg) !important;
+    color: var(--cvsu-grey-700) !important;
+    font-size: var(--fs-base) !important;
+    vertical-align: middle;
+}
+
+table tbody tr:nth-child(even),
+.table tbody tr:nth-child(even) { background: var(--cvsu-surface) !important; }
+table tbody tr:hover,
+.table tbody tr:hover { background: var(--cvsu-green-50) !important; }
+table tbody tr:last-child td { border-bottom: none !important; }
+
+/* --------------------------------------------------------------------------
+   10. BADGES, TAGS, PILLS
+   -------------------------------------------------------------------------- */
+/* Status is communicated by a soft tinted pill with a matching border, never a
+   solid saturated block - solid fills compete with the primary buttons and make
+   a data table look like a wall of colour. */
+.badge,
+.status-badge,
+.stat-badge,
+.tag,
+.pill,
+.label,
+.folder-badge,
+.department-badge,
+.verification-badge,
+.period-badge,
+.file-count-badge,
+.profile-badge,
+.rank-badge-gold,
+.rank-badge-silver,
+.badge-system,
+.super-admin-badge,
+.rounded-pill {
+    font-family: inherit !important;
+    font-size: var(--fs-xs) !important;
+    font-weight: var(--fw-semi) !important;
+    padding: 3px 9px !important;
+    border-radius: 99px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    background: var(--cvsu-muted-bg) !important;
+    color: var(--cvsu-grey-700) !important;
+    border: 1px solid var(--cvsu-line) !important;
+    line-height: 1.5;
+    vertical-align: middle;
+    max-width: 100%;
+}
+
+/* --- Success / approved / completed --- */
+.badge-success, .status-badge.success, .status-badge.approved, .tag-success,
+.badge-completed, .status-completed, .status-on-time, .badge-verified {
+    background: var(--cvsu-green-100) !important;
+    color: var(--cvsu-green-800) !important;
+    border-color: var(--cvsu-green-300) !important;
+}
+
+/* --- Pending / draft / awaiting action (gold: "waiting on someone") --- */
+.badge-warning, .status-badge.pending, .tag-warning, .badge-pending,
+.status-pending, .status-draft, .badge-draft, .badge-review,
+.status-badge.archived, .badge-system {
+    background: var(--cvsu-gold-100) !important;
+    color: var(--cvsu-gold-700) !important;
+    border-color: var(--cvsu-gold-300) !important;
+}
+
+/* --- Rejected / inactive / overdue / failed --- */
+.badge-danger, .status-badge.rejected, .status-badge.inactive,
+.status-rejected, .status-overdue, .badge-failed, .status-late,
+.status-badge.declined {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: #fca5a5 !important;
+}
+
+/* --- Neutral informational --- */
+.badge-info, .status-badge.active, .badge-secondary, .badge-default,
+.badge-neutral, .status-badge.new {
+    background: var(--cvsu-green-50) !important;
+    color: var(--cvsu-green-700) !important;
+    border-color: var(--cvsu-green-100) !important;
+}
+
+/* --- Visibility: public vs private documents --- */
+.public-badge, .badge-public {
+    background: var(--cvsu-green-100) !important;
+    color: var(--cvsu-green-800) !important;
+    border-color: var(--cvsu-green-300) !important;
+}
+.private-badge, .badge-private {
+    background: var(--cvsu-muted-bg) !important;
+    color: var(--cvsu-grey-700) !important;
+    border-color: var(--cvsu-line) !important;
+}
+
+/* --- Rank medals use gold/silver, the only place metal tones appear --- */
+.rank-badge-gold {
+    background: var(--cvsu-gold-100) !important;
+    color: var(--cvsu-gold-700) !important;
+    border-color: var(--cvsu-gold-300) !important;
+}
+.rank-badge-silver {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--cvsu-grey-400);
+    flex-shrink: 0;
+    display: inline-block;
+}
+.status-dot.online, .status-dot.active, .status-dot.approved {
+    background: var(--cvsu-green-500);
+    box-shadow: 0 0 0 3px var(--cvsu-green-100);
+}
+.status-dot.offline, .status-dot.inactive, .status-dot.pending {
+    background: var(--cvsu-gold-400);
+    box-shadow: 0 0 0 3px var(--cvsu-gold-100);
+}
+.status-dot.error, .status-dot.rejected, .status-dot.overdue {
+    background: var(--cvsu-danger);
+    box-shadow: 0 0 0 3px #fee2e2;
+}
+
+/* --------------------------------------------------------------------------
+   11. ALERTS
+   -------------------------------------------------------------------------- */
+.alert, .alert-box, .message, .notification-item.unread {
+    border-radius: var(--cvsu-radius-sm) !important;
+    border-left: 4px solid var(--cvsu-green-500) !important;
+    background: var(--cvsu-green-50) !important;
+    color: var(--cvsu-green-800) !important;
+    padding: 13px 16px !important;
+    font-size: .88rem;
+    box-shadow: var(--cvsu-shadow-sm);
+}
+.alert-warning { border-left-color: var(--cvsu-gold-400) !important; background: var(--cvsu-gold-50) !important; color: var(--cvsu-gold-700) !important; }
+.alert-danger, .alert-error { border-left-color: var(--cvsu-danger) !important; background: #fef2f2 !important; color: #991b1b !important; }
+.alert-info { border-left-color: var(--cvsu-green-600) !important; background: var(--cvsu-green-50) !important; color: var(--cvsu-green-800) !important; }
+
+/* --------------------------------------------------------------------------
+   12. EMPTY STATES
+   -------------------------------------------------------------------------- */
+.empty-state, .no-data, .no-results {
+    text-align: center;
+    padding: 44px 20px;
+    color: var(--cvsu-grey-500) !important;
+}
+.empty-state i, .no-data i, .no-results i { font-size: 3rem; color: var(--cvsu-green-300) !important; margin-bottom: 12px; display: block; }
+.empty-state p, .no-data p { color: var(--cvsu-grey-500) !important; font-size: .92rem; }
+.empty-state a { color: var(--cvsu-green-600) !important; font-weight: 600; display: inline-block; margin-top: 10px; }
+
+/* --------------------------------------------------------------------------
+   13. MODALS
+   -------------------------------------------------------------------------- */
+.modal-content, .modal {
+    border-radius: var(--cvsu-radius-lg) !important;
+    border: none !important;
+    box-shadow: var(--cvsu-shadow-lg) !important;
+    overflow: hidden;
+}
+.modal-header {
+    background: var(--cvsu-white) !important;
+    border-bottom: 1px solid var(--cvsu-line) !important;
+    padding: 18px 22px !important;
+}
+.modal-header .modal-title { color: var(--cvsu-ink) !important; font-weight: 650 !important; }
+.modal-header::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
+}
+.modal-body { padding: 22px !important; }
+.modal-footer {
+    border-top: 1px solid var(--cvsu-line) !important;
+    padding: 15px 22px !important;
+    background: var(--cvsu-surface);
+}
+
+/* --------------------------------------------------------------------------
+   14. TABS & PAGINATION
+   -------------------------------------------------------------------------- */
+.nav-tabs, .tabs, .tab-nav {
+    border-bottom: 2px solid var(--cvsu-line) !important;
+    gap: 4px;
+    display: flex;
+    flex-wrap: wrap;
+}
+.nav-tabs .nav-link, .tabs button, .tab-btn {
+    color: var(--cvsu-grey-500) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    padding: 10px 16px !important;
+    font-weight: 600;
+    font-size: .87rem;
+    border-radius: 8px 8px 0 0;
+    transition: all var(--cvsu-transition);
+}
+.nav-tabs .nav-link:hover, .tabs button:hover, .tab-btn:hover { color: var(--cvsu-green-600) !important; background: var(--cvsu-green-50) !important; }
+.nav-tabs .nav-link.active, .tabs button.active, .tab-btn.active {
+    color: var(--cvsu-green-700) !important;
+    border-bottom-color: var(--cvsu-gold-400) !important;
+    background: var(--cvsu-green-50) !important;
+}
+
+.pagination .page-link,
+.pagination button {
+    border: 1px solid var(--cvsu-line) !important;
+    border-radius: 8px !important;
+    color: var(--cvsu-green-700) !important;
+    background: var(--cvsu-white) !important;
+    padding: 7px 13px !important;
+    font-size: .85rem;
+    font-weight: 600;
+    margin: 0 3px;
+    transition: all var(--cvsu-transition);
+}
+.pagination .page-link:hover { background: var(--cvsu-green-50) !important; border-color: var(--cvsu-green-300) !important; }
+.pagination .page-item.active .page-link,
+.pagination button.active {
+    background: var(--cvsu-green-500) !important;
+    border-color: var(--cvsu-green-500) !important;
+    color: var(--cvsu-white) !important;
+}
+.pagination .page-link:disabled, .pagination .page-item.disabled .page-link {
+    opacity: .5 !important;
+    cursor: not-allowed !important;
+    background: var(--cvsu-muted-bg) !important;
+    color: var(--cvsu-grey-400) !important;
+}
+
+/* --------------------------------------------------------------------------
+   15. LAYOUT
+   -------------------------------------------------------------------------- */
+#content, .main-content, .content, .content-wrapper {
+    background: var(--cvsu-surface) !important;
+    min-height: 100vh;
+    transition: margin var(--cvsu-transition);
+}
+
+.page-header, .content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-6);
+}
+.page-header h1, .page-title-text, .content-header h1 {
+    font-size: var(--fs-xl) !important;
+    font-weight: var(--fw-bold) !important;
+    color: var(--cvsu-ink) !important;
+    margin: 0;
+    letter-spacing: -.02em;
+}
+.page-header p, .content-header p {
+    color: var(--cvsu-grey-500) !important;
+    font-size: var(--fs-base);
+    margin: var(--sp-1) 0 0;
+    max-width: 62ch;   /* measure, so descriptions don't run the full width */
+}
+
+/* Standard content rhythm: everything on the page hangs off this. */
+.page-body { padding: var(--sp-6); }
+.page-body > * + * { margin-top: var(--sp-5); }
+@media (max-width: 768px) {
+    .page-body { padding: var(--sp-4); }
+    .page-body > * + * { margin-top: var(--sp-4); }
+}
+
+/* Section heading used above groups of cards */
+.section-title {
+    font-size: var(--fs-xs) !important;
+    font-weight: var(--fw-semi);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--cvsu-grey-500) !important;
+    margin: 0 0 var(--sp-3);
+}
+
+/* Shared responsive grids.
+   auto-fill + minmax means the column count is derived from the space
+   available, so these need no per-page breakpoints. */
+.grid, .stats-grid, .card-grid, .folder-grid, .category-grid, .department-grid {
+    display: grid;
+    gap: var(--sp-4);
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+/* Stat tiles get their own track size - they are narrower than content cards. */
+.stats-grid, .stats-overview {
+    display: grid;
+    gap: var(--sp-4);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.dashboard-grid { display: grid; gap: var(--sp-5); grid-template-columns: repeat(12, 1fr); }
+.dashboard-grid > * { grid-column: span 12; min-width: 0; }
+@media (min-width: 900px) {
+    .dashboard-grid .col-8, .dashboard-grid .span-8 { grid-column: span 8; }
+    .dashboard-grid .col-4, .dashboard-grid .span-4 { grid-column: span 4; }
+    .dashboard-grid .col-6, .dashboard-grid .span-6 { grid-column: span 6; }
+}
+
+/* --------------------------------------------------------------------------
+   16. RESPONSIVE
+   -------------------------------------------------------------------------- */
+/* Breakpoints, one per device class:
+       ≤1280px  small laptop / large tablet landscape  (tighten density)
+       ≤992px   tablet portrait                       (sidebar -> drawer)
+       ≤768px   phone                                (single column, touch)
+       ≤480px   small phone                          (minimal chrome)
+
+   The goal at each step is a different LAYOUT, not a smaller one: the sidebar
+   becomes a drawer, grids drop a column, tables either scroll or turn into
+   cards, toolbars wrap, modals become bottom sheets.
+   ------------------------------------------------------------------------ */
+
+/* The drawer backdrop is declared in section 3, alongside the drawer rule it
+   belongs to. */
+
+/* Table scroll affordance: JS wraps bare <table>s in .table-scroll and adds
+   .scrollable only when the table actually overflows, so the edge shadow only
+   appears when there is genuinely something to swipe. No min-width here - a
+   two-column table should fit, a nine-column table should scroll. */
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--cvsu-radius);
+    max-width: 100%;
+}
+.table-scroll.scrollable {
+    background:
+        linear-gradient(to left, rgba(11, 61, 30, .07), rgba(11, 61, 30, 0) 26px)
+        right center / 32px 100% no-repeat;
+}
+
+/* --------------------------------------------------------------------------
+   ≤1280px  --  tighten density so 3-up grids still fit
+   -------------------------------------------------------------------------- */
+@media (max-width: 1280px) {
+    .grid, .stats-grid, .card-grid, .folder-grid, .category-grid, .department-grid {
+        gap: var(--sp-4);
+    }
+    .dashboard-grid { gap: var(--sp-4); }
+}
+
+/* --------------------------------------------------------------------------
+   ≤992px  --  TABLET
+   --------------------------------------------------------------------------
+   The sidebar becomes an off-canvas drawer at this width; that rule lives in
+   section 3, next to the note explaining why the original chrome is left
+   alone. What remains here is the page content reacting to the drawer. */
+@media (max-width: 992px) {
+    /* Dashboard columns collapse to one; the reading order is unchanged. */
+    .dashboard-grid > * { grid-column: span 12 !important; }
+
+    /* Page header stacks so the title and actions never fight for width. */
+    .page-header, .content-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--sp-3);
+    }
+    .page-header > .btn,
+    .page-header > .header-actions { align-self: flex-start; }
+
+    /* Dropdown panels use the full width instead of hanging off the edge. */
+    .notification-dropdown,
+    .profile-dropdown {
+        position: fixed !important;
+        left: var(--sp-3) !important;
+        right: var(--sp-3) !important;
+        top: calc(var(--cvsu-navbar-h) + var(--sp-2)) !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   ≤768px  --  PHONE
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    :root { --cvsu-navbar-h: 56px; }
+
+    .app-navbar, .user-navbar, .superadmin-navbar {
+        padding: 0 var(--sp-3) !important;
+        gap: var(--sp-2);
+    }
+
+    /* Secondary chrome yields to the essentials: hamburger + primary actions. */
+    .admin-quick-access,
+    .system-status span:not(.status-indicator) { display: none !important; }
+
+    /* Every grid goes to a comfortable two-up, or one-up for the big tiles. */
+    .grid, .stats-grid, .card-grid, .folder-grid, .category-grid, .department-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: var(--sp-3) !important;
+    }
+
+    /* Cards lose their desktop padding but keep their internal rhythm. */
+    .card-header, .card-header-custom, .panel-header { padding: var(--sp-3) var(--sp-4) !important; }
+    .card-body, .panel-body { padding: var(--sp-4) !important; }
+    .card-footer, .card-actions, .panel-footer { padding: var(--sp-3) var(--sp-4) !important; }
+
+    /* Touch targets: 44px minimum, per the control scale. */
+    .btn, button.btn, .action-btn, .btn-action, .btn-modern,
+    .view-btn, .admin-action-btn, .detail-action-btn,
+    button[type="submit"], .form-group .btn {
+        height: var(--ctl-lg) !important;
+        font-size: var(--fs-base) !important;
+    }
+    .btn-block, .form-group .btn, .modal-footer .btn { width: 100% !important; }
+
+    /* Icon-only buttons stay square, they just grow. */
+    .btn-icon, .view-btn, .admin-action-btn, .detail-action-btn {
+        width: var(--ctl-lg) !important;
+        height: var(--ctl-lg) !important;
+    }
+    .btn-sm, .btn-small { height: var(--ctl-md) !important; }
+
+    /* Tables scroll horizontally inside a styled container - only when they
+       are actually wider than the viewport. */
+    .table-wrapper, .table-responsive, .table-container, .table-scroll {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--cvsu-radius-sm);
+    }
+
+    /* Opt-in card transformation. cvsu-theme.js copies each <th> into a
+       data-label on the matching <td>, so each row reads as a labelled pair. */
+    .table-stack thead { display: none !important; }
+    .table-stack,
+    .table-stack tbody,
+    .table-stack tbody tr,
+    .table-stack tbody td { display: block; width: 100%; }
+    .table-stack tbody tr {
+        margin-bottom: var(--sp-3);
+        border: 1px solid var(--cvsu-line) !important;
+        border-radius: var(--cvsu-radius);
+        background: var(--cvsu-white) !important;
+        box-shadow: var(--cvsu-shadow-sm);
+        overflow: hidden;
+    }
+    .table-stack tbody tr:nth-child(even) { background: var(--cvsu-white) !important; }
+    .table-stack tbody tr:hover { background: var(--cvsu-white) !important; }
+    .table-stack tbody td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-4);
+        border: none !important;
+        border-bottom: 1px solid var(--cvsu-muted-bg) !important;
+        padding: var(--sp-3) var(--sp-4) !important;
+        text-align: right;
+        min-width: 0;
+    }
+    .table-stack tbody tr td:last-child { border-bottom: none !important; }
+    .table-stack tbody td::before {
+        content: attr(data-label);
+        font-weight: var(--fw-semi);
+        font-size: var(--fs-xs);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--cvsu-grey-500) !important;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* Modals become bottom sheets: thumb-reachable, full-bleed, rounded top. */
+    .modal-content, .modal {
+        border-radius: var(--cvsu-radius-lg) var(--cvsu-radius-lg) 0 0 !important;
+        max-height: 92vh;
+        margin: auto 0 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-body { overflow-y: auto; -webkit-overflow-scoverscrolling: touch; }
+    .modal-header, .modal-footer { padding: var(--sp-4) !important; }
+    /* The footer sticks so the confirm button is always reachable. */
+    .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: var(--cvsu-white) !important;
+        border-top: 1px solid var(--cvsu-line) !important;
+    }
+    .modal-footer .btn { flex: 1 1 auto; }
+
+    /* Filter toolbars wrap into rows instead of overflowing. */
+    .filters, .filter-bar, .toolbar, .search-bar, .list-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: var(--sp-3) !important;
+    }
+    .filters input, .filters select, .toolbar input, .toolbar select { width: 100% !important; }
+
+    .empty-state { padding: var(--sp-8) var(--sp-4); }
+
+    .pagination {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-1);
+        justify-content: center;
+    }
+
+    /* Sticky action bar for the primary action on a long page. */
+    .sticky-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 1020;
+        padding: var(--sp-3) 0;
+        margin: var(--sp-4) calc(var(--sp-4) * -1) 0;
+        padding-left: var(--sp-4);
+        padding-right: var(--sp-4);
+        background: rgba(255, 255, 255, .96);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid var(--cvsu-line);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   ≤480px  --  SMALL PHONE: one column, minimal chrome
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+    :root {
+        --fs-2xl: 1.5rem;
+        --fs-xl:  1.25rem;
+    }
+
+    .grid, .stats-grid, .card-grid, .folder-grid, .category-grid, .department-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Stat tiles go vertical: icon above figure, rather than a cramped row. */
+    .stat-card, .summary-card, .stat-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--sp-2);
+        padding: var(--sp-4) !important;
+    }
+
+    .page-header h1 { font-size: var(--fs-lg) !important; }
+    .profile-section { padding: 4px !important; }
+
+    /* Long words (emails, URLs, filenames) must never force a sideways scroll. */
+    .card, .card-body, td, th, .stat-label, .empty-state {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   17. MOTION & PRINT
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media print {
+    #sidebar, #content nav, .app-navbar, .user-navbar, .superadmin-navbar,
+    .toggle-sidebar, .toggle-btn, .cvsu-backdrop,
+    .page-header .btn, .pagination { display: none !important; }
+    #content, .main-content { margin: 0 !important; left: 0 !important; width: 100% !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .card, .stat-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+    a[href]::after { content: " (" attr(href) ")"; font-size: .75em; color: #666; }
+}
