@@ -1,5 +1,44 @@
 /* Statistics Cards - Green Theme */
 
+/* Dashboard palette ------------------------------------------------------------
+   The dashboard stylesheets, the shared base stylesheet and the CVSU design
+   system all still reference the old accent variables. Re-pointing them at the
+   CVSU greens for this page only recolours every accent that uses them -
+   surfaces, badges, active states and empty-state links - without touching a
+   single layout rule, and leaves the other roles untouched.
+
+   Only the two brand greens plus neutrals are used:
+     --cvsu-green-100  light surfaces, icon containers, subtle highlights
+     --cvsu-green-700  icons, figures, progress bars, active states, borders */
+body.admin-dashboard-page {
+    --blue: var(--cvsu-green-700);
+    --light-blue: var(--cvsu-green-100);
+    --yellow: var(--cvsu-green-700);
+    --light-yellow: var(--cvsu-green-100);
+    --orange: var(--cvsu-green-700);
+    --light-orange: var(--cvsu-green-100);
+    --purple: var(--cvsu-green-700);
+    --light-purple: var(--cvsu-green-100);
+    --red: var(--cvsu-green-700);
+    --light-red: var(--cvsu-green-100);
+    --green-hover: var(--cvsu-green-700);
+}
+
+/* Dashboard stat cards ------------------------------------------------------
+   Hover is surface-only: the shadow deepens, the card does not move. The
+   shared design system lifts these tiles on hover (transform on .box-info li),
+   so the lift is pinned back to none here for the admin dashboard only. */
+body.admin-dashboard-page #content main .box-info li:hover,
+body.admin-dashboard-page #content main .stat-card:hover,
+body.admin-dashboard-page #content main .status-item:hover,
+body.admin-dashboard-page #content main .dashboard-card:hover {
+    transform: none !important;
+}
+
+body.admin-dashboard-page #content main .files-table tbody tr:hover {
+    transform: none !important;
+}
+
 .box-info {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -7,61 +46,154 @@
     margin-top: 36px;
 }
 
+/* Breathing room between the cards. The shared design system pins the gap to
+   16px, which leaves the four stat cards looking like one solid block. */
+body.admin-dashboard-page #content main .box-info {
+    gap: 30px !important;
+    row-gap: 30px !important;
+}
+
+/* The overview row carries only the two actionable tiles, so it takes two
+   tracks instead of the shared system's four. */
+body.admin-dashboard-page #content main .box-info.stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Vertical rhythm: the panel rows below the stat cards had no top margin, so
+   Recent Activity sat flush against the statistics. */
+body.admin-dashboard-page #content main .dashboard-grid {
+    margin-top: 30px !important;
+}
+
 .box-info li {
     padding: 24px;
     background: var(--light);
     border-radius: 20px;
     display: flex;
-    align-items: center;
     gap: 24px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--cvsu-green-100);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 .box-info li:hover {
-    transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.box-info li .bx {
-    width: 80px;
-    height: 80px;
-    border-radius: 16px;
-    font-size: 36px;
+/* Card internals ----------------------------------------------------------------
+   Every tile uses the same two-level stack: a metric row (badge + figure), then
+   the supporting content. Because the badge and the figure are siblings in one
+   flex row, the figure is centred against the badge for a one-digit value, a
+   two-digit value and a long value such as "119.6 KB" alike - the alignment
+   comes from the layout, not from any value-specific rule. */
+body.admin-dashboard-page #content main .box-info li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    /* Lets the figure size itself from the width the card actually has, so a
+       long value shrinks to fit instead of crowding the badge. */
+    container-type: inline-size;
+}
+
+.stat-head {
     display: flex;
-    justify-content: center;
     align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
-.box-info li:nth-child(1) .bx {
-    background: var(--light-blue);
-    color: var(--blue);
+/* Icon container ------------------------------------------------------------
+   The badge keeps the size, radius and centring the shared base stylesheet gives
+   it (see .box-info li .bx) and is only prevented from flexing, so the figure is
+   always measured against an identical reference. Surface and glyph use the
+   shared green palette so they stay consistent with the rest of the admin panel.
+
+   The base stylesheet colours these icons per tile position
+   (#content main .box-info li:nth-child(n) .bx), so this selector has to
+   outrank that shape - hence the extra .bx class on the element. */
+#content main .box-info li .stat-head > i.bx {
+    flex: 0 0 auto;
+    background-color: var(--cvsu-green-50);
+    color: var(--cvsu-green-700);
 }
 
-.box-info li:nth-child(2) .bx {
-    background: var(--light-yellow);
-    color: var(--yellow);
+/* The figure takes the width left over by the badge and keeps the card's
+   typography in the dark brand green. 7cqi of a 335px card hits the 23px cap;
+   narrower cards step down instead of letting the value run under the badge.
+
+   The shared design system pins every h3 to 1rem with !important
+   (assets/css/cvsu-theme.css), so these declarations need !important and the
+   full scope chain to take effect.
+
+   8cqi reaches the 23px cap on any card wider than ~288px, which covers every
+   breakpoint the four-column desktop layout produces, so figures stay the same
+   size across both stat rows instead of stepping down on wide screens. */
+body.admin-dashboard-page #content main .box-info li .stat-head > h3 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    color: var(--cvsu-green-900) !important;
+    font-size: clamp(18px, 8cqi, 23px) !important;
+    font-weight: 680 !important;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    /* Only reached if a value exhausts the row; it wraps rather than
+       overflowing the card. */
+    overflow-wrap: break-word;
 }
 
-.box-info li:nth-child(3) .bx {
-    background: var(--light-orange);
-    color: var(--orange);
+.box-info li .stat-label {
+    margin: 0;
 }
 
-.box-info li:nth-child(4) .bx {
-    background: #e0e7ff;
-    color: #4f46e5;
+/* Push the bar to the foot of the card so all four bars share a baseline. */
+body.admin-dashboard-page #content main .box-info li .progress-bar {
+    margin-top: auto;
 }
 
-.box-info li .text h3 {
-    font-size: 24px;
+/* Month-over-month delta shown under each statistic --------------------- */
+.box-info li .change {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 0;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-primary);
+    line-height: 1.3;
 }
 
-.box-info li .text p {
-    color: var(--text-secondary);
+.box-info li .change i {
+    font-size: 15px;
+    flex: 0 0 auto;
+}
+
+.box-info li .change.positive { color: var(--cvsu-green-700); }
+.box-info li .change.negative { color: var(--cvsu-gold-700); }
+.box-info li .change.neutral  { color: var(--cvsu-grey-500); }
+
+/* Share bar. The caption underneath states what the bar measures so the
+   percentage is never read as an unexplained gauge. */
+.progress-bar {
+    width: 100%;
+    height: 7px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: var(--cvsu-green-100);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--cvsu-green-700);
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar-note {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--cvsu-grey-500);
 }
 
 /* Responsive */
@@ -70,20 +202,22 @@
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .box-info li {
         padding: 20px;
-    }
-    
-    .box-info li .bx {
-        width: 60px;
-        height: 60px;
-        font-size: 28px;
     }
 }
 
 @media screen and (max-width: 576px) {
     .box-info {
         grid-template-columns: 1fr;
+    }
+}
+
+/* The overview row keeps two tracks above this point, then drops to one so it
+   collapses in step with the statistics row. */
+@media screen and (max-width: 420px) {
+    body.admin-dashboard-page #content main .box-info.stats-overview {
+        grid-template-columns: 1fr !important;
     }
 }
