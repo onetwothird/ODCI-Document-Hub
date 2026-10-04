@@ -247,7 +247,6 @@ function renderCustomFolders(departmentId, folders) {
     let html = '';
     
     folders.forEach(folder => {
-        const createdDate = new Date(folder.created_at).toLocaleDateString();
         const folderId = Number(folder.id);
         const fileCount = Number(folder.file_count) || 0;
         const subfolderCount = Number(folder.subfolder_count) || 0;
@@ -288,13 +287,6 @@ function renderCustomFolders(departmentId, folders) {
                          data-folder-id="${folderId}" data-semester="first"></div>
                     <div class="custom-folder-semester-panel" id="custom-folder-semester-${folderId}-second"
                          data-folder-id="${folderId}" data-semester="second" hidden></div>
-                    <div class="custom-folder-details">
-                        <span><i class="bx bx-file"></i> ${fileCount} ${fileCount === 1 ? 'file' : 'files'} total</span>
-                        <span><i class="bx bx-time"></i> Created ${escapeHtml(createdDate)}</span>
-                                        <button type="button" class="custom-folder-delete" onclick="deleteCustomFolder(event, ${folderId})">
-                                            <i class="bx bx-trash"></i> Delete folder
-                                        </button>
-                    </div>
                 </div>
             </article>
         `;
@@ -369,9 +361,10 @@ async function loadCustomFolderSemester(folderId, semester, forceReload = false)
             throw new Error(data.message || `Could not load files (HTTP ${response.status}).`);
         }
 
-        const semesterName = semester === 'first' ? 'First Semester' : 'Second Semester';
-        const filesMarkup = data.files.length
-            ? `<div class="custom-folder-files">${data.files.map(file => `
+        const semesterName = data.semester_label || (semester === 'first' ? 'First Semester' : 'Second Semester');
+        const files = Array.isArray(data.files) ? data.files : [];
+        const filesMarkup = files.length
+            ? `<div class="custom-folder-files">${files.map(file => `
                     <div class="custom-folder-file">
                         <span class="custom-folder-file-icon"><i class='bx ${getFileIcon(file.original_name)}'></i></span>
                         <span class="custom-folder-file-info">
@@ -383,21 +376,15 @@ async function loadCustomFolderSemester(folderId, semester, forceReload = false)
                         </a>
                     </div>
                 `).join('')}</div>`
-            : `<div class="empty-state custom-folder-empty">
-                    <i class='bx bx-folder-open'></i>
-                    <p>No files in ${semesterName}</p>
-                    <small>Files uploaded to this folder and semester will appear here</small>
-                </div>`;
+            : folderSemesterEmptyState(semesterName, 'Files uploaded to this folder and semester will appear here');
 
-        panel.innerHTML = `
-            <div class="custom-folder-semester-toolbar">
-                <span>${semesterName}</span>
-                <button type="button" onclick="openCustomFolderUpload(${Number(folderId)}, '${semester}')">
-                    <i class="bx bx-upload"></i> Upload file
-                </button>
-            </div>
-            ${filesMarkup}
-        `;
+        panel.innerHTML = folderSemesterHeading(semesterName)
+            + filesMarkup
+            + folderSemesterFooter({
+                fileCount: Number(data.file_count) || files.length,
+                createdAt: data.created_at,
+                deleteAttributes: `onclick="deleteCustomFolder(event, ${Number(folderId)})"`
+            });
         panel.dataset.loaded = 'true';
         panel.dataset.loading = 'false';
     } catch (error) {
