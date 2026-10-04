@@ -1,5 +1,4 @@
-/* Import Inter font to match login theme */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here */
 
 /* Global Reset */
 * {
@@ -18,9 +17,9 @@ li {
 
 /* Updated CSS Variables - Matching Login Theme */
 :root {
-    /* Updated font family */
-    --poppins: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --lato: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Font family — inherit from shared design system */
+    --poppins: var(--font-family);
+    --lato: var(--font-family);
     
     /* Updated color scheme */
     --light: #f8fafc;
