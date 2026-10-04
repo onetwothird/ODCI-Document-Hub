@@ -10,9 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/sidebar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/submission-tracker.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/navbar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/submission-tracker.css?v=<?= time() ?>">
     <style>
         .profile::after {
             content: '<?php echo $departmentCode; ?>';
@@ -31,45 +32,50 @@
 
      
         :root {
-            --poppins: 'Poppins', sans-serif;
-            --lato: 'Lato', sans-serif;
-            
+            --poppins: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --lato: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
             /* Primary Green (for navbar/sidebar compatibility) */
             --primary-green: #28a745;
-            --light-green: #d4edda;
+            --light-green: #f0fdf4;
             --dark-green: #1e7e34;
-            
+
             /* Complementary Color Palette */
-            --teal: #20c997;
+            --teal: #14b8a6;
             --green: #28a745;
-            --cyan: #17a2b8;
-            --blue: #007bff;
-            --indigo: #6f42c1;
-            --purple: #6f42c1;
-            --pink: #e83e8c;
-            --orange: #fd7e14;
-            --yellow: #ffc107;
-            --amber: #ffb347;
-            
+            --cyan: #0891b2;
+            --blue: #28a745;
+            --indigo: #1e7e34;
+            --purple: #1e7e34;
+            --pink: #db2777;
+            --orange: #f97316;
+            --yellow: #eab308;
+            --amber: #f59e0b;
+
             /* Neutral Colors */
-            --light: #f8f9fa;
-            --grey-light: #e9ecef;
-            --grey: #6c757d;
-            --dark-grey: #495057;
-            --dark: #2d3748;
+            --light: #f8fafc;
+            --grey-light: #e2e8f0;
+            --grey: #f1f5f9;
+            --dark-grey: #94a3b8;
+            --dark: #1f2937;
             --white: #ffffff;
-            --red: #dc3545;
-            
+            --red: #dc2626;
+
+            /* Text ramp */
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+
             /* Gradient combinations */
-            --gradient-blue: linear-gradient(135deg, #10b981, #059669);
-            --gradient-orange: linear-gradient(135deg, #f093fb, #f5576c);
-            --gradient-teal: linear-gradient(135deg, #4facfe, #00f2fe);
-            --gradient-purple: linear-gradient(135deg, #a8edea, #fed6e3);
+            --gradient-blue: linear-gradient(135deg, #28a745, #1e7e34);
+            --gradient-orange: linear-gradient(135deg, #f97316, #ea580c);
+            --gradient-teal: linear-gradient(135deg, #14b8a6, #0d9488);
+            --gradient-purple: linear-gradient(135deg, #34c759, #1e7e34);
         }
 
         body {
             font-family: var(--poppins);
-            background: #f5f7fa
+            background: var(--grey);
             min-height: 100vh;
             color: var(--dark);
         }
