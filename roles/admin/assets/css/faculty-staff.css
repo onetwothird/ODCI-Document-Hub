@@ -992,7 +992,6 @@
             left: 0;
             width: 3px;
             border-radius: 0 3px 3px 0;
-            background: var(--cvsu-green-500);
         }
 
         .bulk-actions.active {
