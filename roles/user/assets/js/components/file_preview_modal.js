@@ -959,8 +959,9 @@ function getCategoryDisplayName(categoryKey) {
         'consultation': 'Consultation',
         'lecture': 'Lecture',
         'activities': 'Activities',
-        'exam_acknowledgement': 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
-        'consultation_log': 'Consultation Log Sheet Form'
+        'consultation_log': 'Consultation Log Sheet Form',
+        'exam_acknowledgement': 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form'
+        
     };
     return categoryNames[categoryKey] || categoryKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
