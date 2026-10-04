@@ -6,129 +6,418 @@ require_once __DIR__ . '/../../includes/auth_check.php';
 // Check if user is logged in and is admin
 requireAdmin();
 
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+/* ==========================================================================
+   REQUEST STATE
+   --------------------------------------------------------------------------
+   Every filter is whitelisted before it reaches SQL. The values go into the
+   query as bound parameters, but an unvalidated ?folder_type=whatever would
+   still be echoed straight back into the <option selected> comparison and into
+   pagination links, so the whitelist is what keeps the page honest.
+   ========================================================================== */
+
+const FOLDER_TYPES  = ['category', 'custom', 'system'];
+const FOLDER_STATUS = ['active', 'archived', 'hidden'];
+
+$page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 20;
 $offset = ($page - 1) * $limit;
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$department_filter = isset($_GET['department']) ? $_GET['department'] : '';
-$folder_type_filter = isset($_GET['folder_type']) ? $_GET['folder_type'] : '';
 
-// Build WHERE clause
-$where_conditions = ["f.is_deleted = 0"];
+$search = trim((string)($_GET['search'] ?? ''));
+if (mb_strlen($search) > 100) {
+    $search = mb_substr($search, 0, 100);
+}
+
+$department_filter = trim((string)($_GET['department'] ?? ''));
+$folder_type_filter = trim((string)($_GET['folder_type'] ?? ''));
+$status_filter      = trim((string)($_GET['status'] ?? ''));
+
+if (!in_array($folder_type_filter, FOLDER_TYPES, true)) {
+    $folder_type_filter = '';
+}
+if (!in_array($status_filter, FOLDER_STATUS, true)) {
+    $status_filter = '';
+}
+
+$has_active_filters = $search !== ''
+    || $department_filter !== ''
+    || $folder_type_filter !== ''
+    || $status_filter !== '';
+
+
+/* ==========================================================================
+   ACTIONS
+   --------------------------------------------------------------------------
+   The page now redirects after a POST instead of rendering straight back. That
+   is not cosmetic: toggle_public used to run on every request, so pressing F5
+   after changing a folder's visibility flipped it straight back. A
+   POST-redirect-GET makes each action happen exactly once.
+
+   Flash messages travel in the session so the message survives the redirect.
+   ========================================================================== */
+
+if (!empty($_SESSION['folders_flash'])) {
+    $flash = $_SESSION['folders_flash'];
+    unset($_SESSION['folders_flash']);
+
+    if (($flash['type'] ?? '') === 'success') {
+        $success_message = $flash['text'];
+    } else {
+        $error_message = $flash['text'];
+    }
+}
+
+/** Rebuild the current filter state as a querystring, dropping empty values. */
+function folders_query(array $state): string
+{
+    $params = array_filter([
+        'search'      => $state['search']      ?? '',
+        'department'  => $state['department']  ?? '',
+        'folder_type' => $state['folder_type'] ?? '',
+        'status'      => $state['status']      ?? '',
+        'page'        => (int)($state['page'] ?? 1) > 1 ? (int)$state['page'] : '',
+    ], static fn($v) => $v !== '' && $v !== null);
+
+    return $params ? '?' . http_build_query($params) : '';
+}
+
+/** Hidden inputs that carry the filters through an action form and the redirect. */
+function folders_state_fields(array $state, string $csrf): string
+{
+    $out = '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrf, ENT_QUOTES) . '">';
+    foreach (['search', 'department', 'folder_type', 'status', 'page'] as $key) {
+        $out .= '<input type="hidden" name="' . $key . '" value="'
+              . htmlspecialchars((string)($state[$key] ?? ''), ENT_QUOTES) . '">';
+    }
+    return $out;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrf   = (string)($_POST['csrf_token'] ?? '');
+    $action = (string)($_POST['action'] ?? '');
+    $folder_id = (int)($_POST['folder_id'] ?? 0);
+
+    // Filters travel with the POST so the redirect can put the user back where
+    // they were instead of dumping them on page 1 with no filters.
+    $state = [
+        'search'      => substr((string)($_POST['search'] ?? ''), 0, 100),
+        'department'  => (string)($_POST['department'] ?? ''),
+        'folder_type' => (string)($_POST['folder_type'] ?? ''),
+        'status'      => (string)($_POST['status'] ?? ''),
+        'page'        => (int)($_POST['page'] ?? 1),
+    ];
+
+    // Reject the request before touching the database.
+    if (!hash_equals((string)($_SESSION['folders_csrf'] ?? ''), $csrf)) {
+        $_SESSION['folders_flash'] = [
+            'type' => 'error',
+            'text' => 'Your session expired while the page was open. Please try again.',
+        ];
+        header('Location: folders.php' . folders_query($state));
+        exit;
+    }
+
+    if ($action === 'delete' && $folder_id > 0) {
+        // Refuse to orphan anything: a folder holding files or subfolders is
+        // not deletable, and the UI says so rather than failing silently.
+        $check_stmt = $pdo->prepare(
+            'SELECT
+                (SELECT COUNT(*) FROM files   WHERE folder_id = ? AND is_deleted = 0) AS file_count,
+                (SELECT COUNT(*) FROM folders WHERE parent_id = ? AND is_deleted = 0) AS subfolder_count'
+        );
+        $check_stmt->execute([$folder_id, $folder_id]);
+        $counts = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ((int)$counts['file_count'] > 0 || (int)$counts['subfolder_count'] > 0) {
+            $parts = [];
+            if ((int)$counts['file_count'] > 0) {
+                $parts[] = number_format((int)$counts['file_count']) . ' file'
+                        . ((int)$counts['file_count'] === 1 ? '' : 's');
+            }
+            if ((int)$counts['subfolder_count'] > 0) {
+                $parts[] = number_format((int)$counts['subfolder_count']) . ' subfolder'
+                        . ((int)$counts['subfolder_count'] === 1 ? '' : 's');
+            }
+
+            $_SESSION['folders_flash'] = [
+                'type' => 'error',
+                'text' => 'Cannot delete this folder - it still contains ' . implode(' and ', $parts)
+                        . '. Empty or move them first.',
+            ];
+        } else {
+            $delete_stmt = $pdo->prepare(
+                'UPDATE folders SET is_deleted = 1, deleted_at = NOW(), deleted_by = ? WHERE id = ? AND is_deleted = 0'
+            );
+            $delete_stmt->execute([$_SESSION['user_id'], $folder_id]);
+
+            $_SESSION['folders_flash'] = $delete_stmt->rowCount()
+                ? ['type' => 'success', 'text' => 'Folder deleted.']
+                : ['type' => 'error', 'text' => 'That folder no longer exists.'];
+        }
+    }
+
+    if ($action === 'toggle_public' && $folder_id > 0) {
+        $toggle_stmt = $pdo->prepare('UPDATE folders SET is_public = NOT is_public WHERE id = ? AND is_deleted = 0');
+        $toggle_stmt->execute([$folder_id]);
+
+        if ($toggle_stmt->rowCount()) {
+            $now_stmt = $pdo->prepare('SELECT is_public FROM folders WHERE id = ?');
+            $now_stmt->execute([$folder_id]);
+            $is_public = (int)$now_stmt->fetchColumn();
+
+            $_SESSION['folders_flash'] = [
+                'type' => 'success',
+                'text' => 'Folder is now ' . ($is_public ? 'public' : 'private') . '.',
+            ];
+        } else {
+            $_SESSION['folders_flash'] = ['type' => 'error', 'text' => 'That folder no longer exists.'];
+        }
+    }
+
+    if ($action === 'change_status' && $folder_id > 0) {
+        $status = (string)($_POST['status'] ?? '');
+
+        // Whitelist. Without this the column accepted any string, so a crafted
+        // POST could put the enum into an empty string and every status badge on
+        // the page would fall through to its default branch.
+        if (!in_array($status, FOLDER_STATUS, true)) {
+            $_SESSION['folders_flash'] = ['type' => 'error', 'text' => 'Unknown folder status.'];
+        } else {
+            $status_stmt = $pdo->prepare(
+                'UPDATE folders SET folder_status = ? WHERE id = ? AND is_deleted = 0'
+            );
+            $status_stmt->execute([$status, $folder_id]);
+
+            $_SESSION['folders_flash'] = $status_stmt->rowCount()
+                ? ['type' => 'success', 'text' => 'Folder status set to ' . $status . '.']
+                : ['type' => 'error', 'text' => 'That folder no longer exists, or it already had that status.'];
+        }
+    }
+
+    header('Location: folders.php' . folders_query($state));
+    exit;
+}
+
+/* CSRF token for the action forms. Generated once per session. */
+if (empty($_SESSION['folders_csrf'])) {
+    $_SESSION['folders_csrf'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['folders_csrf'];
+
+$state = [
+    'search'      => $search,
+    'department'  => $department_filter,
+    'folder_type' => $folder_type_filter,
+    'status'      => $status_filter,
+    'page'        => $page,
+];
+
+
+/* ==========================================================================
+   QUERIES
+   ========================================================================== */
+
+$where_conditions = ['f.is_deleted = 0'];
 $params = [];
 
-if (!empty($search)) {
-    $where_conditions[] = "(f.folder_name LIKE ? OR f.description LIKE ?)";
+if ($search !== '') {
+    $where_conditions[] = '(f.folder_name LIKE ? OR f.description LIKE ?)';
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
-if (!empty($department_filter)) {
-    $where_conditions[] = "f.department_id = ?";
+if ($department_filter !== '') {
+    $where_conditions[] = 'f.department_id = ?';
     $params[] = $department_filter;
 }
 
-if (!empty($folder_type_filter)) {
-    $where_conditions[] = "f.folder_type = ?";
+if ($folder_type_filter !== '') {
+    $where_conditions[] = 'f.folder_type = ?';
     $params[] = $folder_type_filter;
 }
 
-$where_clause = implode(" AND ", $where_conditions);
+// Only filter on status if the column is actually there. It was added by
+// database/migrations/002_folders_add_status.sql; if a deployment has not run
+// that migration the page still works, it just loses this one filter instead of
+// fataling on an unknown column.
+$has_status_column = (bool)$pdo->query(
+    "SELECT 1 FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'folders' AND COLUMN_NAME = 'folder_status'"
+)->fetchColumn();
 
-// Get total count for pagination
-$count_query = "SELECT COUNT(*) as total FROM folders f 
-                LEFT JOIN departments d ON f.department_id = d.id 
-                LEFT JOIN users u ON f.created_by = u.id 
-                WHERE $where_clause";
+if ($has_status_column && $status_filter !== '') {
+    $where_conditions[] = 'f.folder_status = ?';
+    $params[] = $status_filter;
+}
 
-$count_stmt = $pdo->prepare($count_query);
+$where_clause = implode(' AND ', $where_conditions);
+
+// Pagination needs the LEFT JOINs to stay identical to the list query,
+// otherwise the count can disagree with the rows actually shown.
+$from_clause = ' FROM folders f
+                 LEFT JOIN departments d ON f.department_id = d.id
+                 LEFT JOIN users u       ON f.created_by = u.id';
+
+$count_stmt = $pdo->prepare('SELECT COUNT(*)' . $from_clause . ' WHERE ' . $where_clause);
 $count_stmt->execute($params);
-$total_folders = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_folders / $limit);
+$total_folders = (int)$count_stmt->fetchColumn();
+$total_pages   = (int)ceil($total_folders / $limit);
 
-// Get folders with details
-$folders_query = "SELECT f.*, 
-                         d.department_name, d.department_code,
-                         u.username, u.name as creator_name, u.surname,
-                         CONCAT(u.name, ' ', COALESCE(u.mi, ''), ' ', u.surname) as creator_full_name,
-                         pf.folder_name as parent_folder_name
-                  FROM folders f 
-                  LEFT JOIN departments d ON f.department_id = d.id 
-                  LEFT JOIN users u ON f.created_by = u.id 
-                  LEFT JOIN folders pf ON f.parent_id = pf.id
-                  WHERE $where_clause
-                  ORDER BY f.created_at DESC 
-                  LIMIT $limit OFFSET $offset";
+// A filter change can leave the visitor on a page number that no longer exists,
+// e.g. page 4 of an unfiltered list. Nudge them back onto a real page.
+if ($total_pages > 0 && $page > $total_pages) {
+    $page = $total_pages;
+    $offset = ($page - 1) * $limit;
+}
 
-$folders_stmt = $pdo->prepare($folders_query);
+$folders_stmt = $pdo->prepare(
+    'SELECT f.*,
+            d.department_name,
+            d.department_code,
+            u.username,
+            u.name  AS creator_name,
+            u.surname,
+            CONCAT(COALESCE(u.name, ""), " ", COALESCE(u.mi, ""), " ", COALESCE(u.surname, "")) AS creator_full_name,
+            pf.folder_name AS parent_folder_name' . $from_clause . '
+            LEFT JOIN folders pf ON f.parent_id = pf.id
+            WHERE ' . $where_clause . '
+            ORDER BY f.created_at DESC
+            LIMIT ' . (int)$limit . ' OFFSET ' . (int)$offset
+);
 $folders_stmt->execute($params);
 $folders = $folders_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get departments for filter
-$dept_query = "SELECT * FROM departments WHERE is_active = 1 ORDER BY department_name";
-$dept_stmt = $pdo->prepare($dept_query);
-$dept_stmt->execute();
+$dept_stmt = $pdo->query('SELECT * FROM departments WHERE is_active = 1 ORDER BY department_name');
 $departments = $dept_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Handle folder actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    $folder_id = $_POST['folder_id'] ?? 0;
-    
-    if ($action === 'delete' && $folder_id > 0) {
-        // Check if folder has files or subfolders
-        $check_query = "SELECT 
-                           (SELECT COUNT(*) FROM files WHERE folder_id = ? AND is_deleted = 0) as file_count,
-                           (SELECT COUNT(*) FROM folders WHERE parent_id = ? AND is_deleted = 0) as subfolder_count";
-        $check_stmt = $pdo->prepare($check_query);
-        $check_stmt->execute([$folder_id, $folder_id]);
-        $counts = $check_stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($counts['file_count'] > 0 || $counts['subfolder_count'] > 0) {
-            $error_message = "Cannot delete folder. It contains " . $counts['file_count'] . " files and " . $counts['subfolder_count'] . " subfolders.";
-        } else {
-            $delete_query = "UPDATE folders SET is_deleted = 1, deleted_at = NOW(), deleted_by = ? WHERE id = ?";
-            $delete_stmt = $pdo->prepare($delete_query);
-            if ($delete_stmt->execute([$_SESSION['user_id'], $folder_id])) {
-                $success_message = "Folder deleted successfully.";
-            } else {
-                $error_message = "Failed to delete folder.";
-            }
-        }
-    }
-    
-    if ($action === 'toggle_public' && $folder_id > 0) {
-        $toggle_query = "UPDATE folders SET is_public = NOT is_public WHERE id = ?";
-        $toggle_stmt = $pdo->prepare($toggle_query);
-        if ($toggle_stmt->execute([$folder_id])) {
-            $success_message = "Folder visibility updated.";
-        } else {
-            $error_message = "Failed to update folder visibility.";
-        }
-    }
-    
-    if ($action === 'change_status' && $folder_id > 0) {
-        $status = $_POST['status'] ?? 'active';
-        $status_query = "UPDATE folders SET folder_status = ? WHERE id = ?";
-        $status_stmt = $pdo->prepare($status_query);
-        if ($status_stmt->execute([$status, $folder_id])) {
-            $success_message = "Folder status updated.";
-        } else {
-            $error_message = "Failed to update folder status.";
-        }
-    }
-}
+/* One grouped pass for the summary row. Computing these from $folders would
+   make the tiles describe the current page rather than the current filter,
+   which is the kind of quiet lie that makes a dashboard untrustworthy. */
+$summary_stmt = $pdo->prepare(
+    'SELECT
+        COUNT(*)                                                   AS total,
+        COALESCE(SUM(is_public), 0)                                AS public_count,
+        COALESCE(SUM(CASE WHEN is_public = 0 THEN 1 ELSE 0 END), 0) AS private_count,
+        COALESCE(SUM(file_count), 0)                               AS total_files,
+        COALESCE(SUM(folder_size), 0)                              AS total_size
+     FROM folders f
+     WHERE ' . $where_clause
+);
+$summary_stmt->execute($params);
+$summary = $summary_stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-function formatFileSize($bytes) {
+
+/* ==========================================================================
+   HELPERS
+   ========================================================================== */
+
+function formatFileSize($bytes)
+{
+    $bytes = (int)$bytes;
     if ($bytes >= 1073741824) {
         return number_format($bytes / 1073741824, 2) . ' GB';
     } elseif ($bytes >= 1048576) {
         return number_format($bytes / 1048576, 2) . ' MB';
     } elseif ($bytes >= 1024) {
         return number_format($bytes / 1024, 2) . ' KB';
-    } else {
-        return $bytes . ' bytes';
     }
+    return $bytes . ' bytes';
+}
+
+/**
+ * Map whatever is in folders.folder_icon onto a glyph that actually exists.
+ *
+ * The column is inconsistent by history, not by accident:
+ *
+ *   - Most rows were seeded with Font Awesome 5 names ("fa-chart-line",
+ *     "fa-clock", "fa-users"). The old page rendered them as
+ *     `class="fas fa-chart-line"`, which happened to work under Font Awesome 6
+ *     for most of them but not for "fa-file-alt" (renamed to fa-file-lines).
+ *   - Newer rows were already seeded with a Boxicons name ("bxs-folder"), and
+ *     the old page still prefixed them with "fas", so every one of those tiles
+ *     rendered as a blank coloured square.
+ *
+ * So this page uses Boxicons like the rest of the admin area, and translates the
+ * stored names. Every target below was checked against boxicons@2.0.9; an
+ * unknown name falls back to a plain folder rather than an empty tile.
+ */
+function folder_icon_class(?string $stored): string
+{
+    $stored = strtolower(trim((string)$stored));
+
+    // Already a Boxicons name - pass it through untouched.
+    if (preg_match('/^bxs?-[a-z0-9-]+$/', $stored)) {
+        return $stored;
+    }
+
+    static $map = [
+        'fa-folder'         => 'bxs-folder',
+        'fa-folder-open'    => 'bxs-folder-open',
+        'fa-folder-plus'    => 'bxs-folder-plus',
+        'fa-chart-line'     => 'bxs-chart',
+        'fa-chart-bar'      => 'bxs-chart',
+        'fa-line-chart'     => 'bxs-chart',
+        'fa-file'           => 'bxs-file',
+        'fa-file-alt'       => 'bxs-file-doc',
+        'fa-file-lines'     => 'bxs-file-doc',
+        'fa-file-signature' => 'bxs-file-doc',
+        'fa-file-invoice'   => 'bxs-file-doc',
+        'fa-clock'          => 'bxs-time',
+        'fa-users'          => 'bxs-group',
+        'fa-user'           => 'bxs-user',
+        'fa-book'           => 'bxs-book',
+        'fa-graduation-cap' => 'bxs-magic-hat',
+        'fa-award'          => 'bxs-award',
+        'fa-medal'          => 'bxs-medal',
+        'fa-table'          => 'bxs-spreadsheet',
+        'fa-th'             => 'bxs-grid',
+        'fa-th-large'       => 'bxs-grid',
+        'fa-calendar'       => 'bxs-calendar',
+        'fa-archive'        => 'bxs-archive',
+        'fa-clipboard'      => 'bxs-clipboard',
+        'fa-sticky-note'    => 'bxs-note',
+        'fa-envelope'       => 'bxs-envelope',
+        'fa-paperclip'      => 'bxs-attachment',
+        'fa-star'           => 'bxs-star',
+        'fa-heart'          => 'bxs-heart',
+        'fa-bookmark'       => 'bxs-bookmark',
+        'fa-tag'            => 'bxs-tag',
+        'fa-cog'            => 'bx-cog',
+        'fa-wrench'         => 'bxs-wrench',
+        'fa-cube'           => 'bxs-cube',
+        'fa-home'           => 'bxs-home',
+        'fa-building'       => 'bxs-building',
+        'fa-briefcase'      => 'bxs-briefcase',
+        'fa-image'          => 'bxs-image',
+        'fa-camera'         => 'bxs-camera',
+        'fa-video'          => 'bxs-video',
+        'fa-music'          => 'bxs-music',
+    ];
+
+    return $map[$stored] ?? 'bxs-folder';
+}
+
+/**
+ * Validate folders.folder_color before it goes into a style attribute.
+ *
+ * The value is user-supplied and lands inside `style="background-color: ..."`,
+ * so anything that is not a plain hex colour is discarded rather than escaped -
+ * escaping would not help, because the injection point is CSS, not HTML.
+ */
+function folder_hex_color(?string $stored, string $fallback = '#0f6b3d'): string
+{
+    $stored = trim((string)$stored);
+    return preg_match('/^#[0-9a-fA-F]{6}$/', $stored) ? $stored : $fallback;
+}
+
+/** Whitelist a status for use as a CSS modifier class. */
+function folder_status_class(?string $status): string
+{
+    return in_array($status, FOLDER_STATUS, true) ? (string)$status : 'active';
+}
+
+function folder_status_label(string $status): string
+{
+    return ucfirst($status);
 }
 ?>
 
@@ -137,1235 +426,697 @@ function formatFileSize($bytes) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Folders - Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/sidebar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
-    <style>
-        :root {
-            --poppins: 'Poppins';
-            
-            /* Modern Color Palette */
-            --primary-color: #10b981;
-            --secondary-color: #059669;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --info-color: #17a2b8;
-            --blue: #007bff;
-            --secondary-blue: #3b82f6;
-            --accent-purple: #8b5cf6;
-            --warning-orange: #f59e0b;
-            --danger-red: #ef4444;
-            --info-cyan: #06b6d4;
-
-    
-                    
-            /* Neutrals */
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-            
-            --light: #F9F9F9;
-            --green: #28a745;
-            --light-green: #cfffef;
-            --grey: #eee;
-            --dark-grey: #AAAAAA;
-            --dark: #342E37;
-            --red: #DB504A;
-            --yellow: #FFCE26;
-            --light-yellow: #FFF2C6;
-            --orange: #FD7238;
-            --light-orange: #FFE0D3;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #f5f7fa;
-            font-family: var(--poppins);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        #content main {
-            width: 100%;
-            padding: 40px 32px;
-            font-family: var(--poppins);
-            min-height: calc(100vh - 70px);
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        /* Modern Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border-radius: 20px;
-            color: white;
-            padding: 35px;
-            margin-bottom: 35px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        .header .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .header h2 {
-            font-size: 32px;
-            font-weight: 800;
-            margin: 0 0 8px 0;
-        }
-
-        .header p {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 16px;
-            font-weight: 500;
-        }
-      
-
-        .header-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 18px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-            #content main {
-                width: 100%;
-                padding: 36px 24px;
-                font-family: var(--poppins);
-                max-height: calc(100vh - 56px);
-                overflow-y: auto;
-            }
-            #content main .head-title {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                grid-gap: 16px;
-                flex-wrap: wrap;
-            }
-            #content main .head-title .left h1 {
-                font-size: 36px;
-                font-weight: 600;
-                margin-bottom: 10px;
-                color: var(--dark);
-            }
-            #content main .head-title .left .breadcrumb {
-                display: flex;
-                align-items: center;
-                grid-gap: 16px;
-            }
-            #content main .head-title .left .breadcrumb li {
-                color: var(--dark);
-            }
-            #content main .head-title .left .breadcrumb li a {
-                color: var(--dark-grey);
-                pointer-events: none;
-                text-decoration: none; /* removes underline */
-            }
-
-            #content main .head-title .left .breadcrumb li a.active {
-                color: var(--green);
-                pointer-events: unset;
-                text-decoration: none; /* also removes underline on active */
-            }
-            #content main .head-title .btn-download {
-                height: 36px;
-                padding: 0 16px;
-                border-radius: 36px;
-                background: var(--green);
-                color: var(--light);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                grid-gap: 10px;
-                font-weight: 500;
-            }
-        /* Filter Card Enhancement */
-        .filter-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            border: none;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .filter-card .card-body {
-            padding: 30px;
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: var(--poppins);
-        }
-
-        .form-control, .form-select {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-            font-weight: 500;
-            font-family: var(--poppins);
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-            font-family: var(--poppins);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Enhanced Folder Cards */
-        .folder-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: none;
-            border-radius: 20px;
-            background: white;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .folder-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-        }
-
-        .folder-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        }
-
-        .folder-card.system-folder::before {
-            background: linear-gradient(90deg, var(--blue), var(--secondary-blue));
-        }
-
-        .folder-card.department-folder::before {
-            background: linear-gradient(90deg, var(--success-color), #20c997);
-        }
-        .folder-icon {
-            width: 55px;
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .folder-icon::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-        }
-     
-        .card-title {
-            font-weight: 700;
-            color: #2d3748;
-            font-size: 1.1rem;
-            font-family: var(--poppins);
-        }
-
-        /* Enhanced Badges */
-        .badge {
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-            font-family: var(--poppins);
-        }
-
-        .badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: badge-shine 3s infinite;
-        }
-
-        @keyframes badge-shine {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .public-badge { 
-            background: linear-gradient(135deg, #d4edda, #c3e6cb); 
-            color: #155724; 
-            border-color: rgba(21, 87, 36, 0.2);
-        }
-        .private-badge { 
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
-            color: #721c24; 
-            border-color: rgba(114, 28, 36, 0.2);
-        }
-
-        /* Status Badges */
-        .status-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 10;
-        }
-
-        /* Action Buttons */
-        .folder-actions {
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .folder-card:hover .folder-actions {
-            opacity: 1;
-        }
-
-        .btn-outline-secondary {
-            border: 2px solid #e2f0e8ff;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: var(--poppins);
-        }
-
-        .btn-outline-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        /* View Toggle Buttons */
-        .btn-check:checked + .btn-outline-secondary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-color: var(--primary-color);
-            color: white;
-        }
-
-        /* List View Table */
-        .files-table {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-            border: none;
-            margin-bottom: 30px;
-        }
-
-        .table {
-            margin-bottom: 0;
-            font-family: var(--poppins);
-        }
-
-        .table th {
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            border-bottom: 2px solid #e3e6f0;
-            font-weight: 700;
-            color: #2d3748;
-            padding: 20px;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .table td {
-            padding: 20px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f0f4f8;
-            transition: all 0.2s ease;
-        }
-
-        .table tbody tr:hover {
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .pagination-container {
-            margin-top: 32px;
-            padding: 24px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-100);
-        }
-
-        .pagination-info {
-            color: var(--gray-600);
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pagination-info i {
-            color: var(--primary-green);
-        }
-
-        .pagination {
-            margin-bottom: 0;
-        }
-
-        .pagination .page-link {
-            border: 2px solid var(--gray-200);
-            color: var(--gray-600);
-            padding: 14px 18px;
-            margin: 0 6px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 14px;
-            min-width: 48px;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            background: var(--gray-50);
-            text-decoration: none;
-            font-family: var(--poppins);
-        }
-
-        .pagination .page-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(40, 167, 69, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .pagination .page-link:hover::before {
-            left: 100%;
-        }
-
-        .pagination .page-item.active .page-link {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
-            border-color: black;
-            color: black;
-            transform: translateY(-3px) scale(1.05);
-            position: relative;
-            z-index: 2;
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-        }
-
-        .pagination .page-item.active .page-link::before {
-            display: none;
-        }
-
-        .pagination .page-item.active .page-link::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, var(--primary-green-light), var(--primary-green), var(--primary-green-dark), var(--primary-green));
-            border-radius: 16px;
-            z-index: -1;
-            animation: borderGlow 2s linear infinite;
-            background-size: 400% 400%;
-        }
-
-        @keyframes borderGlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-          .pagination-container {
-            margin-top: 32px;
-            padding: 24px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-100);
-        }
-
-        .pagination-info {
-            color: var(--gray-600);
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pagination-info i {
-            color: var(--primary-green);
-        }
-
-        .pagination {
-            margin-bottom: 0;
-        }
-
-        .pagination .page-link {
-            border: 2px solid var(--gray-200);
-            color: black;
-            padding: 14px 18px;
-            margin: 0 6px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 14px;
-            min-width: 48px;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            background: var(--gray-50);
-            text-decoration: none;
-        }
-
-        .pagination .page-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .pagination .page-link:hover::before {
-            left: 100%;
-        }
-
-        .pagination .page-item.active .page-link {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
-            border-color: var(--primary-green);
-            color: var(--primary-green-dark);
-            transform: translateY(-3px) scale(1.05);
-            position: relative;
-            z-index: 2;
-        }
-
-        .pagination .page-item.active .page-link::before {
-            display: none;
-        }
-
-        .pagination .page-item.active .page-link::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, var(--primary-green-light), var(--primary-green), var(--primary-green-dark), var(--primary-green));
-            border-radius: 16px;
-            z-index: -1;
-            animation: borderGlow 2s linear infinite;
-        }
-
-        @keyframes borderGlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .pagination .page-link:hover:not(.active) {
-            background: linear-gradient(135deg, var(--primary-green-lightest) 0%, white 100%);
-            border-color: var(--primary-green-light);
-            color: var(--primary-green-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
-        }
-
-        .pagination .page-item.disabled .page-link {
-            background: var(--gray-100);
-            border-color: var(--gray-200);
-            color: var(--gray-400);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .pagination .page-item.disabled .page-link:hover {
-            background: var(--gray-100);
-            border-color: var(--gray-200);
-            color: var(--gray-400);
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Navigation arrows styling */
-        .pagination .page-link i {
-            font-size: 12px;
-        }
-
-        /* Ellipsis styling */
-        .pagination .page-item.disabled .page-link {
-            border: none;
-            background: transparent;
-            color: var(--gray-400);
-            font-weight: 700;
-            font-size: 16px;
-            padding: 14px 8px;
-        }
-
-        /* First/Last page indicators */
-        .pagination .page-item:first-child .page-link,
-        .pagination .page-item:last-child .page-link {
-            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
-        }
-
-        .pagination .page-item:first-child .page-link:hover,
-        .pagination .page-item:last-child .page-link:hover {
-            background: linear-gradient(135deg, var(--primary-green-lightest) 0%, var(--primary-green-lightest) 100%);
-        }
-
-        /* Mobile pagination adjustments */
-        @media (max-width: 768px) {
-            .pagination-container {
-                padding: 20px 16px;
-            }
-            
-            .pagination .page-link {
-                padding: 12px 14px;
-                margin: 0 3px;
-                min-width: 40px;
-                font-size: 13px;
-            }
-            
-            .pagination-info {
-                font-size: 13px;
-                text-align: center;
-                margin-bottom: 16px;
-            }
-            
-            .pagination-container .d-flex {
-                flex-direction: column;
-                gap: 16px;
-            }
-            
-            .pagination {
-                justify-content: center;
-            }
-        }
-        /* Alerts Enhancement */
-        .alert {
-            border: none;
-            border-radius: 16px;
-            padding: 20px 24px;
-            margin-bottom: 24px;
-            font-weight: 500;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-            border-left: 4px solid;
-            font-family: var(--poppins);
-        }
-
-        .alert-success {
-            background: linear-gradient(135deg, #d4edda, #ffffff);
-            color: #155724;
-            border-left-color: var(--success-color);
-        }
-
-        .alert-danger {
-            background: linear-gradient(135deg, #f8d7da, #ffffff);
-            color: #721c24;
-            border-left-color: var(--danger-color);
-        }
-
-        /* Empty State Enhancement */
-        .empty-state {
-            text-align: center;
-            padding: 80px 40px;
-            color: #718096;
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            border-radius: 20px;
-        }
-
-        .empty-state i {
-            font-size: 5rem;
-            margin-bottom: 2rem;
-            opacity: 0.3;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .empty-state h5 {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 1rem;
-            font-family: var(--poppins);
-        }
-
-        /* Stats Display */
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-            font-family: var(--poppins);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-            margin: 0;
-            font-family: var(--poppins);
-        }
-
-        /* Dropdown Enhancements */
-        .dropdown-menu {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.15);
-            padding: 8px 0;
-        }
-
-        .dropdown-item {
-            padding: 12px 20px;
-            font-weight: 500;
-            font-family: var(--poppins);
-            transition: all 0.2s ease;
-        }
-
-        .dropdown-item:hover {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .header .header-content {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                padding: 25px 20px;
-            }
-            
-            .header h2 {
-                font-size: 24px;
-            }
-        }
-    </style>
+    <title>Folder Management - Admin Panel</title>
+
+    <!-- No Bootstrap and no Font Awesome.
+
+         This page used to load both. Bootstrap supplied the grid, badges,
+         pagination, dropdowns and form styling, which put a second design
+         system on a page the shared CVSU theme already styles, and its dropdown
+         menus were clipped by the cards they lived in (overflow:hidden).
+
+         Font Awesome was worse than useless here: the shared sidebar and navbar
+         are built entirely from Boxicons (34 icon references between them) and
+         Boxicons was never loaded here, so every icon in the sidebar, the
+         navbar and the breadcrumb was an empty <i> element. The folder icons had
+         the mirror-image problem - folders.folder_icon is seeded with a mix of
+         Font Awesome 5 names and Boxicons names, so each kind broke the other.
+         One icon system, loaded once, fixes all of it. -->
+    <link href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/components/navbar.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/folders.css?v=<?= time() ?>">
 
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
 <body>
+    <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
-    
+
     <!-- Content -->
     <section id="content">
+        <!-- Navbar Component -->
         <?php include 'components/navbar.html'; ?>
-        <div class="container-fluid">
-            
-          <main>
+
+        <main>
             <div class="head-title">
                 <div class="left">
                     <h1>Folder Management</h1>
                     <ul class="breadcrumb">
-                        <li><a href="dashboard.php">Admin</li>
+                        <li><a href="dashboard.php">Admin</a></li>
                         <li><i class='bx bx-chevron-right'></i></li>
-                        <li><a class="active" href="">All Folders</a></li>
+                        <li><a class="active" href="folders.php">All Folders</a></li>
                     </ul>
                 </div>
             </div>
-            <!-- Modern Header -->
-            <div class="header">
-                <div class="header-content">
-                    <div>
-                        <h2><i class="fas fa-folder me-3"></i>All Folders</h2>
-                        <p>Manage and organize your folder structure</p>
+
+            <!-- Summary tiles. One grouped query, so these describe the current
+                 filter rather than the current page of results. -->
+            <div class="folders-stats">
+                <article class="folders-stat">
+                    <span class="folders-stat-icon"><i class="bx bxs-folder"></i></span>
+                    <div class="folders-stat-body">
+                        <p class="folders-stat-label">Folders</p>
+                        <div class="folders-stat-value"><?php echo number_format((int)($summary['total'] ?? 0)); ?></div>
                     </div>
-                    <div class="header-badge">
-                        <?php echo number_format($total_folders); ?> Folders
+                </article>
+
+                <article class="folders-stat accent-gold">
+                    <span class="folders-stat-icon"><i class="bx bx-globe"></i></span>
+                    <div class="folders-stat-body">
+                        <p class="folders-stat-label">Public</p>
+                        <div class="folders-stat-value"><?php echo number_format((int)($summary['public_count'] ?? 0)); ?></div>
                     </div>
-                </div>
+                </article>
+
+                <article class="folders-stat">
+                    <span class="folders-stat-icon"><i class="bx bxs-lock"></i></span>
+                    <div class="folders-stat-body">
+                        <p class="folders-stat-label">Private</p>
+                        <div class="folders-stat-value"><?php echo number_format((int)($summary['private_count'] ?? 0)); ?></div>
+                    </div>
+                </article>
+
+                <article class="folders-stat accent-gold">
+                    <span class="folders-stat-icon"><i class="bx bxs-file"></i></span>
+                    <div class="folders-stat-body">
+                        <p class="folders-stat-label">Files Held</p>
+                        <div class="folders-stat-value"><?php echo number_format((int)($summary['total_files'] ?? 0)); ?></div>
+                    </div>
+                </article>
+
+                <article class="folders-stat">
+                    <span class="folders-stat-icon"><i class="bx bxs-hdd"></i></span>
+                    <div class="folders-stat-body">
+                        <p class="folders-stat-label">Total Size</p>
+                        <div class="folders-stat-value"><?php echo formatFileSize($summary['total_size'] ?? 0); ?></div>
+                    </div>
+                </article>
             </div>
 
-            <!-- Alerts -->
+            <!-- Alerts. Dismissing these used to need Bootstrap's JS
+                 (data-bs-dismiss + new bootstrap.Alert). The dismissal is now a
+                 few lines of local script, so the panel does not carry a
+                 framework for one interaction. -->
             <?php if (isset($success_message)): ?>
-                <div class="alert alert-success alert-dismissible fade show">
-                    <i class="fas fa-check-circle me-2"></i><?php echo $success_message; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert folders-alert is-success" role="status">
+                    <i class="bx bxs-check-circle"></i>
+                    <span><?php echo htmlspecialchars((string)$success_message); ?></span>
+                    <button type="button" class="btn-close" data-dismiss-alert aria-label="Dismiss"></button>
                 </div>
             <?php endif; ?>
 
             <?php if (isset($error_message)): ?>
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <i class="fas fa-exclamation-circle me-2"></i><?php echo $error_message; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert folders-alert is-error" role="alert">
+                    <i class="bx bxs-error-circle"></i>
+                    <span><?php echo htmlspecialchars((string)$error_message); ?></span>
+                    <button type="button" class="btn-close" data-dismiss-alert aria-label="Dismiss"></button>
                 </div>
             <?php endif; ?>
 
-            <!-- Filters -->
-            <div class="filter-card card">
-                <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Search Folders</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by folder name or description...">
+            <!-- Filters. Was Bootstrap .row.g-3 / .col-md-*; now a CSS grid on
+                 the shared spacing scale. -->
+            <section class="folders-section">
+                <div class="folders-section-head">
+                    <h2><i class="bx bx-filter"></i> Refine Results</h2>
+                    <span class="folders-section-note">
+                        <?php echo number_format($total_folders); ?> folder<?php echo $total_folders === 1 ? '' : 's'; ?> in view
+                    </span>
+                </div>
+                <div class="folders-section-body">
+                    <form method="GET" action="folders.php" class="folders-filter-grid">
+                        <div class="folders-field folders-search-field">
+                            <label for="filterSearch">Search</label>
+                            <div class="folders-search">
+                                <i class="bx bx-search"></i>
+                                <input type="text" id="filterSearch" class="form-control" name="search"
+                                    value="<?php echo htmlspecialchars($search); ?>"
+                                    placeholder="Folder name or description">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Folder Type</label>
-                            <select class="form-select" name="folder_type">
+
+                        <div class="folders-field">
+                            <label for="filterType">Folder Type</label>
+                            <select id="filterType" class="form-select" name="folder_type">
                                 <option value="">All Types</option>
-                                <option value="category" <?php echo $folder_type_filter == 'category' ? 'selected' : ''; ?>>Category</option>
-                                <option value="custom" <?php echo $folder_type_filter == 'custom' ? 'selected' : ''; ?>>Custom</option>
-                                <option value="system" <?php echo $folder_type_filter == 'system' ? 'selected' : ''; ?>>System</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Department</label>
-                            <select class="form-select" name="department">
-                                <option value="">All Departments</option>
-                                <?php foreach ($departments as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>" <?php echo $department_filter == $dept['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dept['department_name']); ?>
+                                <?php foreach (FOLDER_TYPES as $type): ?>
+                                    <option value="<?php echo htmlspecialchars($type); ?>"
+                                        <?php echo $folder_type_filter === $type ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars(ucfirst($type)); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid">
+
+                        <div class="folders-field">
+                            <label for="filterDepartment">Department</label>
+                            <select id="filterDepartment" class="form-select" name="department">
+                                <option value="">All Departments</option>
+                                <?php foreach ($departments as $dept): ?>
+                                    <option value="<?php echo htmlspecialchars((string)$dept['id']); ?>"
+                                        <?php echo $department_filter === (string)$dept['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars((string)$dept['department_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <?php /* The status filter only appears once the column
+                                 exists, so a deployment that has not run
+                                 002_folders_add_status.sql is not offered a
+                                 filter that would error. */ ?>
+                        <?php if ($has_status_column): ?>
+                            <div class="folders-field">
+                                <label for="filterStatus">Status</label>
+                                <select id="filterStatus" class="form-select" name="status">
+                                    <option value="">All Statuses</option>
+                                    <?php foreach (FOLDER_STATUS as $status): ?>
+                                        <option value="<?php echo htmlspecialchars($status); ?>"
+                                            <?php echo $status_filter === $status ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars(folder_status_label($status)); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="folders-field folders-actions-field">
+                            <span class="folders-field-label" aria-hidden="true">Actions</span>
+                            <div class="folders-actions">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search me-2"></i>Search
+                                    <i class="bx bx-filter"></i> Apply
                                 </button>
+                                <?php /* A link, not a second submit, so it cannot
+                                         be mistaken for another way to apply the
+                                         form. Hidden when nothing is filtered. */ ?>
+                                <a href="folders.php" class="btn btn-reset"
+                                   <?php echo $has_active_filters ? '' : 'hidden'; ?>>
+                                    <i class="bx bx-reset"></i> Clear
+                                </a>
                             </div>
                         </div>
                     </form>
                 </div>
+            </section>
+
+            <!-- View toggle + result count -->
+            <div class="folders-toolbar">
+                <div class="view-toggle" role="group" aria-label="Choose how folders are displayed">
+                    <input type="radio" name="view" id="view-grid" value="grid" autocomplete="off" checked>
+                    <label for="view-grid"><i class="bx bxs-grid"></i> Grid</label>
+
+                    <input type="radio" name="view" id="view-list" value="list" autocomplete="off">
+                    <label for="view-list"><i class="bx bx-list-ul"></i> List</label>
+                </div>
+
+                <p class="folders-count">
+                    <i class="bx bx-info-circle"></i>
+                    Showing <?php echo count($folders); ?> of <?php echo number_format($total_folders); ?> folders
+                </p>
             </div>
 
-            <!-- View Toggle -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="btn-group" role="group">
-                    <input type="radio" class="btn-check" name="view" id="grid-view" autocomplete="off" checked>
-                    <label class="btn btn-outline-secondary" for="grid-view">
-                        <i class="fas fa-th-large me-2"></i>Grid View
-                    </label>
-                    <input type="radio" class="btn-check" name="view" id="list-view" autocomplete="off">
-                    <label class="btn btn-outline-secondary" for="list-view">
-                        <i class="fas fa-list me-2"></i>List View
-                    </label>
-                </div>
-                
-                <div class="text-muted">
-                    <small><i class="fas fa-info-circle me-1"></i>Showing <?php echo count($folders); ?> of <?php echo $total_folders; ?> folders</small>
-                </div>
-            </div>
+            <!-- ================= GRID VIEW ================= -->
+            <section id="view-grid-panel" class="folders-view" aria-labelledby="view-grid">
+                <?php if ($folders): ?>
+                    <div class="folder-grid">
+                        <?php foreach ($folders as $folder): ?>
+                            <?php
+                            $status = folder_status_class($has_status_column ? ($folder['folder_status'] ?? 'active') : 'active');
+                            $icon   = folder_icon_class($folder['folder_icon'] ?? '');
+                            $colour = folder_hex_color($folder['folder_color'] ?? '');
+                            ?>
+                            <article class="folder-tile">
+                                <div class="folder-tile-top">
+                                    <span class="folder-tile-icon" style="background-color: <?php echo htmlspecialchars($colour); ?>;">
+                                        <i class="bx <?php echo htmlspecialchars($icon); ?>"></i>
+                                    </span>
+                                    <div class="folder-tile-heading">
+                                        <h3 class="folder-tile-name"><?php echo htmlspecialchars((string)$folder['folder_name']); ?></h3>
+                                        <?php if (!empty($folder['description'])): ?>
+                                            <span class="folder-tile-sub"><?php echo htmlspecialchars((string)$folder['description']); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
 
-            <!-- Grid View -->
-            <div id="grid-container">
-                <div class="row g-4">
-                    <?php foreach ($folders as $folder): ?>
-                        <div class="col-xl-3 col-lg-4 col-md-6">
-                            <div class="folder-card card h-100 position-relative <?php echo $folder['is_system_folder'] ? 'system-folder' : ($folder['department_id'] ? 'department-folder' : ''); ?>">
-                                <!-- Status Badge -->
-                                <div class="status-badge">
-                                    <?php if ($folder['folder_status'] === 'archived'): ?>
-                                        <span class="badge bg-warning">Archived</span>
-                                    <?php elseif ($folder['folder_status'] === 'hidden'): ?>
-                                        <span class="badge bg-secondary">Hidden</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-success">Active</span>
+                                <div class="folder-tile-chips">
+                                    <span class="folder-chip is-<?php echo $status; ?>">
+                                        <i class="bx <?php echo $status === 'active' ? 'bxs-check-circle' : ($status === 'archived' ? 'bxs-archive' : 'bx-eye'); ?>"></i>
+                                        <?php echo htmlspecialchars(folder_status_label($status)); ?>
+                                    </span>
+                                    <span class="folder-chip <?php echo $folder['is_public'] ? 'is-public' : ''; ?>">
+                                        <i class="bx <?php echo $folder['is_public'] ? 'bx-globe' : 'bxs-lock'; ?>"></i>
+                                        <?php echo $folder['is_public'] ? 'Public' : 'Private'; ?>
+                                    </span>
+                                    <?php if (!empty($folder['department_code'])): ?>
+                                        <span class="folder-chip">
+                                            <i class="bx bxs-building"></i>
+                                            <?php echo htmlspecialchars((string)$folder['department_code']); ?>
+                                        </span>
                                     <?php endif; ?>
                                 </div>
 
-                                <div class="card-body text-center">
-                                    <div class="folder-icon mx-auto" style="background-color: <?php echo $folder['folder_color']; ?>; color: white;">
-                                        <i class="<?php echo $folder['folder_icon']; ?>"></i>
+                                <div class="folder-tile-figures">
+                                    <div class="folder-tile-figure">
+                                        <div class="folder-tile-figure-value"><?php echo number_format((int)$folder['file_count']); ?></div>
+                                        <div class="folder-tile-figure-label">Files</div>
                                     </div>
-                                    
-                                    <h6 class="card-title mb-2"><?php echo htmlspecialchars($folder['folder_name']); ?></h6>
-                                    
-                                    <div class="mb-2">
-                                        <span class="badge <?php echo $folder['is_public'] ? 'public-badge' : 'private-badge'; ?> text-white">
-                                            <i class="fas <?php echo $folder['is_public'] ? 'fa-globe' : 'fa-lock'; ?>"></i>
-                                            <?php echo $folder['is_public'] ? 'Public' : 'Private'; ?>
+                                    <div class="folder-tile-figure">
+                                        <div class="folder-tile-figure-value"><?php echo htmlspecialchars(formatFileSize($folder['folder_size'] ?? 0)); ?></div>
+                                        <div class="folder-tile-figure-label">Size</div>
+                                    </div>
+                                </div>
+
+                                <div class="folder-tile-meta">
+                                    <div class="folder-tile-meta-row">
+                                        <i class="bx bxs-user"></i>
+                                        <span>
+                                            <span class="folder-tile-meta-key">Created by</span>
+                                            <?php echo htmlspecialchars(trim((string)($folder['creator_full_name'] ?? '')) ?: 'Unknown'); ?>
                                         </span>
                                     </div>
-
-                                    <div class="row text-center mb-3">
-                                        <div class="col-6">
-                                            <div class="stat-value text-primary"><?php echo number_format($folder['file_count']); ?></div>
-                                            <div class="stat-label">Files</div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="stat-value text-info"><?php echo formatFileSize($folder['folder_size']); ?></div>
-                                            <div class="stat-label">Size</div>
-                                        </div>
+                                    <div class="folder-tile-meta-row">
+                                        <i class="bx bxs-calendar"></i>
+                                        <span>
+                                            <span class="folder-tile-meta-key">Created</span>
+                                            <?php echo htmlspecialchars(date('M j, Y', strtotime((string)$folder['created_at']))); ?>
+                                        </span>
                                     </div>
-
-                                    <?php if ($folder['department_name']): ?>
-                                        <div class="mb-2">
-                                            <span class="badge bg-secondary"><?php echo htmlspecialchars($folder['department_code']); ?></span>
+                                    <?php if (!empty($folder['parent_folder_name'])): ?>
+                                        <div class="folder-tile-meta-row">
+                                            <i class="bx bx-folder"></i>
+                                            <span>
+                                                <span class="folder-tile-meta-key">Inside</span>
+                                                <?php echo htmlspecialchars((string)$folder['parent_folder_name']); ?>
+                                            </span>
                                         </div>
                                     <?php endif; ?>
-
-                                    <div class="text-muted small mb-3">
-                                        <div><strong>Created by:</strong> <?php echo htmlspecialchars($folder['creator_full_name']); ?></div>
-                                        <div><i class="fas fa-calendar-alt me-1"></i><?php echo date('M j, Y', strtotime($folder['created_at'])); ?></div>
-                                    </div>
-
-                                    <!-- Actions -->
-                                    <div class="folder-actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-cog me-2"></i>Actions
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item" href="folder_details.php?id=<?php echo $folder['id']; ?>" style="color: var(--info-cyan);">
-                                                        <i class="fas fa-eye me-2"></i>View Details
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Toggle visibility?')">
-                                                            <input type="hidden" name="action" value="toggle_public">
-                                                            <input type="hidden" name="folder_id" value="<?php echo $folder['id']; ?>">
-                                                            <button type="submit" class="dropdown-item" style="color: var(--accent-purple); background: none; border: none; text-align: left; width: 100%;">
-                                                                <i class="fas <?php echo $folder['is_public'] ? 'fa-lock' : 'fa-globe'; ?> me-2"></i>
-                                                                Make <?php echo $folder['is_public'] ? 'Private' : 'Public'; ?>
-                                                            </button>
-                                                        </form>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li class="dropdown-submenu">
-                                                    <a class="dropdown-item" href="#" style="color: var(--warning-orange);">
-                                                            <i class="fas fa-cog me-2"></i>Change Status
-                                                        </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this folder?')">
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="folder_id" value="<?php echo $folder['id']; ?>">
-                                                            <button type="submit" class="dropdown-item" style="color: var(--danger-red); background: none; border: none; text-align: left; width: 100%;">
-                                                                <i class="fas fa-trash me-2"></i>Delete
-                                                            </button>
-                                                        </form>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
                                 </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
 
-                    <?php if (empty($folders)): ?>
-                        <div class="col-12">
-                            <div class="empty-state">
-                                <i class="fas fa-folder-open"></i>
-                                <h5>No folders found</h5>
-                                <p>Try adjusting your search criteria or create a new folder.</p>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
+                                <?php /* Actions. Always visible: the old version
+                                         faded them in on :hover, which made the
+                                         whole set unreachable by touch. There is
+                                         no dropdown menu either - the previous one
+                                         opened inside a card with overflow:hidden
+                                         and was clipped by its own card.
 
-            <!-- List View -->
-            <div id="list-container" style="display: none;">
-                <div class="files-table card">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Folder</th>
-                                        <th>Type</th>
-                                        <th>Department</th>
-                                        <th>Creator</th>
-                                        <th>Files</th>
-                                        <th>Size</th>
-                                        <th>Status</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($folders as $folder): ?>
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="folder-icon me-3" style="background-color: <?php echo $folder['folder_color']; ?>; color: white; width: 40px; height: 40px; border-radius: 8px; font-size: 1rem;">
-                                                        <i class="<?php echo $folder['folder_icon']; ?>"></i>
-                                                    </div>
-                                                    <div>
-                                                        <div class="fw-medium"><?php echo htmlspecialchars($folder['folder_name']); ?></div>
-                                                        <span class="badge <?php echo $folder['is_public'] ? 'public-badge' : 'private-badge'; ?> text-white">
-                                                            <i class="fas <?php echo $folder['is_public'] ? 'fa-globe' : 'fa-lock'; ?>"></i>
-                                                            <?php echo $folder['is_public'] ? 'Public' : 'Private'; ?>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info"><?php echo ucfirst($folder['folder_type']); ?></span>
-                                                <?php if ($folder['is_system_folder']): ?>
-                                                    <span class="badge bg-primary">System</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if ($folder['department_name']): ?>
-                                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($folder['department_code']); ?></span>
-                                                <?php else: ?>
-                                                    <span class="text-muted">-</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <div class="fw-medium"><?php echo htmlspecialchars($folder['creator_full_name']); ?></div>
-                                                    <small class="text-muted">@<?php echo htmlspecialchars($folder['username']); ?></small>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-primary"><?php echo number_format($folder['file_count']); ?></span>
-                                            </td>
-                                            <td><?php echo formatFileSize($folder['folder_size']); ?></td>
-                                            <td>
-                                                <?php if ($folder['folder_status'] === 'active'): ?>
-                                                    <span class="badge bg-success">Active</span>
-                                                <?php elseif ($folder['folder_status'] === 'archived'): ?>
-                                                    <span class="badge bg-warning">Archived</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-secondary">Hidden</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <div><?php echo date('M j, Y', strtotime($folder['created_at'])); ?></div>
-                                                <small class="text-muted"><?php echo date('g:i A', strtotime($folder['created_at'])); ?></small>
-                                            </td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                        <i class="fas fa-ellipsis-v"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li>
-                                                            <a class="dropdown-item" href="folder_details.php?id=<?php echo $folder['id']; ?>">
-                                                                <i class="fas fa-eye me-2"></i>View Details
-                                                            </a>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this folder?')">
-                                                                <input type="hidden" name="action" value="delete">
-                                                                <input type="hidden" name="folder_id" value="<?php echo $folder['id']; ?>">
-                                                                <button type="submit" class="text-danger">
-                                                                    <i class="fas fa-trash me-2"></i>Delete
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                         The status select ships with a visible
+                                         apply button so the form still works
+                                         with scripting off; the script below adds
+                                         auto-submit on change as a convenience. */ ?>
+                                <div class="folder-tile-actions">
+                                    <?php if ($has_status_column): ?>
+                                        <form method="POST" action="folders.php" class="folder-status-form">
+                                            <?= folders_state_fields($state, $csrf) ?>
+                                            <input type="hidden" name="action" value="change_status">
+                                            <input type="hidden" name="folder_id" value="<?php echo (int)$folder['id']; ?>">
+                                            <label class="folders-sr-only" for="status-<?php echo (int)$folder['id']; ?>">Status for <?php echo htmlspecialchars((string)$folder['folder_name']); ?></label>
+                                            <select id="status-<?php echo (int)$folder['id']; ?>"
+                                                    class="folder-status-select"
+                                                    name="status"
+                                                    data-folder-status>
+                                                <?php foreach (FOLDER_STATUS as $option): ?>
+                                                    <option value="<?php echo htmlspecialchars($option); ?>"
+                                                        <?php echo $status === $option ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars(folder_status_label($option)); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button type="submit" class="folder-icon-btn is-neutral" title="Apply status" aria-label="Apply status">
+                                                <i class="bx bx-check"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <form method="POST" action="folders.php">
+                                        <?= folders_state_fields($state, $csrf) ?>
+                                        <input type="hidden" name="action" value="toggle_public">
+                                        <input type="hidden" name="folder_id" value="<?php echo (int)$folder['id']; ?>">
+                                        <button type="submit" class="folder-icon-btn is-neutral"
+                                                title="<?php echo $folder['is_public'] ? 'Make private' : 'Make public'; ?>"
+                                                aria-label="<?php echo $folder['is_public'] ? 'Make private' : 'Make public'; ?>">
+                                            <i class="bx <?php echo $folder['is_public'] ? 'bxs-lock' : 'bx-globe'; ?>"></i>
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="folders.php" data-confirm="Delete this folder? This cannot be undone.">
+                                        <?= folders_state_fields($state, $csrf) ?>
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="folder_id" value="<?php echo (int)$folder['id']; ?>">
+                                        <button type="submit" class="folder-icon-btn is-danger"
+                                                title="Delete folder" aria-label="Delete folder">
+                                            <i class="bx bxs-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="folders-section">
+                        <div class="folders-empty">
+                            <i class="bx bxs-folder-open"></i>
+                            <h3><?php echo $has_active_filters ? 'No folders match these filters' : 'No folders yet'; ?></h3>
+                            <p>
+                                <?php echo $has_active_filters
+                                    ? 'Try a different search term, or clear the filters to see everything.'
+                                    : 'Folders created for a department will appear here.'; ?>
+                            </p>
+                            <?php if ($has_active_filters): ?>
+                                <a href="folders.php" class="btn btn-primary"><i class="bx bx-reset"></i> Clear filters</a>
+                            <?php endif; ?>
                         </div>
                     </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- ================= LIST VIEW ================= -->
+            <section id="view-list-panel" class="folders-view folders-section folders-section--table"
+                     aria-labelledby="view-list" hidden>
+                <p class="table-scroll-hint">
+                    <i class="bx bx-move-horizontal"></i>
+                    Swipe the table sideways to see every column
+                </p>
+
+                <div class="table-responsive table-scroll folders-table-scroll">
+                    <table class="table folders-table">
+                        <thead>
+                            <tr>
+                                <th>Folder</th>
+                                <th>Type</th>
+                                <th>Department</th>
+                                <th>Creator</th>
+                                <th>Files</th>
+                                <th>Size</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($folders as $folder): ?>
+                                <?php
+                                $status = folder_status_class($has_status_column ? ($folder['folder_status'] ?? 'active') : 'active');
+                                $icon   = folder_icon_class($folder['folder_icon'] ?? '');
+                                $colour = folder_hex_color($folder['folder_color'] ?? '');
+                                $fid    = (int)$folder['id'];
+                                ?>
+                                <tr>
+                                    <td class="folders-name-cell">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <span class="folder-tile-icon" style="background-color: <?php echo htmlspecialchars($colour); ?>; width:38px; height:38px; font-size:19px;">
+                                                <i class="bx <?php echo htmlspecialchars($icon); ?>"></i>
+                                            </span>
+                                            <span style="min-width:0;">
+                                                <span class="folders-cell-name"><?php echo htmlspecialchars((string)$folder['folder_name']); ?></span>
+                                                <span class="folder-chip <?php echo $folder['is_public'] ? 'is-public' : ''; ?>" style="margin-top:5px;">
+                                                    <i class="bx <?php echo $folder['is_public'] ? 'bx-globe' : 'bxs-lock'; ?>"></i>
+                                                    <?php echo $folder['is_public'] ? 'Public' : 'Private'; ?>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="folder-chip"><?php echo htmlspecialchars(ucfirst((string)$folder['folder_type'])); ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($folder['department_code'])): ?>
+                                            <span class="folder-chip">
+                                                <i class="bx bxs-building"></i>
+                                                <?php echo htmlspecialchars((string)$folder['department_code']); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="folders-cell-sub">&mdash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="folders-cell-name"><?php echo htmlspecialchars(trim((string)($folder['creator_full_name'] ?? '')) ?: 'Unknown'); ?></span>
+                                        <?php if (!empty($folder['username'])): ?>
+                                            <span class="folders-cell-sub">@<?php echo htmlspecialchars((string)$folder['username']); ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="folders-cell-figure"><?php echo number_format((int)$folder['file_count']); ?></span>
+                                    </td>
+                                    <td>
+                                        <span class="folders-cell-figure"><?php echo htmlspecialchars(formatFileSize($folder['folder_size'] ?? 0)); ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if ($has_status_column): ?>
+                                            <form method="POST" action="folders.php" class="folder-status-form">
+                                                <?= folders_state_fields($state, $csrf) ?>
+                                                <input type="hidden" name="action" value="change_status">
+                                                <input type="hidden" name="folder_id" value="<?php echo $fid; ?>">
+                                                <label class="folders-sr-only" for="list-status-<?php echo $fid; ?>">Status for <?php echo htmlspecialchars((string)$folder['folder_name']); ?></label>
+                                                <select id="list-status-<?php echo $fid; ?>" class="folder-status-select" name="status" data-folder-status>
+                                                    <?php foreach (FOLDER_STATUS as $option): ?>
+                                                        <option value="<?php echo htmlspecialchars($option); ?>"
+                                                            <?php echo $status === $option ? 'selected' : ''; ?>>
+                                                            <?php echo htmlspecialchars(folder_status_label($option)); ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <button type="submit" class="folder-icon-btn is-neutral" title="Apply status" aria-label="Apply status">
+                                                    <i class="bx bx-check"></i>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="folder-chip is-<?php echo $status; ?>"><?php echo htmlspecialchars(folder_status_label($status)); ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="folders-cell-name"><?php echo htmlspecialchars(date('M j, Y', strtotime((string)$folder['created_at']))); ?></span>
+                                        <span class="folders-cell-sub"><?php echo htmlspecialchars(date('g:i A', strtotime((string)$folder['created_at']))); ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="folders-row-actions">
+                                            <form method="POST" action="folders.php">
+                                                <?= folders_state_fields($state, $csrf) ?>
+                                                <input type="hidden" name="action" value="toggle_public">
+                                                <input type="hidden" name="folder_id" value="<?php echo $fid; ?>">
+                                                <button type="submit" class="folder-icon-btn is-neutral"
+                                                        title="<?php echo $folder['is_public'] ? 'Make private' : 'Make public'; ?>"
+                                                        aria-label="<?php echo $folder['is_public'] ? 'Make private' : 'Make public'; ?>">
+                                                    <i class="bx <?php echo $folder['is_public'] ? 'bxs-lock' : 'bx-globe'; ?>"></i>
+                                                </button>
+                                            </form>
+
+                                            <form method="POST" action="folders.php" data-confirm="Delete this folder? This cannot be undone.">
+                                                <?= folders_state_fields($state, $csrf) ?>
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="folder_id" value="<?php echo $fid; ?>">
+                                                <button type="submit" class="folder-icon-btn is-danger"
+                                                        title="Delete folder" aria-label="Delete folder">
+                                                    <i class="bx bxs-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            </section>
+
+            <!-- ================= PAGINATION =================
+                 The old version read $total_files, which does not exist on this
+                 page, so the sentence rendered as "Showing 1- of  files". -->
             <?php if ($total_pages > 1): ?>
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div class="text-muted">
-                        Showing <?php echo $offset + 1; ?>-<?php echo min($offset + $limit, $total_files); ?> 
-                        of <?php echo number_format($total_files); ?> files
-                    </div>
-                        <ul class="pagination mb-0">
-                            <?php
-                            $current_url = $_SERVER['REQUEST_URI'];
-                            $url_parts = parse_url($current_url);
-                            parse_str($url_parts['query'] ?? '', $query_params);
-                            ?>
-                            
+                <div class="pagination-bar">
+                    <p class="pagination-info">
+                        Showing <b><?php echo $offset + 1; ?>&ndash;<?php echo min($offset + $limit, $total_folders); ?></b>
+                        of <b><?php echo number_format($total_folders); ?></b> folders
+                    </p>
+                    <nav aria-label="Folder pages">
+                        <ul class="pagination">
+                            <?php /* array_merge, not `$state + [...]`: the union
+                                     operator keeps the LEFT operand's value for a
+                                     key that appears on both sides, and 'page'
+                                     already exists in $state - so every link here
+                                     would have pointed back at the current page. */
+                                  $qs = static fn(int $p): string => folders_query(array_merge($state, ['page' => $p])); ?>
+
                             <?php if ($page > 1): ?>
                                 <li class="page-item">
-                                    <?php $query_params['page'] = $page - 1; ?>
-                                    <a class="page-link" href="?<?php echo http_build_query($query_params); ?>">
-                                        <i class="fas fa-chevron-left"></i>
+                                    <a class="page-link" href="<?php echo htmlspecialchars($qs($page - 1)); ?>" aria-label="Previous page">
+                                        <i class="bx bx-chevron-left"></i>
                                     </a>
                                 </li>
+                            <?php else: ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true"><i class="bx bx-chevron-left"></i></span>
+                                </li>
                             <?php endif; ?>
-                            
+
                             <?php
                             $start_page = max(1, $page - 2);
-                            $end_page = min($total_pages, $page + 2);
-                            
-                            if ($start_page > 1): ?>
+                            $end_page   = min($total_pages, $page + 2);
+                            ?>
+
+                            <?php if ($start_page > 1): ?>
                                 <li class="page-item">
-                                    <?php $query_params['page'] = 1; ?>
-                                    <a class="page-link" href="?<?php echo http_build_query($query_params); ?>">1</a>
+                                    <a class="page-link" href="<?php echo htmlspecialchars($qs(1)); ?>">1</a>
                                 </li>
                                 <?php if ($start_page > 2): ?>
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
                                 <?php endif; ?>
                             <?php endif; ?>
-                            
+
                             <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                    <?php $query_params['page'] = $i; ?>
-                                    <a class="page-link" href="?<?php echo http_build_query($query_params); ?>">
-                                        <?php echo $i; ?>
-                                    </a>
+                                <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                                    <?php if ($i === $page): ?>
+                                        <span class="page-link" aria-current="page"><?php echo $i; ?></span>
+                                    <?php else: ?>
+                                        <a class="page-link" href="<?php echo htmlspecialchars($qs($i)); ?>"><?php echo $i; ?></a>
+                                    <?php endif; ?>
                                 </li>
                             <?php endfor; ?>
-                            
+
                             <?php if ($end_page < $total_pages): ?>
                                 <?php if ($end_page < $total_pages - 1): ?>
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
                                 <?php endif; ?>
                                 <li class="page-item">
-                                    <?php $query_params['page'] = $total_pages; ?>
-                                    <a class="page-link" href="?<?php echo http_build_query($query_params); ?>">
-                                        <?php echo $total_pages; ?>
-                                    </a>
+                                    <a class="page-link" href="<?php echo htmlspecialchars($qs($total_pages)); ?>"><?php echo $total_pages; ?></a>
                                 </li>
                             <?php endif; ?>
-                            
+
                             <?php if ($page < $total_pages): ?>
                                 <li class="page-item">
-                                    <?php $query_params['page'] = $page + 1; ?>
-                                    <a class="page-link" href="?<?php echo http_build_query($query_params); ?>">
-                                        <i class="fas fa-chevron-right"></i>
+                                    <a class="page-link" href="<?php echo htmlspecialchars($qs($page + 1)); ?>" aria-label="Next page">
+                                        <i class="bx bx-chevron-right"></i>
                                     </a>
+                                </li>
+                            <?php else: ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true"><i class="bx bx-chevron-right"></i></span>
                                 </li>
                             <?php endif; ?>
                         </ul>
-                 </div>
+                    </nav>
+                </div>
             <?php endif; ?>
-        </div>
+        </main>
     </section>
 
     <script src="assets/js/script.js?v=<?= time() ?>"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // View toggle functionality
-        document.getElementById('grid-view').addEventListener('change', function() {
-            if (this.checked) {
-                document.getElementById('grid-container').style.display = 'block';
-                document.getElementById('list-container').style.display = 'none';
-            }
-        });
+        (function () {
+            'use strict';
 
-        document.getElementById('list-view').addEventListener('change', function() {
-            if (this.checked) {
-                document.getElementById('grid-container').style.display = 'none';
-                document.getElementById('list-container').style.display = 'block';
-            }
-        });
+            /* ---- view toggle -------------------------------------------------
+               Replaces the previous pair of change listeners that set
+               inline display:block/none directly on the containers. Toggling the
+               `hidden` attribute instead means the panels keep whatever styling
+               the stylesheet gives them, and [hidden] is honoured by the user
+               agent, so the page is not relying on inline styles to decide which
+               view is showing.
 
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(function() {
-            let alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                let bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+               The choice is remembered in localStorage, so it survives a
+               navigation - previously switching to List and then applying a
+               filter silently threw you back to Grid. Storage access can throw
+               in private browsing modes, hence the try/catch. */
+            var STORAGE_KEY = 'folders.view';
+            var gridRadio  = document.getElementById('view-grid');
+            var listRadio  = document.getElementById('view-list');
+            var gridPanel  = document.getElementById('view-grid-panel');
+            var listPanel  = document.getElementById('view-list-panel');
+
+            function readStoredView() {
+                try {
+                    return window.localStorage.getItem(STORAGE_KEY);
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function storeView(value) {
+                try {
+                    window.localStorage.setItem(STORAGE_KEY, value);
+                } catch (e) { /* nothing to do - the choice just will not persist */ }
+            }
+
+            function applyView(value) {
+                var showList = value === 'list';
+                gridPanel.hidden = showList;
+                listPanel.hidden = !showList;
+                gridRadio.checked = !showList;
+                listRadio.checked = showList;
+            }
+
+            gridRadio.addEventListener('change', function () {
+                if (this.checked) { applyView('grid'); storeView('grid'); }
             });
-        }, 1800);
+            listRadio.addEventListener('change', function () {
+                if (this.checked) { applyView('list'); storeView('list'); }
+            });
 
-        // Add loading animation to form submissions
-        document.querySelectorAll('form').forEach(function(form) {
-            form.addEventListener('submit', function() {
-                let submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-                    submitBtn.disabled = true;
+            applyView(readStoredView() === 'list' ? 'list' : 'grid');
+
+            /* ---- alert dismissal -------------------------------------------
+               Bootstrap's data-bs-dismiss="alert" no longer applies, since
+               Bootstrap is no longer loaded. */
+            document.addEventListener('click', function (event) {
+                var trigger = event.target.closest('[data-dismiss-alert]');
+                if (!trigger) { return; }
+
+                var alert = trigger.closest('.alert');
+                if (!alert) { return; }
+
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity .2s ease';
+                window.setTimeout(function () {
+                    if (alert.parentNode) { alert.parentNode.removeChild(alert); }
+                }, 200);
+            });
+
+            /* ---- destructive-action confirmation -----------------------------
+               The old page used an inline onsubmit="return confirm(...)" on
+               every delete form, which put a JavaScript string literal inside
+               HTML for each row. Reading the message off data-confirm keeps the
+               markup clean and means the wording can be edited in one place.
+
+               The handler is delegated, so it works for the forms in both views
+               and for any that are added later. */
+            document.addEventListener('submit', function (event) {
+                var form = event.target;
+                if (!form.matches || !form.matches('[data-confirm]')) { return; }
+
+                if (!window.confirm(form.getAttribute('data-confirm'))) {
+                    event.preventDefault();
                 }
             });
-        });
+
+            /* ---- pending-state on submit ------------------------------------
+               Every action on this page is a POST that ends in a redirect, so the
+               button is only ever needed for the fraction of a second before the
+               page navigates. Marking it busy stops a double tap from firing the
+               same delete twice.
+
+               The previous version did this to *every* form on the page and
+               rewrote the button's HTML, which also swallowed the icon. This
+               only touches forms that carry an action, and only adds a class. */
+            document.addEventListener('submit', function (event) {
+                var form = event.target;
+                if (!form.matches || !form.matches('form[action="folders.php"]')) { return; }
+
+                var submit = form.querySelector('button[type="submit"]');
+                if (submit) { submit.classList.add('is-busy'); }
+            });
+
+            /* ---- status auto-submit -----------------------------------------
+               The status select ships with a visible apply button so the form
+               works with scripting off. On top of that, changing the select
+               submits immediately, which is what most people expect from a
+               one-field form. The apply button stays either way. */
+            document.addEventListener('change', function (event) {
+                var select = event.target;
+                if (!select.matches || !select.matches('[data-folder-status]')) { return; }
+                if (select.form) { select.form.submit(); }
+            });
+        })();
     </script>
 </body>
 </html>

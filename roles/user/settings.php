@@ -331,7 +331,7 @@ function getSecurityScore($user) {
             padding: 20px;
             transition: margin-left 0.3s ease;
             min-height: calc(100vh - 76px);
-            background: #f8f9fa;
+            background: transparent;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -341,7 +341,7 @@ function getSecurityScore($user) {
         }
 
         .settings-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
             border-radius: 20px;
             padding: 2rem;
             color: white;
@@ -660,7 +660,7 @@ function getSecurityScore($user) {
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body class="bg-light">
+<body>
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 

@@ -32,16 +32,34 @@ function togglePassword(fieldId) {
  * Initialize alert close handlers
  */
 function initializeAlertHandlers() {
+    const alerts = document.querySelectorAll('.alert');
     const alertCloses = document.querySelectorAll('.alert-close');
+
     alertCloses.forEach(btn => {
         btn.addEventListener('click', function() {
             const alert = this.parentElement;
+            if (!alert) return;
             alert.style.opacity = '0';
             alert.style.transform = 'translateY(-10px)';
             setTimeout(() => {
-                alert.style.display = 'none';
+                if (alert.parentElement) {
+                    alert.style.display = 'none';
+                }
             }, 300);
         });
+    });
+
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert.style.display === 'none') return;
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.style.display = 'none';
+                }
+            }, 300);
+        }, 1000);
     });
 }
 

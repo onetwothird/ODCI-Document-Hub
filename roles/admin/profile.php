@@ -368,15 +368,16 @@ function getSecurityScore($user) {
     <title>Admin Profile - <?php echo htmlspecialchars($user['name'] . ' ' . $user['surname']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/sidebar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/profile.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/navbar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/profile.css?v=<?= time() ?>">
     
 
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body class="bg-light">
+<body>
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -387,7 +388,7 @@ function getSecurityScore($user) {
     
         <div class="profile-container" id="profile-container">
             <!-- Profile Header -->
-            <div class="profile-header">
+            <div class="settings-header">
                 <div class="row align-items-center">
                     <div class="col-auto">
                         <div class="profile-avatar">

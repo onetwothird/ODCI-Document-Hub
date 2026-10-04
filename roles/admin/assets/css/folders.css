@@ -1,0 +1,1101 @@
+/* ==========================================================================
+   FOLDER MANAGEMENT - admin panel
+   --------------------------------------------------------------------------
+   Rewritten to match the design system used by the rest of the admin area.
+
+   What was wrong with the previous version
+   ----------------------------------------
+   This page was a Bootstrap 5 page that had been skinned with ~860 lines of
+   inline <style>, and almost none of it survived contact with the shared theme:
+
+     - It loaded Bootstrap for a grid, badges, pagination, dropdowns, forms and
+       modals. The shared theme (cvsu-theme.css + cvsu-product.css) loads last
+       and already owns all of those, so the page carried a second design
+       system and every component was a specificity contest.
+     - Its own :root palette (--primary-color, --green, --gray-*) duplicated
+       the brand. Meanwhile --primary-green, --primary-green-dark,
+       --primary-green-light, --primary-green-lightest and --shadow-md were
+       referenced by ~20 rules but NEVER DEFINED, so the entire pagination
+       active/hover treatment was invalid at computed-value time.
+     - The whole pagination block was written out TWICE with conflicting values
+       (the second copy set .page-link color to black), then had three more
+       contradictory rules appended for disabled/ellipsis/first-last.
+     - #content main was declared three times with different padding.
+     - grid-gap was used instead of gap in the breadcrumb, so it did nothing.
+     - .badge::before was an absolutely positioned 100%-wide gradient strip with
+       no positioned ancestor, so it escaped the badge and slid across the page.
+     - .badge was paired with Bootstrap's .text-white, which is !important, on
+       top of light green/red backgrounds - white on pale green is unreadable.
+
+   Every rule below binds to the shared --cvsu-* tokens, so the page reads as
+   part of the same system as the dashboard, the document tracker, the file
+   register and the faculty list.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. PAGE SHELL
+   --------------------------------------------------------------------------
+   The theme already forces #content main's padding, background and the page
+   title type scale, so none of that is repeated here. Only the active crumb is
+   re-asserted, to match the other admin pages. */
+        #content main {
+            background: transparent;
+        }
+
+        #content main .head-title .breadcrumb li a.active {
+            color: var(--cvsu-green-700);
+        }
+
+
+/* --------------------------------------------------------------------------
+   2. SECTION SHELL
+   --------------------------------------------------------------------------
+   Filters, the folder cards and the list table share one card treatment: white
+   fill, hairline border, shared radius, soft green-tinted shadow. */
+        .folders-section {
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow);
+            margin-bottom: var(--sp-5);
+            overflow: hidden;
+        }
+
+        .folders-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--sp-3);
+            flex-wrap: wrap;
+            min-height: 56px;
+            padding: var(--sp-4) var(--sp-5);
+            border-bottom: 1px solid var(--cvsu-line);
+        }
+
+        .folders-section-head h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: var(--fs-lg);
+            font-weight: var(--fw-semi);
+            line-height: 1.3;
+            color: var(--cvsu-ink);
+        }
+
+        .folders-section-head h2 > i {
+            font-size: 20px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        .folders-section-head .folders-section-note {
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .folders-section-body {
+            padding: var(--sp-5);
+        }
+
+
+/* --------------------------------------------------------------------------
+   3. SUMMARY STAT ROW
+   --------------------------------------------------------------------------
+   Brand green with gold accents, icon badge on the left and a rail on the
+   leading edge. Values come from one grouped query so the row cannot disagree
+   with the counts in the table. */
+        .folders-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-5);
+        }
+
+        .folders-stats .folders-stat {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4);
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow-sm);
+            overflow: hidden;
+            transition: box-shadow var(--cvsu-transition), border-color var(--cvsu-transition);
+        }
+
+        .folders-stats .folders-stat::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+        }
+
+        /* Surface-only hover: the tile holds its place, matching the system-wide
+           rule that containers never translate. The icon is what responds. */
+        .folders-stats .folders-stat:hover {
+            box-shadow: var(--cvsu-shadow-md);
+            border-color: var(--cvsu-green-300);
+        }
+
+        .folders-stats .folders-stat-icon {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+            font-size: 20px;
+            line-height: 1;
+            transition: transform var(--cvsu-transition);
+        }
+
+        .folders-stats .folders-stat.accent-gold .folders-stat-icon {
+            background: var(--cvsu-gold-50);
+            border-color: var(--cvsu-gold-100);
+            color: var(--cvsu-gold-600);
+        }
+
+        .folders-stats .folders-stat:hover .folders-stat-icon {
+            transform: translateY(-2px);
+        }
+
+        .folders-stats .folders-stat-icon i,
+        .folders-stats .folders-stat-icon i.bx {
+            color: currentColor !important;
+        }
+
+        .folders-stats .folders-stat-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .folders-stats .folders-stat-label {
+            margin: 0;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--cvsu-grey-500);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .folders-stats .folders-stat-value {
+            font-size: var(--fs-xl);
+            font-weight: var(--fw-bold);
+            line-height: 1.1;
+            color: var(--cvsu-ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+
+/* --------------------------------------------------------------------------
+   4. ALERTS
+   --------------------------------------------------------------------------
+   The tint, rail and radius are the shared theme's .alert. These only add the
+   icon and the layout, and - importantly - no longer depend on Bootstrap's JS
+   to be dismissable. */
+        #content main .folders-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: var(--sp-5);
+        }
+
+        .folders-alert > i {
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .folders-alert.is-success > i {
+            color: var(--cvsu-green-600);
+        }
+
+        .folders-alert.is-error > i {
+            color: var(--cvsu-danger);
+        }
+
+        .folders-alert .btn-close {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+
+/* --------------------------------------------------------------------------
+   5. FILTER GRID
+   --------------------------------------------------------------------------
+   Was Bootstrap .row.g-3 / .col-md-*. It is now a CSS grid on the shared
+   spacing scale, so the panel does not need a second layout system to line up. */
+        .folders-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+            gap: var(--sp-4);
+            align-items: end;
+        }
+
+        .folders-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .folders-field > label,
+        .folders-field > .folders-field-label {
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--cvsu-grey-500);
+        }
+
+        .folders-field .form-control,
+        .folders-field .form-select {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Make selects look professional (custom chevron) instead of the raw
+           native dropdown. The shared theme already defines this, but a
+           more specific/late rule can strip the background-image on some
+           pages - re-applying it here keeps the look consistent. */
+        .folders-field .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, var(--cvsu-grey-500) 50%),
+                linear-gradient(135deg, var(--cvsu-grey-500) 50%, transparent 50%);
+            background-position: calc(100% - 17px) calc(50% + 1px), calc(100% - 12px) calc(50% + 1px);
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
+            padding-right: calc(var(--sp-4) * 2.5) !important;
+            background-color: var(--cvsu-white) !important;
+        }
+
+        .folders-field .form-select:focus {
+            outline: none;
+            border-color: var(--cvsu-green-500) !important;
+            box-shadow: var(--cvsu-ring) !important;
+        }
+
+        /* The search box and the actions pair are the two wide cells. */
+        .folders-search-field,
+        .folders-actions-field {
+            grid-column: span 2;
+        }
+
+        .folders-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .folders-search > i {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 17px;
+            line-height: 1;
+            color: var(--cvsu-grey-400);
+            pointer-events: none;
+            z-index: 2;
+            transition: color var(--cvsu-transition);
+        }
+
+        .folders-search:focus-within > i {
+            color: var(--cvsu-green-600);
+        }
+
+        #content main .folders-search .form-control {
+            padding: 0 var(--sp-3) 0 38px !important;
+        }
+
+        .folders-actions {
+            display: flex;
+            gap: var(--sp-2);
+        }
+
+        .folders-actions .btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: var(--ctl-md);
+            padding: 0 var(--sp-4);
+            border-radius: var(--cvsu-radius-sm);
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .folders-actions .btn i {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+        .folders-actions .btn-reset {
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+        }
+
+        .folders-actions .btn-reset:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+        }
+
+        .folders-actions .btn[hidden] {
+            display: none;
+        }
+
+        .folders-actions .btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+
+/* --------------------------------------------------------------------------
+   6. VIEW TOGGLE
+   --------------------------------------------------------------------------
+   A segmented control rather than two loose outline buttons. The radios stay
+   in the DOM and stay focusable so this is keyboard operable; only their
+   painted box is hidden. */
+        .folders-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--sp-4);
+            flex-wrap: wrap;
+            margin-bottom: var(--sp-4);
+        }
+
+        .folders-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .folders-count i {
+            font-size: 17px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            background: var(--cvsu-muted-bg);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+        }
+
+        .view-toggle input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .view-toggle label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            height: 34px;
+            padding: 0 14px;
+            border-radius: 6px;
+            font-size: var(--fs-sm);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-grey-500);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: background-color var(--cvsu-transition), color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+        }
+
+        .view-toggle label i {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+        .view-toggle label:hover {
+            color: var(--cvsu-green-700);
+        }
+
+        .view-toggle input:checked + label {
+            background: var(--cvsu-white);
+            color: var(--cvsu-green-700);
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .view-toggle input:focus-visible + label {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        /* Only one view is ever in the flow. [hidden] is honoured by the user
+           agent, but the theme gives .btn a display, so state it explicitly. */
+        .folders-view[hidden] {
+            display: none !important;
+        }
+
+        /* Visually hidden but still announced and still focusable, for the
+           <label> on each status select. A plain display:none label would drop
+           the control's accessible name, and there are two selects per folder
+           (grid and list) so "Status" alone is not a unique name. */
+        .folders-sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+
+/* --------------------------------------------------------------------------
+   7. FOLDER CARD GRID
+   --------------------------------------------------------------------------
+   Replaces Bootstrap's .row.g-4 / .col-xl-3. auto-fill rather than auto-fit so
+   a single folder does not stretch to the full width of the row. */
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+            gap: var(--sp-4);
+        }
+
+        .folder-tile {
+            display: flex;
+            flex-direction: column;
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow-sm);
+            overflow: hidden;
+            transition: box-shadow var(--cvsu-transition), border-color var(--cvsu-transition);
+        }
+
+        .folder-tile:hover {
+            border-color: var(--cvsu-green-300);
+            box-shadow: var(--cvsu-shadow-md);
+        }
+
+        .folder-tile-top {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--sp-3);
+            padding: var(--sp-4) var(--sp-4) var(--sp-3);
+        }
+
+        /* The tile colour comes from folders.folder_color, set inline per row and
+           validated against a hex pattern server-side, so this only supplies the
+           shape. */
+        .folder-tile-icon {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: var(--cvsu-radius-sm);
+            font-size: 22px;
+            line-height: 1;
+            color: #fff;
+            transition: transform var(--cvsu-transition);
+        }
+
+        .folder-tile:hover .folder-tile-icon {
+            transform: translateY(-2px);
+        }
+
+        .folder-tile-icon i,
+        .folder-tile-icon i.bx {
+            color: #fff !important;
+        }
+
+        .folder-tile-heading {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .folder-tile-name {
+            margin: 0;
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            line-height: 1.35;
+            color: var(--cvsu-ink);
+            overflow-wrap: anywhere;
+        }
+
+        .folder-tile-sub {
+            display: block;
+            margin-top: 3px;
+            font-size: var(--fs-xs);
+            line-height: 1.45;
+            color: var(--cvsu-grey-500);
+            overflow-wrap: anywhere;
+        }
+
+        .folder-tile-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 var(--sp-4) var(--sp-3);
+        }
+
+        /* ---- chips ----
+           Replaces the old .badge + Bootstrap .text-white pairing, which put
+           white text on a pale green fill. Colour is carried by the chip's own
+           background and border instead. */
+        .folder-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--cvsu-muted-bg);
+            border: 1px solid var(--cvsu-line);
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-medium);
+            line-height: 1.4;
+            color: var(--cvsu-grey-500);
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .folder-chip i {
+            font-size: 13px;
+            line-height: 1;
+            color: currentColor;
+            flex-shrink: 0;
+        }
+
+        .folder-chip.is-public {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+        }
+
+        .folder-chip.is-active {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+        }
+
+        .folder-chip.is-archived {
+            background: var(--cvsu-gold-50);
+            border-color: var(--cvsu-gold-100);
+            color: var(--cvsu-gold-700);
+        }
+
+        .folder-chip.is-hidden {
+            background: var(--cvsu-muted-bg);
+            border-color: var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+        }
+
+        /* ---- figures row ---- */
+        .folder-tile-figures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid var(--cvsu-line);
+            border-bottom: 1px solid var(--cvsu-line);
+            background: var(--cvsu-surface);
+        }
+
+        .folder-tile-figure {
+            padding: var(--sp-3) var(--sp-4);
+            text-align: center;
+            min-width: 0;
+        }
+
+        .folder-tile-figure + .folder-tile-figure {
+            border-left: 1px solid var(--cvsu-line);
+        }
+
+        .folder-tile-figure-value {
+            font-size: var(--fs-lg);
+            font-weight: var(--fw-bold);
+            line-height: 1.1;
+            color: var(--cvsu-ink);
+            font-variant-numeric: tabular-nums;
+            overflow-wrap: anywhere;
+        }
+
+        .folder-tile-figure-label {
+            margin-top: 2px;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--cvsu-grey-500);
+        }
+
+        .folder-tile-meta {
+            padding: var(--sp-3) var(--sp-4);
+            font-size: var(--fs-xs);
+            line-height: 1.5;
+            color: var(--cvsu-grey-500);
+            overflow-wrap: anywhere;
+        }
+
+        .folder-tile-meta-row {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+        }
+
+        .folder-tile-meta-row + .folder-tile-meta-row {
+            margin-top: 3px;
+        }
+
+        .folder-tile-meta-row > i {
+            flex: 0 0 auto;
+            font-size: 14px;
+            line-height: 1.35;
+            color: var(--cvsu-green-600);
+        }
+
+        .folder-tile-meta-key {
+            flex-shrink: 0;
+            color: var(--cvsu-grey-400);
+        }
+
+        /* ---- actions ----
+           The old version set opacity:0 and revealed on :hover, which made the
+           entire action set unreachable on a touch device, and it put the menu
+           inside a card with overflow:hidden, so the open menu was clipped by
+           the card it belonged to. Both are gone: the controls are always
+           visible, and there is no dropdown to clip. */
+        .folder-tile-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+            padding: var(--sp-3) var(--sp-4);
+            border-top: 1px solid var(--cvsu-line);
+            background: var(--cvsu-surface);
+        }
+
+        /* Status is a real select, not a three-button group, so the control
+           states every legal value instead of making the user guess. It ships
+           with a visible apply button so the form still works with scripting
+           off; the script adds auto-submit on change as a convenience. */
+        .folder-status-form {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .folder-status-select {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 32px;
+            margin: 0;
+            padding: 0 26px 0 9px;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+            background-color: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            cursor: pointer;
+        }
+
+        .folder-status-select:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 1px;
+        }
+
+        .folder-icon-btn {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            color: var(--cvsu-grey-500);
+            font-family: inherit;
+            font-size: 17px;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition), color var(--cvsu-transition);
+        }
+
+        .folder-icon-btn i,
+        .folder-icon-btn i.bx {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+        /* Neutral at rest, brand on hover - the same treatment the file register
+           gives its view and download controls. */
+        .folder-icon-btn.is-neutral:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+        }
+
+        /* The one destructive control keeps a red glyph at rest, so it never
+           has to be hovered to be identified. */
+        .folder-icon-btn.is-danger {
+            color: var(--cvsu-danger);
+        }
+
+        .folder-icon-btn.is-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .folder-icon-btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        .folder-icon-btn.is-busy {
+            opacity: .6;
+            pointer-events: none;
+        }
+
+
+/* --------------------------------------------------------------------------
+   8. LIST VIEW TABLE
+   --------------------------------------------------------------------------
+   Same treatment as the file register: a single card frame (no card nested in a
+   card), a scroll hint, and a width floor so the columns stay readable instead
+   of being crushed on a narrow window. */
+        .folders-table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            max-width: 100%;
+        }
+
+        .folders-section--table .folders-table {
+            min-width: 940px;
+        }
+
+        .folders-table tbody td.folders-name-cell {
+            min-width: 220px;
+        }
+
+        .folders-cell-figure {
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .folders-cell-sub {
+            display: block;
+            margin-top: 3px;
+            font-size: var(--fs-xs);
+            line-height: 1.45;
+            color: var(--cvsu-grey-500);
+            overflow-wrap: anywhere;
+        }
+
+        .folders-cell-name {
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .folders-row-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        /* The status form is reused inside the table, so it must not stretch. */
+        .folders-table .folder-status-form {
+            flex: 0 0 auto;
+            width: 148px;
+        }
+
+        /* Scroll hint.
+
+           This element was unstyled on this page. The file register styles its
+           own copy in files1.css, but folders.php never included that
+           stylesheet, so the hint fell back to the theme's bare `p` rules:
+           display:block, no padding, no background, and the same ink colour as
+           body copy. The icon then ran straight into the sentence with no gap,
+           so it read as a stray line of text floating above the table rather
+           than as a control hint.
+
+           It is scoped to .folders-section--table so it cannot leak into the
+           file register or any other page. The theme's updateScrollHints()
+           only toggles `.scrollable` on the wrapper, so nothing else owns this. */
+        .folders-section--table .table-scroll-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 var(--sp-3);
+            padding: 9px 14px;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            border-radius: var(--cvsu-radius-sm);
+            font-size: var(--fs-sm);
+            font-weight: var(--fw-medium);
+            line-height: 1.45;
+            color: var(--cvsu-green-800);
+            /* The hint is a label, not content: nobody should be able to
+               accidentally select it while dragging the table sideways. */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .folders-section--table .table-scroll-hint i {
+            flex: 0 0 auto;
+            font-size: 18px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        /* Only worth saying when the table really does overflow. The shared
+           theme's updateScrollHints() adds `.scrollable` to .table-scroll as
+           soon as the content is wider than the frame, so this keys off the
+           measured state rather than a guessed breakpoint - a media query would
+           hide the hint precisely when it was needed, because collapsing the
+           sidebar narrows the content without narrowing the window.
+
+           Where :has() is unsupported the hint is simply never shown, which is
+           the safer way round: no misleading instruction, and the table still
+           slides either way. */
+        .folders-section--table:not(:has(.table-scroll.scrollable)) .table-scroll-hint {
+            display: none;
+        }
+
+
+/* --------------------------------------------------------------------------
+   9. PAGINATION BAR
+   --------------------------------------------------------------------------
+   .pagination / .page-item / .page-link are the shared theme's. This only lays
+   the bar out and tints the "Showing x-y of z" line. */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--sp-4);
+            flex-wrap: wrap;
+            padding: var(--sp-3) var(--sp-5);
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .pagination-bar .pagination-info {
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .pagination-bar .pagination-info b {
+            color: var(--cvsu-green-700);
+            font-weight: var(--fw-semi);
+        }
+
+
+/* --------------------------------------------------------------------------
+   10. EMPTY STATE
+   --------------------------------------------------------------------------
+   The theme owns .empty-state. This only sizes the icon and stops the gradient
+           clip trick from being applied to a glyph that has no gradient. */
+        .folders-empty {
+            text-align: center;
+            padding: var(--sp-12) var(--sp-5);
+        }
+
+        .folders-empty > i {
+            display: block;
+            font-size: 64px;
+            line-height: 1;
+            margin-bottom: var(--sp-4);
+            color: var(--cvsu-green-300);
+        }
+
+        .folders-empty h3 {
+            margin: 0 0 var(--sp-2);
+            font-size: var(--fs-lg);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+        }
+
+        .folders-empty p {
+            margin: 0 0 var(--sp-4);
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .folders-empty .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            height: var(--ctl-md);
+            padding: 0 var(--sp-4);
+            border-radius: var(--cvsu-radius-sm);
+            font-weight: var(--fw-semi);
+            text-decoration: none;
+        }
+
+        .folders-empty .btn i {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+
+/* ==========================================================================
+   11. RESPONSIVE
+   ========================================================================== */
+
+        /* Slightly narrower filter tracks once four will not fit side by side. */
+        @media (max-width: 1200px) {
+            .folders-filter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            /* The pagination bar stacks, and centres, before it can wrap into a
+               three-line mess beside a full-width nav. */
+            .pagination-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .pagination-bar .pagination {
+                justify-content: center;
+            }
+
+            /* Still a real table here, so it keeps sliding sideways - only the
+               floor drops. */
+            .folders-section--table .folders-table {
+                min-width: 820px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .folders-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .folders-section-body {
+                padding: var(--sp-4);
+            }
+
+            .folders-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Single track, so the double-cell spans have to be released or each
+               item would generate an implicit second column. */
+            .folders-search-field,
+            .folders-actions-field {
+                grid-column: auto;
+            }
+
+            .folder-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+
+            /* The table keeps all nine columns and slides sideways, as the file
+               register does. The floor is what stops the browser compressing
+               them into unreadable slivers: the page itself cannot scroll
+               sideways (html and body both set overflow-x:hidden), so without a
+               floor the overflow would simply be clipped. */
+            .folders-section--table .folders-table {
+                min-width: 720px;
+            }
+
+            .folders-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: var(--sp-3);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .folders-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination-bar {
+                padding: var(--sp-3);
+            }
+
+            .folders-section-head {
+                padding: var(--sp-3) var(--sp-4);
+            }
+
+            .folder-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* A full-width card gives the actions room, so they can spread out
+               instead of squeezing the status select down to nothing. */
+            .folder-tile-actions {
+                flex-wrap: wrap;
+            }
+
+            .folder-status-form {
+                flex: 1 1 100%;
+            }
+
+            .folder-icon-btn {
+                width: 38px;
+                height: 38px;
+            }
+
+            .folder-status-select {
+                height: 38px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .folders-stats .folders-stat,
+            .folders-stats .folders-stat-icon,
+            .folder-tile,
+            .folder-tile-icon,
+            .folder-icon-btn,
+            .view-toggle label {
+                animation: none !important;
+                transition: none !important;
+            }
+        }

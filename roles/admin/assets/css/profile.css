@@ -4,16 +4,17 @@
     padding: 20px;
     transition: margin-left 0.3s ease;
     min-height: calc(100vh - 76px);
-    background: #f8f9fa;
+    background: transparent;
     max-width: 1400px;
     margin: 0 auto; /* Center the entire container */
-}
+    }
 
-.profile-container.sidebar-collapsed {
-    margin-left: 80px;
-}
+/* NOTE: the old `.profile-container.sidebar-collapsed { margin-left: 80px }`
+   rule was removed. The sidebar contract is `.expanded` on #sidebar (see
+   assets/js/cvsu-theme.js) and #content is already offset by the 60px rail,
+   so that extra 80px margin double-offset the layout on every viewport. */
 
-.profile-header {
+.settings-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
     padding: 2rem;
@@ -24,7 +25,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.profile-header::before {
+.settings-header::before {
     content: '';
     position: absolute;
     top: 0;
@@ -35,7 +36,7 @@
     border-radius: 50%;
     transform: translate(50px, -50px);
 }
-      .profile-header .row {
+      .settings-header .row {
     align-items: center;
     text-align: center;
 }
@@ -151,16 +152,13 @@
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
-}
-
-.profile-card:hover {
-    transform: translateY(-2px);
+}.profile-card:hover{
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
 }
         
       .card-header-custom {
-    background: linear-gradient(135deg, #f8f9ff 0%, #e3e6f0 100%);
-    border-bottom: 1px solid #e3e6f0;
+    background: linear-gradient(135deg, #f0fdf4 0%, #e2e8f0 100%);
+    border-bottom: 1px solid #e2e8f0;
     padding: 1.5rem;
     display: flex;
     align-items: center;
@@ -175,7 +173,7 @@
 }
 
 .card-header-custom i {
-    background: #667eea;
+    background: #28a745;
     color: white;
     padding: 8px;
     border-radius: 10px;
@@ -191,7 +189,7 @@
     color: #2d3436;
     margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
-    border-bottom: 3px solid #667eea;
+    border-bottom: 3px solid #28a745;
     position: relative;
 }
 
@@ -202,7 +200,7 @@
     left: 0;
     width: 50px;
     height: 3px;
-    background: #764ba2;
+    background: #1e7e34;
 }
 
 .form-control, .form-select {
@@ -213,7 +211,7 @@
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #667eea;
+    border-color: #28a745;
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
@@ -221,19 +219,16 @@
     text-align: center;
     padding: 1.5rem 1rem;
     border-radius: 15px;
-    background: linear-gradient(135deg, #f8f9ff 0%, #e3e6f0 100%);
+    background: linear-gradient(135deg, #f0fdf4 0%, #e2e8f0 100%);
     margin-bottom: 1rem;
     transition: transform 0.3s ease;
-}
-
-.stat-item:hover {
-    transform: translateY(-2px);
+}.stat-item:hover{
 }
 
 .stat-value {
     font-size: 1.8rem;
     font-weight: 800;
-    color: #667eea;
+    color: #28a745;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -254,7 +249,7 @@
 }
 
 .activity-item:hover {
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
     margin: 0 -1rem;
     padding: 1rem;
     border-radius: 10px;
@@ -327,14 +322,11 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem;
-            background: #f8f9ff;
+            background: #f0fdf4;
             border-radius: 10px;
             transition: all 0.3s ease;
-        }
-        
-        .colleague-item:hover {
-            background: #e3e6f0;
-            transform: translateX(5px);
+        }.colleague-item:hover{
+            background: #e2e8f0;
         }
         
         .colleague-avatar {
@@ -349,7 +341,7 @@
             width: 35px;
             height: 35px;
             border-radius: 50%;
-            background: #667eea;
+            background: #28a745;
             color: white;
             display: flex;
             align-items: center;
@@ -359,7 +351,7 @@
         }
         
         .btn-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
             border: none;
             color: white;
             padding: 0.75rem 1.5rem;
