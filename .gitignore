@@ -74,3 +74,20 @@ composer.phar
 # Misc
 *.bak
 *.orig
+
+# Additional debug/render artifacts
+_render*.php
+_render*.html
+
+# Coverage reports
+coverage/
+*.lcov
+.clover.php
+
+# IDE debug configurations
+.launch.json
+.vscode/launch.json
+
+# OS / editor temp files
+*.sw?
+*~
