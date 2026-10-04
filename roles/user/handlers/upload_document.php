@@ -24,7 +24,7 @@ $selectedYear = (int)($_GET['year'] ?? date('Y'));
 $selectedSemester = $_GET['semester'] ?? (date('n') >= 6 && date('n') <= 11 ? '1st Semester' : '2nd Semester');
 
 if (empty($docType)) {
-    header('Location: ../submission_tracker.php?error=invalid_document_type');
+    header('Location: ../folders.php?error=invalid_document_type');
     exit();
 }
 
@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_document'])) {
                 
                 if (empty($errors)) {
                     // All files uploaded successfully
-                    header("Location: ../submission_tracker.php?year=$selectedYear&semester=" . urlencode($selectedSemester) . "&success=upload_complete&count=" . count($uploadedFiles));
+                    header("Location: ../folders.php?success=upload_complete&count=" . count($uploadedFiles));
                     exit();
                 } else {
                     // Some files uploaded, but there were errors
@@ -525,8 +525,8 @@ $maxFiles = ini_get('max_file_uploads');
                 <h1 style="margin: 0; color: #333;">Upload Document</h1>
                 <p style="margin: 5px 0 0 0; color: #666;">Upload files for <?php echo htmlspecialchars($docType); ?></p>
             </div>
-            <a href="../submission_tracker.php?year=<?php echo $selectedYear; ?>&semester=<?php echo urlencode($selectedSemester); ?>" class="btn btn-secondary">
-                <i class='bx bx-arrow-back'></i> Back to Tracker
+            <a href="../folders.php" class="btn btn-secondary">
+                <i class='bx bx-arrow-back'></i> Back to Folders
             </a>
         </div>
         
