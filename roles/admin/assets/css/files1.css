@@ -1,990 +1,1231 @@
+/* ==========================================================================
+   DOCUMENT FILES - admin panel
+   --------------------------------------------------------------------------
+   This sheet used to be a standalone Bootstrap-era theme: it carried its own
+   :root palette, leaned on Bootstrap 5 for the grid, and hardcoded hex values
+   that were only approximations of the brand colours. The shared design system
+   (assets/css/cvsu-theme.css + assets/css/cvsu-product.css) loads afterwards
+   and already owns the page title, tables, badges, pagination, empty states,
+   form controls and buttons - so most of what this file declared was either
+   dead weight or actively fighting the theme.
 
-        :root {
-            --poppins: 'Poppins';
-            
-            /* Modern Color Palette */
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --info-color: #17a2b8;
-            --blue: #007bff;
-            --secondary-blue: #3b82f6;
-            --accent-purple: #8b5cf6;
-            --warning-orange: #f59e0b;
-            --danger-red: #ef4444;
-            --info-cyan: #06b6d4;
-            
-            /* Neutrals */
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
-            
-            --light: #F9F9F9;
-            --green: #28a745;
-            --light-green: #cfffef;
-            --grey: #eee;
-            --dark-grey: #AAAAAA;
-            --dark: #342E37;
-            --red: #DB504A;
-            --yellow: #FFCE26;
-            --light-yellow: #FFF2C6;
-            --orange: #FD7238;
-            --light-orange: #FFE0D3;
+   It is now scoped to what the theme does NOT cover, and everything binds to
+   the shared --cvsu-* tokens so the page reads as part of the same system as
+   the dashboard, the tracker and the faculty list.
+
+   Dead code removed here (no markup on this page referenced it):
+     .files-container, .header/.header-badge, .quick-actions,
+     .pagination-container, .pagination-info, .btn-outline-*,
+     .loading-skeleton, .notification
+
+   Also fixed along the way:
+     - --primary-green*, --shadow-md and --shadow-lg were referenced but never
+       defined, so every rule using them (including the whole pagination
+       active/hover treatment) was invalid at computed-value time and silently
+       did nothing.
+     - .badge::before and .file-icon::before were absolutely positioned
+       decorations with no positioned ancestor, so their full-width gradient
+       strips escaped the badge and slid across the page.
+     - .action-btn.view had no rule at all, so the "View Details" button was
+       unstyled, and .action-btn.download was Bootstrap blue.
+     - .user-avatar::after painted a green "online" dot on every uploader even
+       when their last login was weeks old.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. PAGE SHELL
+   --------------------------------------------------------------------------
+   Deliberately minimal. The theme already forces #content main's padding,
+   background and overflow, plus the page-title type scale, so none of it is
+   repeated here. */
+        #content main {
+            background: transparent;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* The h1 and breadcrumb are the theme's job; this only re-asserts the
+           brand green on the active crumb so it matches the other admin pages. */
+        #content main .head-title .breadcrumb li a.active {
+            color: var(--cvsu-green-700);
         }
 
-        body {
-            background:  #f5f7fa;
-            font-family: var(--poppins);
-            overflow-x: hidden;
-            min-height: 100vh;
-                }
 
-            #content main {
-                width: 100%;
-                padding: 36px 24px;
-                font-family: var(--poppins);
-                max-height: calc(100vh - 56px);
-                overflow-y: auto;
-            }
-            #content main .head-title {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                grid-gap: 16px;
-                flex-wrap: wrap;
-            }
-            #content main .head-title .left h1 {
-                font-size: 36px;
-                font-weight: 600;
-                margin-bottom: 10px;
-                color: var(--dark);
-            }
-            #content main .head-title .left .breadcrumb {
-                display: flex;
-                align-items: center;
-                grid-gap: 16px;
-            }
-            #content main .head-title .left .breadcrumb li {
-                color: var(--dark);
-            }
-            #content main .head-title .left .breadcrumb li a {
-                color: var(--dark-grey);
-                pointer-events: none;
-                text-decoration: none; /* removes underline */
-            }
-
-            #content main .head-title .left .breadcrumb li a.active {
-                color: var(--green);
-                pointer-events: unset;
-                text-decoration: none; /* also removes underline on active */
-            }
-            #content main .head-title .btn-download {
-                height: 36px;
-                padding: 0 16px;
-                border-radius: 36px;
-                background: var(--green);
-                color: var(--light);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                grid-gap: 10px;
-                font-weight: 500;
-            }
-
-
-        .files-container {
-            padding: 30px;
-            transition: all 0.3s ease;
-            min-height: calc(100vh - 76px);
-            margin: 0 auto;
-        }
-
-        .files-container.sidebar-collapsed {
-            margin-left: 80px;
-        }
-
-        /* Modern Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border-radius: 20px;
-            color: white;
-            padding: 35px;
-            margin-bottom: 35px;
-            position: relative;
+/* --------------------------------------------------------------------------
+   2. SECTION SHELL
+   --------------------------------------------------------------------------
+   The filter panel and the files table share one card treatment, matching the
+   tracker page: white fill, hairline border, 12px radius, soft green-tinted
+   shadow. */
+        .files-section {
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow);
+            margin-bottom: var(--sp-5);
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        .header .header-content {
+        .files-section-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 2;
+            justify-content: space-between;
+            gap: var(--sp-3);
+            flex-wrap: wrap;
+            min-height: 56px;
+            padding: var(--sp-4) var(--sp-5);
+            background: var(--cvsu-white);
+            border-bottom: 1px solid var(--cvsu-line);
         }
 
-        .header h2 {
-            font-size: 32px;
-            font-weight: 800;
-            margin: 0 0 8px 0;
-        }
-
-        .header p {
+        .files-section-head h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin: 0;
-            opacity: 0.9;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: var(--fs-lg);
+            font-weight: var(--fw-semi);
+            line-height: 1.3;
+            color: var(--cvsu-ink);
         }
 
-        .header-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 18px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
+        .files-section-head h2 > i {
+            font-size: 20px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
         }
 
+        .files-section-head .files-section-note {
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .files-section-body {
+            padding: var(--sp-5);
+        }
+
+
+/* --------------------------------------------------------------------------
+   3. SUMMARY STAT ROW
+   --------------------------------------------------------------------------
+   Five tiles across, brand green with gold accents, icon badge carrying the
+   status and a rail on the leading edge. */
         .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 35px;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: var(--sp-4);
+            margin-bottom: var(--sp-5);
         }
 
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+        .stats-cards .stat-card {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4);
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow-sm);
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255,255,255,0.2);
+            transition: box-shadow var(--cvsu-transition), border-color var(--cvsu-transition);
         }
 
-        .stat-card::before {
+        .stats-cards .stat-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-        }
-        .stat-card.dark::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--blue), var(--blue));
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--cvsu-green-500), var(--cvsu-green-700));
         }
 
-        .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        .stats-cards .stat-card.accent-gold::before {
+            background: linear-gradient(180deg, var(--cvsu-gold-400), var(--cvsu-gold-600));
         }
 
-        .stat-card.success::before { background: linear-gradient(90deg, var(--success-color), #20c997); }
-        .stat-card.warning::before { background: linear-gradient(90deg, var(--warning-color), #fd7e14); }
-        .stat-card.info::before { background: linear-gradient(90deg, var(--info-color), #138496); }
-        .stat-card.danger::before { background: linear-gradient(90deg, var(--danger-color), #e74c3c); }
-
-
-        .stat-content {
-            position: relative;
-            z-index: 2;
+        /* Surface-only hover: the tile holds its place in the row, matching the
+           system-wide rule that containers never translate on hover. */
+        .stats-cards .stat-card:hover {
+            box-shadow: var(--cvsu-shadow-md);
+            border-color: var(--cvsu-green-300);
         }
 
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
+        .stats-cards .stat-icon {
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+            font-size: 20px;
             line-height: 1;
+            transition: transform var(--cvsu-transition);
         }
 
-        .stat-label {
-            font-size: 0.95rem;
-            color: #718096;
+        .stats-cards .stat-card.accent-gold .stat-icon {
+            background: var(--cvsu-gold-50);
+            border-color: var(--cvsu-gold-100);
+            color: var(--cvsu-gold-600);
+        }
+
+        /* The icon itself responds on hover, not the tile. */
+        .stats-cards .stat-card:hover .stat-icon {
+            transform: translateY(-2px);
+        }
+
+        .stats-cards .stat-icon i,
+        .stats-cards .stat-icon i.bx {
+            color: currentColor !important;
+        }
+
+        .stats-cards .stat-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stats-cards .stat-label {
+            margin: 0;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            color: var(--cvsu-grey-500);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats-cards .stat-value {
+            margin: 4px 0 0;
+            font-size: var(--fs-2xl);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -.02em;
+            color: var(--cvsu-green-900);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stats-cards .stat-card.accent-gold .stat-value {
+            color: var(--cvsu-gold-700);
+        }
+
+
+/* --------------------------------------------------------------------------
+   4. ALERTS
+   --------------------------------------------------------------------------
+   The theme supplies the tint, rail and radius for .alert / .alert-danger.
+   Only the icon-plus-text row needs laying out here. */
+        #content main .files-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: var(--sp-5);
+        }
+
+        .files-alert > i {
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .files-alert.is-success > i {
+            color: var(--cvsu-green-600);
+        }
+
+        .files-alert.is-error > i {
+            color: var(--cvsu-danger);
+        }
+
+        /* The theme styles .btn-close; keep it clear of the message text. */
+        .files-alert .btn-close {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+
+/* --------------------------------------------------------------------------
+   5. FILTER PANEL
+   --------------------------------------------------------------------------
+   Replaces Bootstrap's .row.g-3 / .col-lg-* with a CSS grid on the shared
+   spacing scale, so the panel no longer depends on a second layout system. */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+            gap: var(--sp-4);
+            align-items: end;
+        }
+
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .filter-field > label,
+        .filter-field > .filter-actions-label {
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--cvsu-grey-500);
+        }
+
+        /* Search is the main way into this list, and the Apply/Clear pair is
+           two controls wide, so both take a double cell. The selects around
+           them stay single-width, which keeps the row of dropdowns even. */
+        .filter-search-field,
+        .filter-actions-field {
+            grid-column: span 2;
+        }
+
+        /* Bootstrap's grid classes are gone, so nothing needs width:100% here -
+           grid items stretch on their own. These two declarations exist to undo
+           Bootstrap's .form-control/.form-select defaults in case the CDN is
+           ever re-added, and to keep the select's own arrow background. */
+        .filter-field .form-control,
+        .filter-field .form-select {
+            width: 100%;
             margin: 0;
         }
 
-        .stat-icon {
+        /* Search field with a leading magnifier. The theme forces
+           `padding: 0 var(--sp-3) !important` on every text input, and
+           input[type="text"] out-specifies a bare class, so the reserved gutter
+           has to be re-asserted under #content main to actually apply. */
+        .filter-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-search > i {
             position: absolute;
-            right: 20px;
+            left: 13px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 3rem;
-            opacity: 0.1;
-            color: var(--primary-color);
+            font-size: 17px;
+            line-height: 1;
+            color: var(--cvsu-grey-400);
+            pointer-events: none;
+            z-index: 2;
+            transition: color var(--cvsu-transition);
         }
 
-        .filter-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            border: none;
-            margin-bottom: 30px;
-            overflow: hidden;
+        .filter-search:focus-within > i {
+            color: var(--cvsu-green-600);
         }
 
-        .filter-card .card-body {
-            padding: 30px;
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+        #content main .filter-search .form-control {
+            padding: 0 var(--sp-3) 0 38px !important;
         }
 
-        .form-label {
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-control, .form-select {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-            font-weight: 500;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-        }
-
-        .input-group-text {
-            background: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            color: white;
-            border-radius: 12px 0 0 12px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .files-table {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-            border: none;
-            margin-bottom: 30px;
-        }
-
-        .table {
-            margin-bottom: 0;
-            font-family: var(--poppins);
-        }
-
-        .table th {
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            border-bottom: 2px solid #e3e6f0;
-            font-weight: 700;
-            color: #2d3748;
-            padding: 20px;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .table td {
-            padding: 20px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f0f4f8;
-            transition: all 0.2s ease;
-        }
-
-        .table tbody tr:hover {
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        /* File Item Enhancement */
-        .file-item {
+        /* Apply button sits at the end of the grid and matches the row height. */
+        .filter-actions {
             display: flex;
-            align-items: center;
-            gap: 1rem;
+            gap: var(--sp-2);
         }
 
-        .file-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 15px;
-            display: flex;
+        .filter-actions .btn {
+            flex: 1;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .file-icon::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .file-icon.pdf { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
-        .file-icon.doc { background: linear-gradient(135deg, #4fc3f7, #29b6f6); }
-        .file-icon.xls { background: linear-gradient(135deg, #66bb6a, #4caf50); }
-        .file-icon.ppt { background: linear-gradient(135deg, #ffa726, #ff9800); }
-        .file-icon.img { background: linear-gradient(135deg, #ab47bc, #9c27b0); }
-        .file-icon.zip { background: linear-gradient(135deg, #8d6e63, #6d4c41); }
-        .file-icon.default { background: linear-gradient(135deg, #78909c, #607d8b); }
-
-        .file-details h6 {
-            margin: 0 0 0.5rem 0;
-            color: #2d3748;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .file-meta {
-            font-size: 0.85rem;
-            color: #718096;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .file-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #f7fafc;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-weight: 500;
-        }
-
-        /* User Info Enhancement */
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-            border: 3px solid #e8ecf4;
-            position: relative;
-        }
-
-        .user-avatar::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success-color);
-            border: 2px solid white;
-        }
-
-        .user-details h6 {
-            margin: 0 0 0.25rem 0;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #2d3748;
-        }
-
-        .user-details small {
-            color: #718096;
-            font-size: 0.8rem;
-            display: block;
-            line-height: 1.3;
-        }
-
-        .badge {
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: badge-shine 3s infinite;
-        }
-
-        @keyframes badge-shine {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .badge-public { 
-            background: linear-gradient(135deg, #d4edda, #c3e6cb); 
-            color: #155724; 
-            border-color: rgba(21, 87, 36, 0.2);
-        }
-        .badge-private { 
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
-            color: #721c24; 
-            border-color: rgba(114, 28, 36, 0.2);
-        }
-        .badge-department { 
-            background: linear-gradient(135deg, #e2e3f1, #d1d9ff); 
-            color: #383d41; 
-            border-color: rgba(56, 61, 65, 0.2);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transition: all 0.3s ease;
-            transform: translate(-50%, -50%);
-        }
-
-        .action-btn:hover::before {
-            width: 100%;
-            height: 100%;
-        }
-
-        .action-btn:hover { 
-            transform: translateY(-4px) scale(1.1); 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .action-btn.download { 
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
-            color: #1976d2; 
-        }
-        .action-btn.toggle { 
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2); 
-            color: #f57c00; 
-        }
-        .action-btn.delete { 
-            background: linear-gradient(135deg, #ffebee, #ffcdd2); 
-            color: #d32f2f; 
-        }
-
-        /* Empty State Enhancement */
-        .empty-state {
-            text-align: center;
-            padding: 80px 40px;
-            color: #718096;
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-            border-radius: 20px;
-        }
-
-        .empty-state i {
-            font-size: 5rem;
-            margin-bottom: 2rem;
-            opacity: 0.3;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .empty-state h5 {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 1rem;
-        }
-        .pagination-container {
-            margin-top: 32px;
-            padding: 24px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-100);
-        }
-
-        .pagination-info {
-            color: var(--gray-600);
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pagination-info i {
-            color: var(--primary-green);
-        }
-
-        .pagination {
-            margin-bottom: 0;
-        }
-
-        .pagination .page-link {
-            border: 2px solid var(--gray-200);
-            color: var(--gray-600);
-            padding: 14px 18px;
-            margin: 0 6px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 14px;
-            min-width: 48px;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            background: var(--gray-50);
+            gap: 7px;
+            height: var(--ctl-md);
+            padding: 0 var(--sp-4);
+            border-radius: var(--cvsu-radius-sm);
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            white-space: nowrap;
             text-decoration: none;
         }
 
-        .pagination .page-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
-            transition: left 0.5s ease;
+        .filter-actions .btn i {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
         }
 
-        .pagination .page-link:hover::before {
-            left: 100%;
+        .filter-actions .btn-reset {
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            color: var(--cvsu-grey-500);
         }
 
-        .pagination .page-item.active .page-link {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
-            border-color: var(--primary-green);
-            color: var(--primary-green-dark);
-            transform: translateY(-3px) scale(1.05);
-            position: relative;
-            z-index: 2;
+        .filter-actions .btn-reset:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
         }
 
-        .pagination .page-item.active .page-link::before {
+        /* Clear Filters only appears when something is actually filtered. */
+        .filter-actions .btn[hidden] {
             display: none;
         }
 
-        .pagination .page-item.active .page-link::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, var(--primary-green-light), var(--primary-green), var(--primary-green-dark), var(--primary-green));
-            border-radius: 16px;
-            z-index: -1;
-            animation: borderGlow 2s linear infinite;
+        .filter-actions .btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
         }
 
-        @keyframes borderGlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
 
-        .pagination .page-link:hover:not(.active) {
-            background: linear-gradient(135deg, var(--primary-green-lightest) 0%, white 100%);
-            border-color: var(--primary-green-light);
-            color: var(--primary-green-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
-        }
-
-        .pagination .page-item.disabled .page-link {
-            background: var(--gray-100);
-            border-color: var(--gray-200);
-            color: var(--gray-400);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .pagination .page-item.disabled .page-link:hover {
-            background: var(--gray-100);
-            border-color: var(--gray-200);
-            color: var(--gray-400);
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Navigation arrows styling */
-        .pagination .page-link i {
-            font-size: 12px;
-        }
-
-        /* Ellipsis styling */
-        .pagination .page-item.disabled .page-link {
-            border: none;
-            background: transparent;
-            color: var(--gray-400);
-            font-weight: 700;
-            font-size: 16px;
-            padding: 14px 8px;
-        }
-
-        /* First/Last page indicators */
-        .pagination .page-item:first-child .page-link,
-        .pagination .page-item:last-child .page-link {
-            background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-50) 100%);
-        }
-
-        .pagination .page-item:first-child .page-link:hover,
-        .pagination .page-item:last-child .page-link:hover {
-            background: linear-gradient(135deg, var(--primary-green-lightest) 0%, var(--primary-green-lightest) 100%);
-        }
-
-        /* Mobile pagination adjustments */
-        @media (max-width: 768px) {
-            .pagination-container {
-                padding: 20px 16px;
-            }
-            
-            .pagination .page-link {
-                padding: 12px 14px;
-                margin: 0 3px;
-                min-width: 40px;
-                font-size: 13px;
-            }
-            
-            .pagination-info {
-                font-size: 13px;
-                text-align: center;
-                margin-bottom: 16px;
-            }
-            
-            .pagination-container .d-flex {
-                flex-direction: column;
-                gap: 16px;
-            }
-            
-            .pagination {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 576px) {
-            /* Hide some page numbers on very small screens */
-            .pagination .page-item:not(.active):not(:first-child):not(:last-child):not(.disabled) {
-                display: none;
-            }
-            
-            .pagination .page-item.active ~ .page-item:not(:last-child):not(.disabled),
-            .pagination .page-item.active + .page-item,
-            .pagination .page-item:has(+ .page-item.active) {
-                display: inline-block;
-            }
-        }
-
-        /* Quick Actions Panel */
-        .quick-actions .card {
-            border: 1px solid var(--gray-100);
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.2s ease;
-        }
-
-        .quick-actions .card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .quick-actions .card-body {
-            padding: 24px;
-        }
-
-        .quick-actions .card-title {
-            font-weight: 700;
-            color: var(--gray-800);
-            font-size: 14px;
-            margin-bottom: 16px;
+/* --------------------------------------------------------------------------
+   6. FILES TABLE
+   --------------------------------------------------------------------------
+   The table itself, its header, the zebra striping and every .badge come from
+   the theme. What follows is only the cell content the theme has no opinion
+   on. */
+        .table-scroll-hint {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin: 0;
+            padding: 10px var(--sp-5);
+            background: var(--cvsu-surface);
+            border-bottom: 1px solid var(--cvsu-line);
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
         }
 
-        .btn-outline-primary, .btn-outline-secondary {
-            border: 2px solid;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-weight: 600;
-            font-size: 12px;
+        .table-scroll-hint i {
+            font-size: 17px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        /* The horizontal scroll used to come from Bootstrap's .table-responsive.
+           The shared theme only puts a border on that class, so the scrolling
+           itself is declared here - without it a narrow window pushes the table
+           off the side of the page instead of letting it be swiped.
+
+           These four declarations are what make the swipe actually respond to a
+           finger on a phone, and each one covers a specific failure:
+
+             overflow-x:auto              establishes the scroll container. The
+                                         page itself cannot scroll sideways -
+                                         html and body both set
+                                         overflow-x:hidden - so without a
+                                         container here the table is simply
+                                         clipped and the gesture does nothing.
+             -webkit-overflow-scrolling   momentum scrolling on iOS. Without
+                                         touch   it, iOS snaps the drag instead
+                                         of gliding.
+             overscroll-behavior-x        stops the horizontal overscroll at
+                                         either end from being handed to the
+                                         browser as a back/forward swipe, which
+                                         on a phone is what usually makes a
+                                         sideways table drag appear to do
+                                         nothing at all.
+             max-width:100%               keeps the container from being widened
+                                         by its own content. */
+        .files-table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            max-width: 100%;
+        }
+
+        /* The card frame is .files-section. The theme gives every table a white
+           fill, a radius and a shadow, for pages where the table *is* the card;
+           here it sits inside one, so those are dropped to avoid a card nested
+           in a card with a double border and a double shadow. */
+        .files-section--table .files-table-scroll {
+            border: 0;
+            border-radius: 0;
+        }
+
+        .files-section--table .files-table-scroll > .files-table {
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* Six columns of document data cannot compress indefinitely - past a
+           certain width every cell collapses into two-word lines. This floor
+           makes the wrapper scroll instead, and cvsu-theme.js adds .scrollable
+           to .table-scroll when it actually overflows, which draws the edge
+           shadow that tells the reader there is more table off to the side.
+           Released again on phones, where the rows become cards. */
+        .files-section--table .files-table {
+            min-width: 920px;
+        }
+
+        /* ---- column alignment ----
+           Every category is centred, header and body together, so each column
+           reads as one block: Document Details, Uploader, Department, Size,
+           Academic Info and Actions all share the same optical centre.
+
+           This is scoped under #content main and marked important for the same
+           reason the shared theme does it: heading alignment is set in two
+           stylesheets that both load after this file (cvsu-theme.css and
+           cvsu-product.css), and relying on winning a specificity race against
+           files that may be revised is how columns quietly drift back. */
+        #content main .files-table thead th,
+        #content main .files-table tbody td {
+            text-align: center !important;
+        }
+
+        /* The three controls stay centred as a group, so they read as one
+           object rather than three separate buttons drifting across the cell. */
+        #content main .files-table tbody td.files-actions-cell {
+            text-align: center !important;
+        }
+
+        /* Document Details is the one column held to a different alignment.
+           Its content is wrapped prose - a filename, meta chips and a
+           description - and centring lines of uneven length reads as a
+           mistake, so this column keeps a left edge while every other column
+           is centred. It is also the column the eye lands on first, so a
+           straight left edge gives the row a clear starting point.
+
+           :first-child is used rather than a class because the header cell has
+           no modifier class; the body cell also carries .files-doc-cell, and
+           both selectors carry important so they outrank the centring above. */
+        #content main .files-table thead th:first-child,
+        #content main .files-table tbody td:first-child,
+        #content main .files-table tbody td.files-doc-cell {
+            text-align: left !important;
+        }
+
+        /* Icon and facts hug the left edge together. */
+        .files-table tbody td.files-doc-cell .file-item {
+            justify-content: flex-start;
+        }
+
+        /* The filename, chips and description stay left-aligned to match. */
+        .files-table tbody td.files-doc-cell .file-details {
+            text-align: left;
+        }
+
+        /* --- document cell --- */
+        .file-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--sp-3);
+            min-width: 0;
+        }
+
+        /* One restrained tile treatment instead of the previous seven-colour
+           rainbow (red / blue / green / orange / purple / brown / grey), which
+           pulled five off-brand hues into a green and gold theme. PDFs keep a
+           red tint because that is the one distinction users actually scan for;
+           everything else is brand green and is told apart by its glyph. */
+        .file-icon {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border-radius: var(--cvsu-radius-sm);
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .file-icon.pdf {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        .file-icon i,
+        .file-icon i.bx {
+            color: currentColor;
+        }
+
+        .file-details {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .file-name {
+            margin: 0;
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            line-height: 1.35;
+            color: var(--cvsu-ink);
+            overflow-wrap: anywhere;
+        }
+
+        .file-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .file-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--cvsu-muted-bg);
+            border: 1px solid var(--cvsu-line);
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-medium);
+            color: var(--cvsu-grey-500);
+            white-space: nowrap;
+        }
+
+        .file-meta span i {
+            font-size: 13px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        /* The MIME type is a machine token, not a label - monospace and a shade
+           quieter so it does not compete with the document type beside it. */
+        .file-meta span.is-mime {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: var(--fs-xs);
+            color: var(--cvsu-grey-400);
+        }
+
+        .file-desc {
+            display: block;
+            margin-top: 6px;
+            font-size: var(--fs-sm);
+            line-height: 1.45;
+            color: var(--cvsu-grey-500);
+            overflow-wrap: anywhere;
+        }
+
+        /* --- uploader cell --- */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        /* Initials tile. The previous version painted a green "online" dot on
+           every uploader via ::after, which claimed they were present even when
+           their last login was weeks old - this column is about who uploaded a
+           document, not who is currently signed in. */
+        .user-avatar {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cvsu-green-100), var(--cvsu-green-300));
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-800);
+            font-size: var(--fs-base);
+            font-weight: 700;
+            letter-spacing: .02em;
+            object-fit: cover;
+            user-select: none;
+        }
+
+        .user-details {
+            min-width: 0;
+        }
+
+        .user-name {
+            margin: 0;
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+            overflow-wrap: anywhere;
+        }
+
+        .user-sub {
+            display: block;
+            font-size: var(--fs-xs);
+            line-height: 1.45;
+            color: var(--cvsu-grey-500);
+            overflow-wrap: anywhere;
+        }
+
+        .user-sub.is-last-seen {
+            color: var(--cvsu-grey-400);
+        }
+
+        .user-sub i {
+            font-size: 8px;
+            line-height: 1;
+            vertical-align: middle;
+            margin-right: 3px;
+            color: var(--cvsu-green-500);
+        }
+
+        /* --- department cell --- */
+        .dept-name {
+            display: block;
+            margin-top: 5px;
+            font-size: var(--fs-xs);
+            line-height: 1.4;
+            color: var(--cvsu-grey-500);
+        }
+
+        .dept-head {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--fs-xs);
+            line-height: 1.4;
+            color: var(--cvsu-grey-400);
+        }
+
+        .cell-empty {
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-400);
+        }
+
+        /* --- size + period cells --- */
+        .cell-figure {
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            color: var(--cvsu-ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cell-figure.is-green {
+            color: var(--cvsu-green-700);
+        }
+
+        .cell-sub {
+            display: block;
+            margin-top: 3px;
+            font-size: var(--fs-xs);
+            color: var(--cvsu-grey-500);
+        }
+
+
+/* --------------------------------------------------------------------------
+   7. ROW ACTIONS
+   --------------------------------------------------------------------------
+   Three icon buttons in one family, all on a single centred line: view and
+   download are read-only so they share a neutral hairline tile and only pick
+   up the brand green on hover, while delete keeps a red glyph at rest because
+   it is the one destructive control. The previous version had a ripple
+   ::before, a translateY(-4px) scale(1.1) hover that broke the system-wide
+   rule that controls do not resize under the pointer, and no rule at all for
+   .view, so the "View Details" button rendered unstyled. */
+        .row-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* The three controls stay on one line at every width. Wrapping them
+               would make the row height depend on how long the filename is,
+               so the list would look ragged down the page. */
+            flex-wrap: nowrap;
+            gap: 6px;
+        }
+
+        /* The delete control is a <form> for the POST round-trip. display:contents
+           removes the form box from layout, so its button joins the same flex
+           line as the two links without an extra wrapper or an extra gap. */
+        .row-actions .row-action-form {
+            display: contents;
+        }
+
+        /* Keeps the three controls on one line rather than letting them wrap. */
+        .files-table td.files-actions-cell {
+            white-space: nowrap;
+        }
+
+        .row-action {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            padding: 0;
+            border-radius: var(--cvsu-radius-sm);
+            border: 1px solid var(--cvsu-line);
+            background: var(--cvsu-white);
+            color: var(--cvsu-grey-500);
+            font-family: inherit;
+            font-size: 18px;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition),
+                        color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+        }
+
+        .row-action i,
+        .row-action i.bx {
+            font-size: 18px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+        /* View and Download are both read-only, so they share one neutral
+           treatment: a hairline tile in muted grey, no brand tint, no fill.
+           Colour arrives only on hover, which keeps a column of 60 rows calm
+           instead of turning it into a stripe of green squares. */
+        .row-action.is-view,
+        .row-action.is-download {
+            background: var(--cvsu-white);
+            border-color: var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+        }
+
+        .row-action.is-view:hover,
+        .row-action.is-download:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+        }
+
+        /* Delete is the one destructive control, so it keeps a red glyph at
+           rest to warn before the click. Only the glyph - the tile stays the
+           same neutral surface as the other two. */
+        .row-action.is-delete {
+            background: var(--cvsu-white);
+            border-color: var(--cvsu-line);
+            color: var(--cvsu-danger);
+        }
+
+        .row-action.is-delete:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .row-action:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        .row-action.is-busy {
+            opacity: .6;
+            pointer-events: none;
+        }
+
+
+/* --------------------------------------------------------------------------
+   8. PAGINATION
+   --------------------------------------------------------------------------
+   The theme owns .pagination / .page-link / .page-item.active. Only the
+   surrounding bar and the result caption are styled here.
+
+   Everything this section used to declare referenced --primary-green* and
+   --shadow-md, neither of which was ever defined, so the active page and every
+   hover state resolved to invalid values and rendered unstyled. */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--sp-4);
+            flex-wrap: wrap;
+            padding: var(--sp-3) var(--sp-5);
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .pagination-info {
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-500);
+        }
+
+        .pagination-info b {
+            color: var(--cvsu-green-700);
+            font-weight: var(--fw-semi);
+        }
+
+
+/* --------------------------------------------------------------------------
+   9. FILE DETAILS DIALOG
+   --------------------------------------------------------------------------
+   Replaces the Bootstrap .modal with the same shell the faculty list uses, so
+   every dialog in the admin panel looks the same. Class names match
+   faculty-staff.css on purpose. */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--sp-5);
+            background: rgba(11, 61, 30, .38);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal-shell {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 720px;
+            max-height: 88vh;
+            background: var(--cvsu-white);
+            border-radius: var(--cvsu-radius-lg);
+            box-shadow: var(--cvsu-shadow-lg);
+            overflow: hidden;
+        }
+
+        .modal-titlebar {
+            position: relative;
+            flex-shrink: 0;
+            padding: var(--sp-5) var(--sp-6) var(--sp-4);
+        }
+
+        .modal-titlebar h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding-right: 44px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cvsu-green-900);
+        }
+
+        .modal-titlebar h3 > i {
+            font-size: 22px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        /* Brand rule under the title, identical to .card-header::after. */
+        .modal-titlebar::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 4px;
+            margin-top: 14px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
+        }
+
+        .modal-close {
+            position: absolute;
+            top: var(--sp-4);
+            right: 18px;
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            background: var(--cvsu-white);
+            color: var(--cvsu-grey-500);
+            font-family: inherit;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition),
+                        color var(--cvsu-transition);
+        }
+
+        .modal-close:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-300);
+            color: var(--cvsu-green-700);
+        }
+
+        .modal-close:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        .modal-body {
+            flex: 1;
+            min-height: 0;
+            padding: var(--sp-5) var(--sp-6) 0;
+            overflow-y: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--sp-3);
+            flex-shrink: 0;
+            padding: var(--sp-5) var(--sp-6);
+        }
+
+        .modal-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: var(--cvsu-radius-sm);
+            border: 1px solid transparent;
+            font-family: inherit;
+            font-size: var(--fs-base);
+            font-weight: var(--fw-semi);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition),
+                        color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+        }
+
+        .modal-actions .btn i {
+            font-size: 17px;
+            line-height: 1;
+            color: currentColor;
+        }
+
+        .modal-actions .btn-primary {
+            background: linear-gradient(135deg, var(--cvsu-green-500), var(--cvsu-green-700));
+            color: var(--cvsu-white);
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .modal-actions .btn-primary:hover {
+            background: linear-gradient(135deg, var(--cvsu-green-600), var(--cvsu-green-800));
+            box-shadow: var(--cvsu-shadow-md);
+        }
+
+        .modal-actions .btn-secondary {
+            background: var(--cvsu-white);
+            border-color: var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+        }
+
+        .modal-actions .btn-secondary:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+        }
+
+        .modal-actions .btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        /* --- dialog content --- */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: var(--sp-4);
+            padding-bottom: var(--sp-5);
+        }
+
+        .detail-item {
+            min-width: 0;
+            padding: var(--sp-3) var(--sp-4);
+            background: var(--cvsu-surface);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+        }
+
+        .detail-item.is-wide {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-semi);
+            letter-spacing: .06em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: all 0.2s ease;
+            color: var(--cvsu-grey-500);
         }
 
-        .btn-outline-primary {
-            border-color: var(--primary-green);
-            color: var(--primary-green);
+        .detail-value {
+            margin: 0;
+            font-size: var(--fs-base);
+            font-weight: var(--fw-medium);
+            color: var(--cvsu-ink);
+            overflow-wrap: anywhere;
         }
 
-        .btn-outline-primary:hover {
-            background: var(--primary-green);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+        .detail-value.is-path {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: var(--fs-sm);
+            color: var(--cvsu-grey-700);
         }
 
-        .btn-outline-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+        .detail-uploader {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4);
+            margin-bottom: var(--sp-4);
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            border-radius: var(--cvsu-radius-sm);
         }
 
-        /* Alerts */
-        .alert {
-            border: none;
-            border-radius: 16px;
-            padding: 20px 24px;
-            margin-bottom: 24px;
-            font-weight: 500;
-            box-shadow: var(--shadow-md);
-            border-left: 4px solid;
+        .detail-uploader .user-avatar {
+            width: 42px;
+            height: 42px;
         }
 
-        .alert-success {
-            background: linear-gradient(135deg, var(--primary-green-lightest), #ffffff);
-            color: var(--primary-green-dark);
-            border-left-color: var(--primary-green);
+        .detail-uploader .user-name {
+            color: var(--cvsu-green-900);
         }
 
-        .alert-danger {
-            background: linear-gradient(135deg, #fef2f2, #ffffff);
-            color: var(--danger-red);
-            border-left-color: var(--danger-red);
+        /* The uploader's own record (employee ID, position, department) sits in
+           its own band under the document facts so the two are not confused. */
+        .detail-aside {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--sp-4);
+            padding-bottom: var(--sp-5);
         }
 
 
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .files-container {
-                margin-left: 0;
-                padding: 20px;
-            }
-            
+/* --------------------------------------------------------------------------
+   10. RESPONSIVE
+   -------------------------------------------------------------------------- */
+        @media (max-width: 1200px) {
             .stats-cards {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+                gap: var(--sp-3);
             }
-            
-            .header .header-content {
+
+            .stats-cards .stat-card {
+                padding: 14px;
+                gap: 11px;
+            }
+
+            .stats-cards .stat-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+            }
+
+            .stats-cards .stat-value {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .filter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .pagination-bar {
                 flex-direction: column;
-                gap: 20px;
+                align-items: stretch;
                 text-align: center;
+            }
+
+            .pagination-bar .pagination {
+                justify-content: center;
+            }
+
+            /* ---- table on a tablet ----
+               Still a real grid here, so it keeps scrolling sideways. Only the
+               floor is lowered, because at this width a 920px table needs far
+               less horizontal travel than it does on a desktop monitor. */
+            .files-section--table .files-table {
+                min-width: 760px;
             }
         }
 
         @media (max-width: 768px) {
-            .files-container {
-                padding: 15px;
+            .stats-cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            
+
+            .files-section-body {
+                padding: var(--sp-4);
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* The grid is a single track here, so the double-cell spans from
+               the wide layout have to be released - otherwise each of these
+               items would generate an implicit second column. */
+            .filter-search-field,
+            .filter-actions-field {
+                grid-column: auto;
+            }
+
+            /* ---- sliding table ----
+               The six columns stay a real table at every width. Below the
+               desktop floor the table keeps sliding sideways inside
+               .files-table-scroll, the same behaviour it already has between
+               769px and 992px, so a phone gets the same document register the
+               desktop gets rather than a different one.
+
+               Turning each row into its own card was tried here and reverted:
+               it drops the side-by-side comparison the table exists for, and
+               with six columns of varying content length there is no honest
+               way to stack a row without either losing columns or truncating
+               them.
+
+               The min-width floor is what makes the slide usable. Without it
+               the browser compresses all six columns to fit, and the filename,
+               department and file path wrap into unreadable slivers. With it, a
+               375px phone shows part of the row at full fidelity and the rest
+               is one swipe away. The wrapper already carries overflow-x:auto
+               and momentum scrolling, so the slide needs no extra markup. */
+            .files-section--table .files-table {
+                min-width: 640px;
+            }
+
+            /* Section headings stack instead of sitting on one line. */
+            .files-section-head {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .file-item {
+                gap: 10px;
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+            .modal-actions .btn {
+                width: 100%;
+            }
+
+            .modal-titlebar,
+            .modal-body,
+            .modal-actions {
+                padding-left: var(--sp-4);
+                padding-right: var(--sp-4);
+            }
+        }
+
+        @media (max-width: 480px) {
             .stats-cards {
                 grid-template-columns: 1fr;
             }
-            
-            .header {
-                padding: 25px 20px;
+
+            .pagination-bar {
+                padding: var(--sp-3);
             }
-            
-            .header h2 {
-                font-size: 24px;
+
+            .files-section-head {
+                padding: var(--sp-3) var(--sp-4);
             }
-            
-            .file-item {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
+
+            /* Three controls on a narrow phone still fit on one line, but the
+               targets grow so they stay comfortably tappable. */
+            .row-action {
+                width: 38px;
+                height: 38px;
             }
-            
-            .file-meta {
-                justify-content: center;
-                gap: 8px;
-            }
-            
-            .file-meta span {
-                font-size: 0.75rem;
-                padding: 3px 8px;
-            }
-            
-            .user-info {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .action-buttons {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .table-responsive {
-                border-radius: 20px;
-                overflow: hidden;
+
+            .detail-grid,
+            .detail-aside {
+                grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 576px) {
-            .filter-card .row {
-                gap: 15px;
+        @media (prefers-reduced-motion: reduce) {
+            .stats-cards .stat-card,
+            .stats-cards .stat-icon,
+            .row-action,
+            .modal-shell {
+                animation: none !important;
+                transition: none !important;
             }
-
-            .filter-card .col-lg-3,
-            .filter-card .col-lg-2,
-            .filter-card .col-lg-1 {
-                width: 100%;
-                max-width: none;
-            }
-            
-            .quick-actions-panel .row {
-                gap: 20px;
-            }
-        }
-
-        /* Loading Animation */
-        .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 8px;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* Notification Enhancement */
-        .notification {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            z-index: 1001;
-            padding: 20px 25px;
-            border-radius: 15px;
-            font-weight: 600;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            transform: translateX(400px);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background: linear-gradient(135deg, rgba(212, 237, 218, 0.9), rgba(195, 230, 203, 0.9));
-            color: #155724;
-            border-left: 5px solid #28a745;
-        }
-
-        .notification.error {
-            background: linear-gradient(135deg, rgba(248, 215, 218, 0.9), rgba(245, 198, 203, 0.9));
-            color: #721c24;
-            border-left: 5px solid #dc3545;
         }
