@@ -17,7 +17,7 @@ if (!$currentUser || !$currentUser['is_approved']) {
 $documentId = $_GET['id'] ?? 0;
 
 if (!$documentId) {
-    header('Location: submission_tracker.php?error=invalid_document');
+    header('Location: folders.php?error=invalid_document');
     exit();
 }
 
@@ -32,7 +32,7 @@ try {
     $document = $stmt->fetch();
     
     if (!$document) {
-        header('Location: submission_tracker.php?error=document_not_found');
+        header('Location: folders.php?error=document_not_found');
         exit();
     }
     
@@ -40,7 +40,7 @@ try {
     
     // Check if file exists on server
     if (!file_exists($filePath)) {
-        header('Location: submission_tracker.php?error=file_not_found');
+        header('Location: folders.php?error=file_not_found');
         exit();
     }
     
@@ -57,7 +57,7 @@ try {
     
 } catch (Exception $e) {
     error_log("Download error: " . $e->getMessage());
-    header('Location: submission_tracker.php?error=download_failed');
+    header('Location: folders.php?error=download_failed');
     exit();
 }
 ?>
