@@ -145,23 +145,37 @@ function loadCategoryFiles(deptId, categoryKey) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Surface the server's own message when it sends one, so a real
+            // failure is not reported as a generic network problem.
+            return response.text().then(body => {
+                let message = '';
+                try {
+                    message = JSON.parse(body).message || '';
+                } catch {
+                    message = '';
+                }
+                throw new Error(message || `Request failed (HTTP ${response.status}).`);
+            });
         }
-        return response.json();
+        return response.json().catch(() => {
+            throw new Error('The server returned an unreadable response.');
+        });
     })
     .then(data => {
         if (data.success) {
             // Mark as loaded
             loadedCategories.add(uniqueId);
             
-            // Render files
-            renderCategoryFiles(deptId, categoryKey, 'first', data.first_semester || []);
-            renderCategoryFiles(deptId, categoryKey, 'second', data.second_semester || []);
-            
             // STORE AND UPDATE COUNT PERSISTENTLY
             const totalFiles = data.total_files || 0;
             categoryFileCounts.set(`${deptId}-${categoryKey}`, totalFiles);
             updateCategoryCount(categoryKey, totalFiles);
+
+            const createdAt = data.created_at || {};
+
+            // Render files
+            renderCategoryFiles(deptId, categoryKey, 'first', data.first_semester || [], { createdAt: createdAt.first });
+            renderCategoryFiles(deptId, categoryKey, 'second', data.second_semester || [], { createdAt: createdAt.second });
             
             // Update state
             categoryStates.set(uniqueId, {
@@ -203,11 +217,12 @@ function loadCategoryFiles(deptId, categoryKey) {
     })
     .catch(error => {
         console.error('Error loading category files:', error);
-        showNotification('Failed to load files: Network error', 'error');
+        const reason = error.message || 'Network error';
+        showNotification('Failed to load files: ' + reason, 'error');
         
         // Show error states
-        showErrorState(uniqueId, 'first', 'Network error');
-        showErrorState(uniqueId, 'second', 'Network error');
+        showErrorState(uniqueId, 'first', reason);
+        showErrorState(uniqueId, 'second', reason);
         
         // Reset loading state but keep cached count
         categoryStates.set(uniqueId, {
@@ -728,13 +743,14 @@ function initializeCategorySystem() {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(39, 107, 50, 0.9);
+                background: rgba(255, 255, 255, 0.97);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 opacity: 0;
-                transition: opacity 0.3s ease;
-                backdrop-filter: blur(2px);
+                transition: opacity 0.25s ease;
+                backdrop-filter: blur(20px) saturate(1.1);
+                -webkit-backdrop-filter: blur(20px) saturate(1.1);
             }
 
             .file-card:hover .file-overlay {
@@ -742,7 +758,7 @@ function initializeCategorySystem() {
             }
 
             .overlay-content {
-                color: white;
+                color: #14532d;
                 text-align: center;
                 display: flex;
                 flex-direction: column;
@@ -752,7 +768,24 @@ function initializeCategorySystem() {
             }
 
             .overlay-content i {
-                font-size: 32px;
+                font-size: 28px;
+                line-height: 1;
+                padding: 10px;
+                border-radius: 50%;
+                background: rgba(20, 83, 45, 0.1);
+                transition: transform 0.25s ease;
+            }
+
+            .file-card:hover .overlay-content i {
+                transform: scale(1.08);
+            }
+
+            .overlay-content span {
+                font-size: 12px;
+                letter-spacing: 0.02em;
+                padding: 4px 12px;
+                border-radius: 999px;
+                background: transparent;
             }
 
             .loading-state {
