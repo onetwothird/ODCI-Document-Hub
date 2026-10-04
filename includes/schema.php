@@ -48,6 +48,7 @@ function odci_required_schema(): array
             'category'     => 'VARCHAR(50) NULL DEFAULT NULL',
             'folder_type'  => "ENUM('category','custom','system') NOT NULL DEFAULT 'custom'",
             'access_count' => 'INT NOT NULL DEFAULT 0',
+            'is_favorite'  => 'TINYINT(1) NOT NULL DEFAULT 0',
         ],
     ];
 }
