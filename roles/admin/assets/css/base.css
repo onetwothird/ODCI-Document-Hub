@@ -157,10 +157,7 @@ body {
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
-}
-
-#content main .box-info li:hover {
-    transform: translateY(-2px);
+}#content main .box-info li:hover{
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -217,10 +214,7 @@ body {
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
-}
-
-#content main .table-data > div:hover {
-    transform: translateY(-2px);
+}#content main .table-data > div:hover{
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
