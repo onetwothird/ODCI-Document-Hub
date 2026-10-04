@@ -265,7 +265,6 @@ body {
 }
 
 .status-item:hover, .stat-card:hover {
-    transform: translateY(-8px) scale(1.02);
     box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
@@ -468,7 +467,6 @@ body {
 }
 
 .dashboard-card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 25px 50px rgba(0,0,0,0.12);
 }
 
@@ -659,7 +657,6 @@ body {
 }
 
 .action-item:hover {
-    transform: translateX(8px) translateY(-2px);
     border-color: var(--primary-color);
     box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
 }
@@ -756,7 +753,6 @@ body {
 }
 
 #content main .box-info li:hover {
-    transform: translateY(-8px) scale(1.02);
     box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
@@ -819,7 +815,6 @@ body {
 }
 
 #content main .table-data > div:hover {
-    transform: translateY(-5px);
     box-shadow: 0 25px 50px rgba(0,0,0,0.12);
 }
 
@@ -1103,10 +1098,6 @@ body {
     
     .action-item {
         padding: 20px;
-    }
-    
-    .action-item:hover {
-        transform: translateY(-2px);
     }
 }
 
