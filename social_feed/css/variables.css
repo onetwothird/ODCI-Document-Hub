@@ -1,7 +1,9 @@
 /* Enhanced Social Feed Design - Variables */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here */
 
 :root {
+    /* Font family — inherit from shared design system */
+    --font-family: var(--font-family);
     /* Primary Colors - Matching Login Theme */
     --primary-green: #006b2e;
     --primary-green-hover: #005a2b;
@@ -38,8 +40,7 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     
-    /* Typography - Inter font like login */
-    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Font weights */
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
