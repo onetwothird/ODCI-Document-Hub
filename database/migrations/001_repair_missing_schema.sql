@@ -86,14 +86,16 @@ CALL odci_add_column('files', 'academic_year', "VARCHAR(10) NULL DEFAULT NULL CO
 CALL odci_add_column('files', 'semester',       "ENUM('first','second') NOT NULL DEFAULT 'first'");
 
 -- ===========================================================================
--- 2. folders -- category, folder_type, access_count
+-- 2. folders -- category, folder_type, access_count, is_favorite
 --    Required by:
 --      roles/superadmin/folders.php (stats query, grid/table/tree render, filters)
 --      roles/admin/folders.php       (folder_type filter + badge)
+--      roles/user/handlers/folder_management.php (toggle_favorite action)
 -- ===========================================================================
 CALL odci_add_column('folders', 'category',     "VARCHAR(50) NULL DEFAULT NULL");
 CALL odci_add_column('folders', 'folder_type', "ENUM('category','custom','system') NOT NULL DEFAULT 'custom'");
 CALL odci_add_column('folders', 'access_count', "INT NOT NULL DEFAULT 0");
+CALL odci_add_column('folders', 'is_favorite',  "TINYINT(1) NOT NULL DEFAULT 0");
 
 -- ===========================================================================
 -- 3. file_downloads -- download audit trail
