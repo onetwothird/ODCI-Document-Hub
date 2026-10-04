@@ -42,7 +42,7 @@
 
 /* Announcement Mode */
 .post-composer.announcement-mode {
-    border: 2px solid #007bff !important;
+    border: 2px solid #28a745 !important;
     background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
     position: relative;
 }
@@ -52,7 +52,7 @@
     position: absolute;
     top: -10px;
     left: 15px;
-    background: #007bff;
+    background: #28a745;
     color: white;
     padding: 4px 12px;
     border-radius: 12px;
@@ -74,7 +74,7 @@
     align-items: center;
     gap: 5px;
     font-size: 14px;
-    color: #007bff;
+    color: #28a745;
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 6px;
@@ -99,7 +99,7 @@
     position: absolute;
     top: -5px;
     right: -5px;
-    background: #007bff;
+    background: #28a745;
     color: white;
     font-size: 10px;
     padding: 2px 5px;
@@ -139,7 +139,7 @@
 
 /* Announcement Posts */
 .post[data-post-type="announcement"] {
-    border: 2px solid #007bff;
+    border: 2px solid #28a745;
     background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
     position: relative;
 }
@@ -149,7 +149,7 @@
     position: absolute;
     top: 15px;
     left: 15px;
-    background: #007bff;
+    background: #28a745;
     color: white;
     width: 30px;
     height: 30px;
@@ -168,7 +168,7 @@
 /* Pinned Posts */
 .post.pinned {
     background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
-    border-top: 3px solid #ffc107;
+    border-top: 3px solid #eab308;
     position: relative;
 }
 
@@ -177,7 +177,7 @@
     position: absolute;
     top: 10px;
     right: 15px;
-    color: #ffc107;
+    color: #eab308;
     font-size: 16px;
 }
 
@@ -220,7 +220,7 @@
     gap: 8px;
     margin-top: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
     border-radius: 8px;
     border: 1px solid #dee2e6;
 }
@@ -305,7 +305,7 @@
 .moderation-panel button {
     width: 100%;
     padding: 10px 15px;
-    background: #f8f9fa;
+    background: #f8fafc;
     border: 1px solid #dee2e6;
     border-radius: 6px;
     cursor: pointer;
@@ -344,7 +344,7 @@
 
 /* Analytics Button */
 .btn-analytics {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
     color: white;
     border: none;
     padding: 10px 20px;
