@@ -12,13 +12,10 @@
     background: var(--light);
     border-radius: 20px;
     padding: 24px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--cvsu-green-100);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
-}
-
-.dashboard-card:hover {
-    transform: translateY(-2px);
+}.dashboard-card:hover{
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -44,7 +41,7 @@
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--blue), var(--green-hover));
+    background: var(--cvsu-green-700);
     color: white;
     display: flex;
     align-items: center;
@@ -52,9 +49,40 @@
     font-size: 18px;
 }
 
+/* Card header glyph colour -----------------------------------------------
+   The shared design system (assets/css/cvsu-product.css) forces dashboard
+   card header icons to green with !important. On this page the header icon
+   sits on the green gradient badge above, so a green glyph disappears into
+   its own background. Pin the glyph to white here instead. Scoped to the
+   admin dashboard because the shared rule has to stay green for pages whose
+   card headers have no badge behind the icon. */
+body.admin-dashboard-page #content main .dashboard-card .card-header h3 > i,
+body.admin-dashboard-page #content main .dashboard-card .card-header h3 > i.bx {
+    color: #ffffff !important;
+}
+
 .card-actions {
     display: flex;
     gap: 8px;
+}
+
+/* Section header layout ------------------------------------------------------------
+   The gold rule the design system draws under a card header is a ::after
+   pseudo-element, and on a flex container a pseudo-element is a flex item. That
+   made the header a three-item row - title, actions, rule - so space-between
+   parked the action buttons in the middle of the header instead of at its edge.
+
+   Giving the rule the full row width drops it onto a line of its own, leaving
+   the title and the actions as the only two items, and the auto margin on the
+   actions pins them to the right edge even if justify-content is overridden. */
+body.admin-dashboard-page #content main .dashboard-card .card-header::after {
+    flex: none;
+    width: 100%;
+}
+
+body.admin-dashboard-page #content main .dashboard-card .card-header > .card-actions {
+    margin-left: auto;
+    flex: 0 0 auto;
 }
 
 .card-actions .btn-icon {
@@ -73,7 +101,7 @@
 }
 
 .card-actions .btn-icon:hover {
-    background: linear-gradient(135deg, var(--blue), var(--green-hover));
+    background: var(--cvsu-green-700);
     color: white;
     transform: translateY(-2px);
 }
@@ -118,8 +146,8 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: var(--light-blue);
-    color: var(--blue);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -150,13 +178,13 @@
 }
 
 .status-badge.status-favorite {
-    background: var(--light-yellow);
-    color: var(--yellow);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
 }
 
 .status-badge.status-public {
-    background: var(--light-blue);
-    color: var(--blue);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
 }
 
 .status-badge.status-private {
@@ -164,62 +192,107 @@
     color: var(--text-secondary);
 }
 
-/* Quick Actions */
+/* Quick Actions ------------------------------------------------------------
+   Redesigned as a responsive tile grid. The badge carries the brand green and
+   the glyph inside it is forced white with !important so it can never be
+   recoloured by an inherited colour from a parent. The tile itself does not
+   move on hover (see the hover policy in assets/css/cvsu-theme.css); only the
+   badge and the chevron respond. */
 .quick-actions {
     display: grid;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
 }
 
 .action-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid var(--cvsu-green-100);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
     text-decoration: none;
+    transition: box-shadow .25s ease, border-color .25s ease, background-color .25s ease;
 }
 
+/* Surface-only hover - the tile holds its position in the grid. */
 .action-item:hover {
-    background: rgba(40, 167, 69, 0.04);
-    border-color: rgba(40, 167, 69, 0.2);
-    transform: translateX(4px);
+    transform: none;
+    background: #ffffff;
+    border-color: var(--cvsu-green-700);
+    box-shadow: 0 8px 20px -8px rgba(15, 23, 42, .14);
 }
 
 .action-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    min-width: 0;
 }
 
 .action-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--blue);
-    border-radius: 10px;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background: var(--cvsu-green-700);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 18px;
+    color: #ffffff !important;
+    font-size: 21px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(30, 126, 52, .28);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+/* The glyph inherits from the badge; pin it so nothing upstream can override. */
+.action-icon i,
+.action-icon i.bx {
+    color: #ffffff !important;
+    font-size: 21px;
+    line-height: 1;
+}
+
+/* Contents respond on hover, not the container. */
+.action-item:hover .action-icon {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 14px rgba(30, 126, 52, .34);
+}
+
+.action-item h4 {
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cvsu-green-700);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .action-item p {
     margin: 0;
-    font-weight: 500;
-    color: var(--dark);
+    font-size: 12px;
+    font-weight: 400;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .action-arrow {
-    color: var(--dark-grey);
-    transition: all 0.2s ease;
+    flex: 0 0 auto;
+    color: #94a3b8;
+    font-size: 18px;
+    transition: color .25s ease, transform .25s ease;
 }
 
 .action-item:hover .action-arrow {
-    color: var(--blue);
-    transform: translateX(4px);
+    color: var(--cvsu-green-700);
+    transform: translateX(3px);
 }
 
 /* Account Info */
@@ -231,10 +304,10 @@
 }
 
 .info-item {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--cvsu-green-100);
     padding: 16px;
     border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--cvsu-green-100);
 }
 
 .info-label {
@@ -250,6 +323,75 @@
     font-weight: 500;
     color: var(--dark);
     font-size: 14px;
+}
+
+/* Scope note: which slice of the data the page is showing. */
+.scope-note {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cvsu-grey-500);
+}
+
+/* Account Information ----------------------------------------------------- */
+.account-status {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--cvsu-green-50);
+    border: 1px solid var(--cvsu-green-100);
+}
+
+.account-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.account-status-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cvsu-ink);
+}
+
+.account-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.account-status-pill.success  { background: var(--cvsu-green-700); }
+.account-status-pill.warning  { background: var(--cvsu-green-700); }
+.account-status-pill.critical { background: var(--cvsu-green-700); }
+
+.account-status-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cvsu-green-100);
+    font-size: 12px;
+    color: var(--cvsu-gold-700);
+}
+
+/* Unread counter in the notifications card header. */
+.unread-chip {
+    align-self: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--cvsu-green-50);
+    border: 1px solid var(--cvsu-green-100);
+    color: var(--cvsu-green-800);
+    font-size: 11px;
+    font-weight: 650;
+    white-space: nowrap;
 }
 
 /* Empty State */
@@ -271,17 +413,17 @@
 }
 
 .empty-state a {
-    color: var(--blue);
+    color: var(--cvsu-green-700);
     text-decoration: none;
     font-weight: 600;
     padding: 12px 24px;
-    background: rgba(40, 167, 69, 0.1);
+    background: var(--cvsu-green-100);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .empty-state a:hover {
-    background: rgba(40, 167, 69, 0.2);
+    background: var(--cvsu-green-100);
 }
 
 /* Responsive Design */
@@ -326,17 +468,127 @@
         gap: 8px;
     }
     
-    .action-item {
+.action-item {
         padding: 14px;
     }
-    
+
     .action-icon {
         width: 36px;
         height: 36px;
-        font-size: 16px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    /* Scale the glyph too - .action-icon i is more specific than .action-icon,
+       so the badge size alone would leave a 21px glyph in a 36px badge. */
+    .action-icon i,
+    .action-icon i.bx {
+        font-size: 18px;
     }
     
     .info-item {
         padding: 14px;
+    }
+}
+/* Recent Notifications -----------------------------------------------------
+   Replaces the previous inline markup, which drew a 4px coloured
+   border-left rail on every row. Those rails read as stray rules at the card
+   edge, so the row now carries its status purely through the icon badge. */
+.notif-list {
+    display: grid;
+    gap: 10px;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rayu;
+    border: 1px solid var(--cvsu-green-100);
+    border-radius: 12px;
+    transition: background-color .25s ease, border-color .25s ease;
+}
+
+.notif-icon {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff !important;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.notif-icon i,
+.notif-icon i.bx {
+    color: #ffffff !important;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.notif-icon.ok   { background: var(--cvsu-green-700); }
+.notif-icon.warn { background: var(--cvsu-green-700); }
+.notif-icon.error { background: var(--cvsu-green-700); }
+.notif-icon.info { background: var(--cvsu-green-700); }
+
+/* Unread rows keep a tinted surface so they read differently from the ones
+   already seen, without re-introducing the coloured left rail. */
+.notif-item.unread {
+    background: var(--cvsu-green-50);
+    border-color: var(--cvsu-green-100);
+}
+
+.notif-item.unread .notif-body h4::after {
+    content: 'new';
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--cvsu-green-600);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    vertical-align: 1px;
+}
+
+.notif-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-body h4 {
+    margin: 0 0 3px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cvsu-green-700);
+}
+
+.notif-body p {
+    margin: 0 0 4px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #475569;
+}
+
+.notif-body span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Tiles collapse to a single column before the labels get too tight. */
+@media screen and (max-width: 560px) {
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .notif-item {
+        padding: 12px 14px;
+        gap: 12px;
     }
 }
