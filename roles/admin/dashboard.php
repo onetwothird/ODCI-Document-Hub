@@ -1,5 +1,10 @@
 <?php include 'script/dashboard.php'; ?>
 
+<?php
+$firstName = trim((string) $currentUser['name']);
+$greetingName = $firstName !== '' ? $firstName : $currentUser['surname'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,117 +44,110 @@
             <!-- Enhanced Header -->
             <div class="head-title">
                 <div class="left">
-                    <h1>Welcome Back, Admin!</h1>
+                    <h1>Welcome Back, <?= htmlspecialchars($greetingName, ENT_QUOTES, 'UTF-8') ?>!</h1>
                     <ul class="breadcrumb">
                         <li><a href="#">Dashboard</a></li>
                         <li><i class='bx bx-chevron-right'></i></li>
                         <li><a class="active" href="#">Overview</a></li>
+                        <li><i class='bx bx-chevron-right'></i></li>
+                        <li><span class="scope-note"><?= htmlspecialchars($scopeLabel, ENT_QUOTES, 'UTF-8') ?></span></li>
                     </ul>
                 </div>
                 <div class="right">
-                    <button class="btn btn-secondary" title="Refresh">
+                    <button class="btn btn-secondary" title="Refresh" type="button" onclick="window.location.reload()">
                         <i class='bx bx-refresh'></i>
                         <span>Refresh</span>
                     </button>
-                    <button class="btn btn-primary" title="Upload File">
+                    <a class="btn btn-primary" title="Upload File" href="files.php">
                         <i class='bx bxs-cloud-upload'></i>
                         <span>Upload File</span>
-                    </button>
+                    </a>
                 </div>
             </div>
 
-            <!-- System Status Overview -->
+            <!-- System Status Overview: only the tiles an admin can act on. The database
+     health and storage figures live in Storage Analytics below. -->
             <ul class="box-info stats-overview">
-                <li class="status-item healthy">
-                    <i class='bx bx-server'></i>
-                    <span class="text">
-                        <h3>99.9%</h3>
-                        <p>Server Uptime</p>
-                    </span>
+                <li class="status-item <?= $summary['users_active'] > 0 ? 'healthy' : 'warning' ?>">
+                    <div class="stat-head">
+                        <i class='bx bxs-user-account'></i>
+                        <h3><?= number_format($summary['users_active']) ?></h3>
+                    </div>
+                    <p class="stat-label">Active Users &middot; last 30 days</p>
                 </li>
-                <li class="status-item healthy">
-                    <i class='bx bx-data'></i>
-                    <span class="text">
-                        <h3>Healthy</h3>
-                        <p>Database Status</p>
-                    </span>
-                </li>
-                <li class="status-item warning">
-                    <i class='bx bx-hard-drive'></i>
-                    <span class="text">
-                        <h3>78%</h3>
-                        <p>Storage Used</p>
-                    </span>
-                </li>
-                <li class="status-item healthy">
-                    <i class='bx bxs-user-account'></i>
-                    <span class="text">
-                        <h3>1,247</h3>
-                        <p>Active Users</p>
-                    </span>
+                <li class="status-item <?= $summary['users_pending'] > 0 ? 'warning' : 'healthy' ?>">
+                    <div class="stat-head">
+                        <i class='bx bxs-user-plus'></i>
+                        <h3><?= number_format($summary['users_pending']) ?></h3>
+                    </div>
+                    <p class="stat-label">Pending Approval<?= $summary['users_total'] > 0 ? ' &middot; ' . number_format($summary['users_pending']) . ' of ' . number_format($summary['users_total']) . ' accounts' : '' ?></p>
                 </li>
             </ul>
 
-            <!-- Enhanced Statistics Cards -->
+<!-- Enhanced Statistics Cards -->
             <ul class="box-info">
                 <li>
-                    <i class='bx bxs-file'></i>
-                    <span class="text">
-                        <h3>12,847</h3>
-                        <p>Total Files</p>
-                        <div class="change positive">
-                            <i class='bx bx-trending-up'></i>
-                            <span>+12.5% from last month</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 75%;"></div>
-                        </div>
-                    </span>
+                    <div class="stat-head">
+                        <i class='bx bxs-file'></i>
+                        <h3><?= number_format($summary['files_total']) ?></h3>
+                    </div>
+                    <p class="stat-label">Total Files</p>
+                    <div class="change <?= $changes['files']['class'] ?>">
+                        <i class='bx <?= $changes['files']['icon'] ?>'></i>
+                        <span><?= htmlspecialchars($changes['files']['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <div class="progress-bar" title="<?= number_format($bars['files'], 1) ?>% of all files in the system">
+                        <div class="progress-fill" style="width: <?= $bars['files'] ?>%;"></div>
+                    </div>
+                    <div class="bar-note"><?= number_format($bars['files'], 1) ?>% of all system files</div>
                 </li>
 
                 <li>
-                    <i class='bx bxs-folder'></i>
-                    <span class="text">
-                        <h3>3,564</h3>
-                        <p>Total Folders</p>
-                        <div class="change positive">
-                            <i class='bx bx-trending-up'></i>
-                            <span>+8.2% from last month</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 60%;"></div>
-                        </div>
-                    </span>
+                    <div class="stat-head">
+                        <i class='bx bxs-folder'></i>
+                        <h3><?= number_format($summary['folders_total']) ?></h3>
+                    </div>
+                    <p class="stat-label">Total Folders</p>
+                    <div class="change <?= $changes['folders']['class'] ?>">
+                        <i class='bx <?= $changes['folders']['icon'] ?>'></i>
+                        <span><?= htmlspecialchars($changes['folders']['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <div class="progress-bar" title="<?= number_format($bars['folders'], 1) ?>% of all folders in the system">
+                        <div class="progress-fill" style="width: <?= $bars['folders'] ?>%;"></div>
+                    </div>
+                    <div class="bar-note"><?= number_format($bars['folders'], 1) ?>% of all system folders</div>
                 </li>
 
                 <li>
-                    <i class='bx bxs-cloud'></i>
-                    <span class="text">
-                        <h3>2.4 TB</h3>
-                        <p>Storage Used</p>
-                        <div class="change negative">
-                            <i class='bx bx-trending-down'></i>
-                            <span>-3.1% from last month</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 45%;"></div>
-                        </div>
-                    </span>
+                    <div class="stat-head">
+                        <i class='bx bxs-cloud'></i>
+                        <h3><?= htmlspecialchars(adminDash_formatBytes($summary['storage_bytes']), ENT_QUOTES, 'UTF-8') ?></h3>
+                    </div>
+                    <p class="stat-label">Storage Used</p>
+                    <div class="change <?= $changes['storage']['class'] ?>">
+                        <i class='bx <?= $changes['storage']['icon'] ?>'></i>
+                        <span><?= htmlspecialchars($changes['storage']['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <div class="progress-bar" title="<?= number_format($bars['storage'], 1) ?>% of the uploads volume">
+                        <div class="progress-fill" style="width: <?= $bars['storage'] ?>%;"></div>
+                    </div>
+                    <div class="bar-note"><?= number_format($bars['storage'], 1) ?>% of the uploads volume</div>
                 </li>
 
                 <li>
-                    <i class='bx bxs-user-account'></i>
-                    <span class="text">
-                        <h3>8,291</h3>
-                        <p>Active Users</p>
-                        <div class="change positive">
-                            <i class='bx bx-trending-up'></i>
-                            <span>+15.3% from last month</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 82%;"></div>
-                        </div>
-                    </span>
+                    <div class="stat-head">
+                        <i class='bx bxs-user-account'></i>
+                        <h3><?= number_format($summary['users_active']) ?></h3>
+                    </div>
+                    <p class="stat-label">Active Users</p>
+                    <div class="change neutral">
+                        <i class='bx bx-calendar'></i>
+                        <span>of <?= number_format($summary['users_approved']) ?> approved</span>
+                    </div>
+                    <div class="progress-bar" title="<?= number_format($bars['users'], 1) ?>% of approved users signed in within 30 days">
+                        <div class="progress-fill" style="width: <?= $bars['users'] ?>%;"></div>
+                    </div>
+                    <div class="bar-note">Signed in within the last 30 days</div>
                 </li>
             </ul>
 
@@ -166,7 +164,7 @@
                             <button class="btn-icon" title="Filter">
                                 <i class='bx bx-filter'></i>
                             </button>
-                            <button class="btn-icon" title="Refresh">
+                            <button class="btn-icon" title="Refresh" type="button" onclick="window.location.reload()">
                                 <i class='bx bx-refresh'></i>
                             </button>
                             <button class="btn-icon" title="Export">
@@ -178,7 +176,7 @@
                     <table class="files-table enhanced-table">
                         <thead>
                             <tr>
-                                <th>File/Action</th>
+                                <th>Activity</th>
                                 <th>User</th>
                                 <th>Department</th>
                                 <th>Time</th>
@@ -186,90 +184,47 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="file-info">
-                                        <div class="file-icon">
-                                            <i class='bx bxs-file-pdf'></i>
+                            <?php if (empty($recentActivity)): ?>
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <i class='bx bx-history'></i>
+                                            <p>No activity recorded in the last 7 days.</p>
                                         </div>
-                                        <div class="file-details">
-                                            <p>Research_Proposal_2024.pdf</p>
-                                            <div class="file-meta">File uploaded</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Dr. Maria Santos</td>
-                                <td>Computer Science</td>
-                                <td>2 minutes ago</td>
-                                <td>
-                                    <span class="status-badge status-completed">
-                                        <i class='bx bx-check'></i> Complete
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="file-info">
-                                        <div class="file-icon">
-                                            <i class='bx bxs-folder'></i>
-                                        </div>
-                                        <div class="file-details">
-                                            <p>Q1_Reports</p>
-                                            <div class="file-meta">Folder created</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Prof. Juan Cruz</td>
-                                <td>Mathematics</td>
-                                <td>15 minutes ago</td>
-                                <td>
-                                    <span class="status-badge status-public">
-                                        <i class='bx bx-globe'></i> New
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="file-info">
-                                        <div class="file-icon">
-                                            <i class='bx bxs-file-doc'></i>
-                                        </div>
-                                        <div class="file-details">
-                                            <p>Curriculum_Update.docx</p>
-                                            <div class="file-meta">File shared</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>Dr. Ana Reyes</td>
-                                <td>Engineering</td>
-                                <td>1 hour ago</td>
-                                <td>
-                                    <span class="status-badge status-private">
-                                        <i class='bx bx-share'></i> Shared
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="file-info">
-                                        <div class="file-icon">
-                                            <i class='bx bxs-user-plus'></i>
-                                        </div>
-                                        <div class="file-details">
-                                            <p>New User Registration</p>
-                                            <div class="file-meta">System action</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>System</td>
-                                <td>Admin</td>
-                                <td>2 hours ago</td>
-                                <td>
-                                    <span class="status-badge status-favorite">
-                                        <i class='bx bx-cog'></i> System
-                                    </span>
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($recentActivity as $activity): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="file-info">
+                                                <div class="file-icon">
+                                                    <i class='bx <?= $activity['icon'] ?>'></i>
+                                                </div>
+                                                <div class="file-details">
+                                                    <p><?= htmlspecialchars($activity['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                                                    <div class="file-meta">
+                                                        <?php if ($activity['occurrences'] > 1): ?>
+                                                            <?= (int) $activity['occurrences'] ?> times in the last 7 days
+                                                        <?php else: ?>
+                                                            Once in the last 7 days
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($activity['user'], ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars($activity['department'], ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars($activity['when'], ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td>
+                                            <span class="status-badge <?= $activity['badge'] ?>">
+                                                <i class='bx <?= $activity['badgeIcon'] ?>'></i>
+                                                <?= htmlspecialchars($activity['badgeText'], ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -289,10 +244,7 @@
                                 <div class="action-icon">
                                     <i class='bx bx-upload'></i>
                                 </div>
-                                <div>
-                                    <h4>Upload Files</h4>
-                                    <p>Add new documents</p>
-                                </div>
+                                <p>Upload Files</p>
                             </div>
                             <i class='bx bx-chevron-right action-arrow'></i>
                         </a>
@@ -302,10 +254,7 @@
                                 <div class="action-icon">
                                     <i class='bx bx-folder-plus'></i>
                                 </div>
-                                <div>
-                                    <h4>Create Folder</h4>
-                                    <p>Organize your files</p>
-                                </div>
+                                <p>Create Folder</p>
                             </div>
                             <i class='bx bx-chevron-right action-arrow'></i>
                         </a>
@@ -315,10 +264,7 @@
                                 <div class="action-icon">
                                     <i class='bx bx-user-plus'></i>
                                 </div>
-                                <div>
-                                    <h4>Manage Users</h4>
-                                    <p>Add or edit users</p>
-                                </div>
+                                <p>Manage Users</p>
                             </div>
                             <i class='bx bx-chevron-right action-arrow'></i>
                         </a>
@@ -328,23 +274,17 @@
                                 <div class="action-icon">
                                     <i class='bx bx-bar-chart-alt-2'></i>
                                 </div>
-                                <div>
-                                    <h4>Generate Reports</h4>
-                                    <p>View analytics</p>
-                                </div>
+                                <p>Generate Reports</p>
                             </div>
                             <i class='bx bx-chevron-right action-arrow'></i>
                         </a>
 
-                        <a href="settings.php" class="action-item">
+                        <a href="profile.php" class="action-item">
                             <div class="action-content">
                                 <div class="action-icon">
                                     <i class='bx bx-cog'></i>
                                 </div>
-                                <div>
-                                    <h4>System Settings</h4>
-                                    <p>Configure system</p>
-                                </div>
+                                <p>System Settings</p>
                             </div>
                             <i class='bx bx-chevron-right action-arrow'></i>
                         </a>
@@ -362,36 +302,40 @@
                             Storage Analytics
                         </h3>
                         <div class="card-actions">
-                            <button class="btn-icon" title="View Details">
+                            <a class="btn-icon" href="reports.php" title="View Details">
                                 <i class='bx bx-show'></i>
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 16px;">
                         <div class="info-item">
-                            <div class="info-label">Used Storage</div>
-                            <div class="info-value" style="color: var(--blue); font-size: 24px; font-weight: 700;">2.4 TB</div>
+                            <div class="info-label">Documents Stored</div>
+                            <div class="info-value" style="color: var(--cvsu-green-700); font-size: 24px; font-weight: 700;"><?= htmlspecialchars(adminDash_formatBytes($summary['storage_bytes']), ENT_QUOTES, 'UTF-8') ?></div>
                             <div class="progress-bar" style="margin-top: 8px;">
-                                <div class="progress-fill" style="width: 78%;"></div>
+                                <div class="progress-fill" style="width: <?= $bars['storage'] ?>%;"></div>
                             </div>
+                            <div class="bar-note"><?= number_format($bars['storage'], 1) ?>% of the uploads volume</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Available</div>
-                            <div class="info-value" style="color: var(--orange); font-size: 24px; font-weight: 700;">845 GB</div>
-                            <div class="progress-bar" style="margin-top: 8px;">
-                                <div class="progress-fill" style="width: 22%; background: var(--orange);"></div>
+                            <div class="info-label">Uploads Volume</div>
+                            <div class="info-value" style="color: var(--cvsu-gold-700); font-size: 24px; font-weight: 700;"><?= $quotaBytes > 0 ? htmlspecialchars(adminDash_formatBytes($quotaBytes, 0), ENT_QUOTES, 'UTF-8') : 'Unknown' ?></div>
+                            <div class="bar-note" style="margin-top: 8px;">
+                                <?= $freeBytes > 0 ? htmlspecialchars(adminDash_formatBytes($freeBytes, 0), ENT_QUOTES, 'UTF-8') . ' free' : 'Free space unavailable' ?>
                             </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Growth Rate</div>
-                            <div class="info-value" style="color: var(--green-primary); font-size: 24px; font-weight: 700;">12.5%</div>
-                            <div style="color: var(--green-primary); font-size: 12px; margin-top: 8px;">
-                                <i class='bx bx-trending-up'></i> Monthly
+                            <div class="info-value" style="color: <?= $changes['storage']['class'] === 'negative' ? 'var(--cvsu-gold-700)' : 'var(--cvsu-green-700)' ?>; font-size: 24px; font-weight: 700;"><?= $changes['storage']['label'] ?></div>
+                            <div style="color: var(--cvsu-grey-500); font-size: 12px; margin-top: 8px;">
+                                <i class='bx <?= $changes['storage']['icon'] ?>'></i> Last 30 days vs previous 30
                             </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Recent Activity</div>
-                            <div class="info-value">12 uploads this week</div>
+                            <div class="info-value" style="font-size: 24px; font-weight: 700;"><?= number_format($summary['uploads_this_week']) ?></div>
+                            <div class="bar-note" style="margin-top: 8px;">
+                                <?= $summary['uploads_this_week'] === 1 ? 'upload' : 'uploads' ?> in the last 7 days
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -404,37 +348,28 @@
                             Account Information
                         </h3>
                         <div class="card-actions">
-                            <button class="btn-icon" title="Edit Profile">
+                            <a class="btn-icon" href="profile.php" title="Edit Profile">
                                 <i class='bx bx-edit'></i>
-                            </button>
+                            </a>
                         </div>
                     </div>
 
                     <div class="account-info">
                         <div class="info-item">
                             <div class="info-label">Department</div>
-                            <div class="info-value">Information Technology</div>
+                            <div class="info-value"><?= htmlspecialchars($account['department'], ENT_QUOTES, 'UTF-8') ?></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Employee ID</div>
-                            <div class="info-value">ADM-001</div>
+                            <div class="info-value"><?= htmlspecialchars($account['employeeId'], ENT_QUOTES, 'UTF-8') ?></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Last Login</div>
-                            <div class="info-value">Today at 9:30 AM</div>
+                            <div class="info-value"><?= htmlspecialchars($account['lastLogin'], ENT_QUOTES, 'UTF-8') ?></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Member Since</div>
-                            <div class="info-value">Jan 15, 2024</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; background: var(--green-light); border-radius: 12px; padding: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 14px; font-weight: 500; color: var(--dark);">Account Status</span>
-                            <span style="background: var(--green-primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                                <i class='bx bx-check-circle'></i> Active
-                            </span>
+                            <div class="info-value"><?= htmlspecialchars($account['memberSince'], ENT_QUOTES, 'UTF-8') ?></div>
                         </div>
                     </div>
                 </div>
@@ -448,6 +383,11 @@
                         Recent Notifications
                     </h3>
                     <div class="card-actions">
+                        <?php if ($unreadNotifications > 0): ?>
+                            <span class="unread-chip" title="Unread notifications">
+                                <?= (int) $unreadNotifications ?> unread
+                            </span>
+                        <?php endif; ?>
                         <button class="btn-icon" title="Mark all as read">
                             <i class='bx bx-check-double'></i>
                         </button>
@@ -457,39 +397,31 @@
                     </div>
                 </div>
 
-                <div style="display: grid; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(40, 167, 69, 0.05); border-radius: 12px; border-left: 4px solid var(--green-primary);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--green-primary); display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class='bx bx-check'></i>
+                <div class="notif-list">
+                    <?php if (empty($recentNotifications)): ?>
+                        <div class="notif-item">
+                            <div class="notif-icon info">
+                                <i class='bx bx-bell-off'></i>
+                            </div>
+                            <div class="notif-body">
+                                <h4>No notifications</h4>
+                                <p>You have no notifications right now. New alerts appear here as they arrive.</p>
+                            </div>
                         </div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px;">System Backup Completed</h4>
-                            <p style="color: var(--dark-grey); font-size: 13px;">Daily backup successfully completed at 3:00 AM</p>
-                            <span style="color: var(--dark-grey); font-size: 12px;">2 hours ago</span>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(249, 115, 22, 0.05); border-radius: 12px; border-left: 4px solid var(--orange);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class='bx bx-error'></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px;">Storage Usage Warning</h4>
-                            <p style="color: var(--dark-grey); font-size: 13px;">Storage usage has reached 78%. Consider cleaning up old files.</p>
-                            <span style="color: var(--dark-grey); font-size: 12px;">5 hours ago</span>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: rgba(6, 182, 212, 0.05); border-radius: 12px; border-left: 4px solid var(--info-cyan);">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--info-cyan); display: flex; align-items: center; justify-content: center; color: white;">
-                            <i class='bx bx-user-plus'></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <h4 style="font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px;">New User Registration</h4>
-                            <p style="color: var(--dark-grey); font-size: 13px;">3 new users have registered and are pending approval</p>
-                            <span style="color: var(--dark-grey); font-size: 12px;">1 day ago</span>
-                        </div>
-                    </div>
+                    <?php else: ?>
+                        <?php foreach ($recentNotifications as $notification): ?>
+                            <div class="notif-item<?= $notification['isRead'] ? '' : ' unread' ?>">
+                                <div class="notif-icon <?= $notification['tone'] ?>">
+                                    <i class='bx <?= $notification['icon'] ?>'></i>
+                                </div>
+                                <div class="notif-body">
+                                    <h4><?= htmlspecialchars($notification['title'], ENT_QUOTES, 'UTF-8') ?></h4>
+                                    <p><?= htmlspecialchars($notification['message'], ENT_QUOTES, 'UTF-8') ?></p>
+                                    <span><?= htmlspecialchars($notification['when'], ENT_QUOTES, 'UTF-8') ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>
