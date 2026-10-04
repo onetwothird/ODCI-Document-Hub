@@ -1,5 +1,5 @@
 <?php
-    require_once '../../includes/config.php';
+    require_once __DIR__ . '/../../../includes/config.php';
     if (!isLoggedIn()) {
         header('Location: login.php');
         exit();
@@ -92,21 +92,23 @@
         header('Content-Type: application/json');
         
         try {
-            $faculty_id = $_GET['faculty_id'] ?? 0;
+            $faculty_id = (int)($_GET['faculty_id'] ?? 0);
             $doc_type = $_GET['document_type'] ?? '';
             $semester = $_GET['semester'] ?? '';
-            $academic_year = $_GET['academic_year'] ?? date('Y');
-            
-            // Convert semester format if needed (from UI format to DB format)
-            if (strpos($semester, 'AY') !== false) {
-                $semesterMap = [
-                    '1st Semester AY 2024-2025' => '1st Semester',
-                    '2nd Semester AY 2024-2025' => '2nd Semester', 
-                    '1st Semester AY 2025-2026' => '1st Semester',
-                    '2nd Semester AY 2025-2026' => '2nd Semester'
-                ];
-                $semester = $semesterMap[$semester] ?? '2nd Semester';
+            $academic_year = (int)($_GET['academic_year'] ?? date('Y'));
+
+            // The period filter is sent as "1st Semester AY 2026-2027"; the
+            // department upload stores the year as "2026-2027" and the semester
+            // as the files.semester enum, so reduce both here.
+            $parsed = odci_period_parse($semester);
+            if ($parsed['start_year'] > 0) {
+                $academic_year = $parsed['start_year'];
             }
+            $folderSemester = $parsed['start_year'] > 0
+                ? $parsed['semester']
+                : odci_semester_column($semester);
+
+            error_log("get_file_details: faculty_id=$faculty_id, doc_type=$doc_type, academic_year=$academic_year, semester=$folderSemester");
 
             $faculty_check_query = "
                 SELECT u.id, u.department_id, d.department_name
@@ -136,36 +138,43 @@
                 throw new Exception('Access denied: Faculty not in your department');
             }
             
-            // Enhanced query to get file details from document_files table
+            // Map the tracker document type back to its folder category
+            $docTypeToCategory = odci_document_type_to_category();
+            $folderCategory = $docTypeToCategory[$doc_type] ?? $doc_type;
+
+            // Query files table joined with folders (new folders.php system)
             $stmt = $pdo->prepare("
                 SELECT 
-                    df.id, df.file_name, df.file_path, df.file_size, 
-                    df.uploaded_at, df.description, df.file_type,
+                    f.id, f.file_name, f.original_name, f.file_path, f.file_size,
+                    f.uploaded_at, f.description, f.mime_type, f.file_extension,
+                    COALESCE(f.download_count, 0) AS download_count,
+                    fo.category as file_type,
                     CONCAT(u.name, ' ', u.surname) as uploader_name,
                     u.employee_id,
-                    df.academic_year,
-                    df.semester_period
-                FROM document_files df
-                INNER JOIN users u ON df.uploaded_by = u.id
-                WHERE df.uploaded_by = ? 
-                AND df.file_type = ?
-                AND df.semester_period = ?
-                AND df.academic_year = ?
-                ORDER BY df.uploaded_at DESC
+                    f.academic_year,
+                    f.semester
+                FROM files f
+                INNER JOIN folders fo ON f.folder_id = fo.id
+                INNER JOIN users u ON f.uploaded_by = u.id
+                WHERE f.uploaded_by = ? 
+                AND fo.category = ?
+                AND f.semester = ?
+                AND " . odci_academic_year_sql('f.academic_year') . "
+                AND f.is_deleted = 0
+                AND fo.is_deleted = 0
+                ORDER BY f.uploaded_at DESC
             ");
             
-            // Extract year from semester string if provided in AY format
-            if (strpos($_GET['semester'] ?? '', 'AY') !== false) {
-                preg_match('/AY (\d{4})-\d{4}/', $_GET['semester'], $matches);
-                if (!empty($matches[1])) {
-                    $academic_year = (int)$matches[1];
-                }
-            }
-            
-            $stmt->execute([$faculty_id, $doc_type, $semester, $academic_year]);
+            $stmt->execute([$faculty_id, $folderCategory, $folderSemester, $academic_year]);
             $files = $stmt->fetchAll();
-            
-            echo json_encode(['success' => true, 'files' => $files]);
+
+            echo json_encode([
+                'success' => true,
+                'files' => $files,
+                'period' => $academic_year . '-' . ($academic_year + 1),
+                'semester' => $folderSemester,
+                'document_type' => $doc_type
+            ]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -177,82 +186,83 @@
     $selectedYear = null;
     $normalizedSemester = '';
 
-    // If no semester is selected, get the latest available period
+    // If no semester is selected, get the latest available period.
+    // The source of truth is the same `files` + `folders` pair that the
+    // submission matrix reads, so periods created by roles/user/folders.php
+    // uploads are always selectable here.
     if (empty($selectedSemester)) {
         $latest_period_query = "
-            SELECT DISTINCT 
-                df.academic_year, 
-                df.semester_period,
-                COUNT(df.id) as file_count
-            FROM document_files df
-            INNER JOIN users u ON df.uploaded_by = u.id
+            SELECT DISTINCT
+                " . odci_academic_year_expr('f.academic_year') . " AS start_year,
+                f.semester AS semester,
+                COUNT(f.id) AS file_count
+            FROM files f
+            INNER JOIN folders fo ON f.folder_id = fo.id
+            INNER JOIN users u ON f.uploaded_by = u.id
             WHERE u.role = 'user' AND u.is_approved = 1
+              AND f.is_deleted = 0 AND fo.is_deleted = 0
+              AND fo.category IS NOT NULL
         ";
-        
+
         $latest_params = [];
         if ($admin_department_id) {
             $latest_period_query .= " AND u.department_id = ?";
             $latest_params[] = $admin_department_id;
         }
-        
-        $latest_period_query .= " 
-            GROUP BY df.academic_year, df.semester_period 
-            ORDER BY df.academic_year DESC, 
-            CASE df.semester_period 
-                WHEN '1st Semester' THEN 1 
-                WHEN '2nd Semester' THEN 2 
-                ELSE 3 
-            END DESC
+
+        $latest_period_query .= "
+            GROUP BY start_year, f.semester
+            ORDER BY start_year DESC,
+            CASE f.semester WHEN 'first' THEN 1 WHEN 'second' THEN 2 ELSE 3 END DESC
             LIMIT 1
         ";
-        
+
         $stmt = $pdo->prepare($latest_period_query);
         $stmt->execute($latest_params);
         $latest_period = $stmt->fetch();
-        
-        if ($latest_period) {
-            $selectedYear = $latest_period['academic_year'];
-            $normalizedSemester = $latest_period['semester_period'];
-            $selectedSemester = $normalizedSemester . ' AY ' . $selectedYear . '-' . ($selectedYear + 1);
+
+        if ($latest_period && (int)$latest_period['start_year'] > 0) {
+            $selectedYear = (int)$latest_period['start_year'];
+            $normalizedSemester = odci_semester_ordinal($latest_period['semester']);
+            $selectedSemester = odci_period_key($selectedYear, $latest_period['semester']);
         } else {
             // Fallback to current year if no data
             $selectedYear = date('Y');
             $normalizedSemester = '2nd Semester';
-            $selectedSemester = '2nd Semester AY ' . $selectedYear . '-' . ($selectedYear + 1);
+            $selectedSemester = odci_period_key($selectedYear, 'second');
         }
     } else {
         // Parse selected semester
-        if (strpos($selectedSemester, 'AY') !== false) {
-            preg_match('/^(.+?) AY (\d{4})-\d{4}$/', $selectedSemester, $matches);
-            if (!empty($matches[1]) && !empty($matches[2])) {
-                $normalizedSemester = $matches[1];
-                $selectedYear = (int)$matches[2];
-            }
+        $parsed = odci_period_parse($selectedSemester);
+        if ($parsed['start_year'] > 0) {
+            $normalizedSemester = odci_semester_ordinal($parsed['semester']);
+            $selectedYear = $parsed['start_year'];
         }
     }
 
     $department_filter = $_GET['department'] ?? '';
     $search = $_GET['search'] ?? '';
     $status_filter = $_GET['status'] ?? ''; 
-
-    $document_types = [
-        'IPCR Accomplishment',
-        'IPCR Target',
-        'Workload',
-        'Course Syllabus',
-        'Course Syllabus Acceptance Form',
-        'Exam',
-        'TOS',
-        'Class Record',
-        'Grading Sheets',
-        'Attendance Sheet',
-        "Stakeholder's Feedback Form w/ Summary",
-        'Consultation',
-        'Lecture',
-        'Activities',
-        'CEIT-QF-03 Discussion Form',
-        'Others'
-    ];
+    
+    // Get document types dynamically from document_requirements table based on selected period
+    // This matches what folders.php uses for uploads
+    $document_types = [];
+    if ($selectedYear && $normalizedSemester) {
+        $req_query = "
+            SELECT DISTINCT document_type 
+            FROM document_requirements 
+            WHERE academic_year = ? AND semester = ? AND is_required = 1
+            ORDER BY document_type
+        ";
+        $stmt = $pdo->prepare($req_query);
+        $stmt->execute([$selectedYear, $normalizedSemester]);
+        $document_types = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    
+    // Fallback to the canonical list if no requirements found for the period
+    if (empty($document_types)) {
+        $document_types = odci_default_document_types();
+    }
 
     $faculty_conditions = ["u.role = 'user'", "u.is_approved = 1"];
     $faculty_params = [];
@@ -367,45 +377,59 @@
         $faculty[] = $staff;
     }
 
-    // Enhanced file submissions query using document_files table
+    // Enhanced file submissions query using files table joined with folders (new folders.php system)
     $file_submissions = [];
     if (!empty($faculty) && $selectedYear && $normalizedSemester) {
         $faculty_ids = array_column($faculty, 'id');
         $placeholders = implode(',', array_fill(0, count($faculty_ids), '?'));
         
-        // Query document_files directly for better performance
+        // Convert normalized semester to folder semester format
+        // normalizedSemester: '1st Semester' -> 'first', '2nd Semester' -> 'second'
+        $folderSemester = odci_semester_column($normalizedSemester);
+        
+        // Query files table joined with folders for folders.php uploads
+        // Map folder categories to document_types
         $file_query = "
             SELECT 
-                df.uploaded_by as faculty_id, 
-                df.file_type as document_type, 
-                COUNT(df.id) as file_count,
-                MAX(df.uploaded_at) as latest_upload,
-                MIN(df.uploaded_at) as first_upload,
-                SUM(df.file_size) as total_size,
-                df.academic_year,
-                df.semester_period
-            FROM document_files df
-            WHERE df.uploaded_by IN ($placeholders)
-            AND df.academic_year = ?
-            AND df.semester_period = ?
-            GROUP BY df.uploaded_by, df.file_type, df.academic_year, df.semester_period
+                f.uploaded_by as faculty_id,
+                fo.category as folder_category,
+                COUNT(f.id) as file_count,
+                MAX(f.uploaded_at) as latest_upload,
+                MIN(f.uploaded_at) as first_upload,
+                SUM(f.file_size) as total_size,
+                f.academic_year,
+                f.semester
+            FROM files f
+            INNER JOIN folders fo ON f.folder_id = fo.id
+            WHERE f.uploaded_by IN ($placeholders)
+            AND " . odci_academic_year_sql('f.academic_year') . "
+            AND f.semester = ?
+            AND f.is_deleted = 0
+            AND fo.is_deleted = 0
+            AND fo.category IS NOT NULL
+            GROUP BY f.uploaded_by, fo.category, f.academic_year, f.semester
         ";
         
         $stmt = $pdo->prepare($file_query);
         
-        // Combine parameters: faculty_ids first, then year and semester
-        $params = array_merge($faculty_ids, [$selectedYear, $normalizedSemester]);
+        // Combine parameters: faculty_ids first, then year and semester (folder format: 'first'/'second')
+        $params = array_merge($faculty_ids, [$selectedYear, $folderSemester]);
         $stmt->execute($params);
         
+        // Build a lookup map: folder category -> document_type
+        $categoryToDocType = odci_category_to_document_type();
+        
         while ($row = $stmt->fetch()) {
-            $file_submissions[$row['faculty_id']][$row['document_type']] = [
+            // Map folder category to document_type
+            $matchedType = $categoryToDocType[$row['folder_category']] ?? $row['folder_category'];
+            $file_submissions[$row['faculty_id']][$matchedType] = [
                 'file_count' => $row['file_count'] ?: 0,
                 'latest_upload' => $row['latest_upload'],
                 'first_upload' => $row['first_upload'],
                 'total_size' => $row['total_size'] ?: 0,
                 'status' => $row['file_count'] > 0 ? 'submitted' : 'pending',
                 'academic_year' => $row['academic_year'],
-                'semester' => $row['semester_period']
+                'semester' => $row['semester']
             ];
         }
     }
