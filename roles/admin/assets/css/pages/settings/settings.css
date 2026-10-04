@@ -39,14 +39,14 @@
 
 /* Form Elements */
 .field-label {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     font-weight: 600;
     color: var(--dark);
     font-size: 14px;
 }
 
 .form-input {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     padding: 16px 20px;
     border: 2px solid #e9ecef;
     border-radius: 12px;
@@ -64,7 +64,7 @@
 }
 
 .form-textarea {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     padding: 16px 20px;
     border: 2px solid #e9ecef;
     border-radius: 12px;
