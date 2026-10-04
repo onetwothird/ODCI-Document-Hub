@@ -19,7 +19,7 @@ $selectedYear = (int)($_GET['year'] ?? date('Y'));
 $selectedSemester = $_GET['semester'] ?? (date('n') >= 6 && date('n') <= 11 ? '1st Semester' : '2nd Semester');
 
 if (empty($docType)) {
-    header('Location: ../submission_tracker.php?error=invalid_document_type');
+    header('Location: ../folders.php?error=invalid_document_type');
     exit();
 }
 
@@ -594,8 +594,8 @@ function getFileTypeColor($filename) {
                 <a href="upload_document.php?doc_type=<?php echo urlencode($docType); ?>&year=<?php echo $selectedYear; ?>&semester=<?php echo urlencode($selectedSemester); ?>" class="btn btn-success">
                     <i class='bx bx-upload'></i> Upload More Files
                 </a>
-                <a href="../submission_tracker.php?year=<?php echo $selectedYear; ?>&semester=<?php echo urlencode($selectedSemester); ?>" class="btn btn-secondary">
-                    <i class='bx bx-arrow-back'></i> Back to Tracker
+                <a href="../folders.php" class="btn btn-secondary">
+                    <i class='bx bx-arrow-back'></i> Back to Folders
                 </a>
             </div>
         </div>
