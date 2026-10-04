@@ -1,6 +1,8 @@
 <?php
 // script/messaging-system.php
-require_once '../../includes/config.php';
+// Same include-depth bug as script/faculty-staff.php: resolved against the
+// request's working directory, so it fataled on direct/AJAX hits.
+require_once __DIR__ . '/../../../includes/config.php';
 
 if (!isLoggedIn()) {
     http_response_code(401);
@@ -17,6 +19,11 @@ if (!$currentUser) {
 
 // Handle different messaging actions
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
+
+// Bootstrap the schema before dispatching. This used to run at the bottom of the
+// file, after the switch had already executed, so the very first request of a
+// fresh install always hit "Table 'messages' doesn't exist".
+odci_ensure_message_tables($pdo);
 
 switch ($action) {
     case 'send_message':
@@ -43,6 +50,56 @@ switch ($action) {
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
+}
+
+/**
+ * Idempotently create the messaging tables.
+ */
+function odci_ensure_message_tables($pdo) {
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS message_templates (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                template_name VARCHAR(100) NOT NULL,
+                subject VARCHAR(255),
+                message TEXT NOT NULL,
+                template_type ENUM('general', 'reminder', 'announcement', 'warning') DEFAULT 'general',
+                is_system BOOLEAN DEFAULT FALSE,
+                created_by INT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ");
+
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                sender_id INT NOT NULL,
+                recipient_id INT NOT NULL,
+                subject VARCHAR(255),
+                message TEXT NOT NULL,
+                priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
+                message_type ENUM('general', 'reminder', 'announcement', 'warning', 'system') DEFAULT 'general',
+                is_read BOOLEAN DEFAULT FALSE,
+                read_at DATETIME,
+                sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_recipient_read (recipient_id, is_read),
+                INDEX idx_sender_time (sender_id, sent_at),
+                INDEX idx_conversation (sender_id, recipient_id, sent_at)
+            )
+        ");
+    } catch (Exception $e) {
+        error_log("Error creating message tables: " . $e->getMessage());
+    }
 }
 
 function handleSendMessage() {
@@ -415,43 +472,5 @@ function handleSaveTemplate() {
     }
 }
 
-// Create message_templates table if it doesn't exist
-try {
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS message_templates (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            template_name VARCHAR(100) NOT NULL,
-            subject VARCHAR(255),
-            message TEXT NOT NULL,
-            template_type ENUM('general', 'reminder', 'announcement', 'warning') DEFAULT 'general',
-            is_system BOOLEAN DEFAULT FALSE,
-            created_by INT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-        )
-    ");
-
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS messages (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            sender_id INT NOT NULL,
-            recipient_id INT NOT NULL,
-            subject VARCHAR(255),
-            message TEXT NOT NULL,
-            priority ENUM('low', 'normal', 'high', 'urgent') DEFAULT 'normal',
-            message_type ENUM('general', 'reminder', 'announcement', 'warning', 'system') DEFAULT 'general',
-            is_read BOOLEAN DEFAULT FALSE,
-            read_at DATETIME,
-            sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
-            INDEX idx_recipient_read (recipient_id, is_read),
-            INDEX idx_sender_time (sender_id, sent_at),
-            INDEX idx_conversation (sender_id, recipient_id, sent_at)
-        )
-    ");
-} catch (Exception $e) {
-    error_log("Error creating message tables: " . $e->getMessage());
-}
+// Table bootstrap moved above the action switch - see odci_ensure_message_tables().
 ?>
