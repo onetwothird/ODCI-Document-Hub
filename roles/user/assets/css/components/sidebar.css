@@ -49,7 +49,7 @@ body.dark {
     scrollbar-width: none;
 }
 
-#sidebar::--webkit-scrollbar {
+#sidebar::-webkit-scrollbar {
     display: none;
 }
 
