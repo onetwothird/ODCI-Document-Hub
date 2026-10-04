@@ -1,6 +1,6 @@
 /* Enhanced Button System */
 .btn {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     padding: 16px 32px;
     border: none;
     border-radius: 16px;
