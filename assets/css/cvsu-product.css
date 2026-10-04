@@ -1,7 +1,8 @@
-/* Shared ODCI product styling. Loaded after legacy role styles and cvsu-theme.css. */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* Shared ODCI product styling. Loaded after legacy role styles and cvsu-theme.css.
+   Typography (Plus Jakarta Sans) is loaded once in cvsu-theme.css — do NOT import again. */
 
 :root {
+    /* Colour palette (product-specific darker green variant) */
     --cvsu-green-900: #004d24;
     --cvsu-green-800: #005a2b;
     --cvsu-green-700: #006b2e;
@@ -42,11 +43,11 @@ html { scroll-behavior: smooth; }
 body {
     background: var(--cvsu-surface) !important;
     color: var(--cvsu-ink) !important;
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif !important;
+    font-family: var(--font-family) !important;
     font-feature-settings: "cv11", "ss01";
 }
 body :not(i):not(.bx):not([class*="fa"]) {
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif !important;
+    font-family: var(--font-family) !important;
 }
 
 /* Compact, shared navigation system across user, admin and superadmin. */
