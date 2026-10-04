@@ -77,7 +77,7 @@ function getFilesBySemester($pdo, $departmentId, $semester) {
                 f.uploaded_at,
                 f.description,
                 f.tags,
-                COALESCE(CONCAT(u.name, ' ', COALESCE(u.misurname, '')), u.username) as uploader_name
+                COALESCE(CONCAT(u.name, ' ', COALESCE(u.surname, '')), u.username) as uploader_name
             FROM files f
             LEFT JOIN users u ON f.uploaded_by = u.id
             WHERE f.folder_id = ? AND f.is_deleted = 0
