@@ -1,6 +1,9 @@
-<?php
+﻿<?php
 // Enhanced script/faculty-staff.php with proper profile image handling
-require_once '../../includes/config.php';
+// This file sits two levels below the project root (roles/admin/script), so the
+// bare relative path only resolved when PHP's working directory happened to be
+// the page directory. It fataled on every direct/AJAX hit of this endpoint.
+require_once __DIR__ . '/../../../includes/config.php';
 
 if (!isLoggedIn()) {
     header('Location: login.php');
@@ -169,43 +172,20 @@ try {
     $facultyStaff = [];
 }
 
+/**
+ * Resolve a stored `users.profile_image` to a URL the browser can load.
+ *
+ * The previous version hard-coded a '../' prefix, which from roles/admin
+ * resolved to roles/uploads/... instead of ODCI/uploads/..., so every avatar
+ * missed and fell back to the logo. The shared helper derives the web prefix
+ * from the caller's own directory and probes both the project root and roles/.
+ *
+ * @deprecated Kept as a thin wrapper because roles/admin/script/messaging-system.php
+ *             and the AJAX branch of this file still call this name.
+ */
 function getProfileImageUrl($dbImagePath) {
-
-    $defaultProfileImage = 'assets/img/cvsu-logo.png';
-
-    if (empty($dbImagePath)) {
-        return $defaultProfileImage;
-    }
-    $webImagePath = '../' . ltrim($dbImagePath, '/');
-    $fileSystemPath = '../' . ltrim($dbImagePath, '/');
-    
-    if (file_exists($fileSystemPath)) {
-        return $webImagePath . '?v=' . filemtime($fileSystemPath);
-    } else {
-        error_log("Profile image not found at: " . $fileSystemPath);
-        return $defaultProfileImage;
-    }
-}
-
-// Alternative function if you need more debugging
-function getProfileImageUrlWithDebug($dbImagePath, $facultyName = '') {
-    $defaultProfileImage = 'assets/img/default-avatar.png';
-    
-    if (empty($dbImagePath)) {
-        error_log("No image path for faculty: " . $facultyName);
-        return $defaultProfileImage;
-    }
-    
-    $webImagePath = '../' . ltrim($dbImagePath, '/');
-    $fileSystemPath = '../' . ltrim($dbImagePath, '/');
-    
-    error_log("Faculty: $facultyName | DB Path: $dbImagePath | Web Path: $webImagePath | File System Path: $fileSystemPath | Exists: " . (file_exists($fileSystemPath) ? 'Yes' : 'No'));
-    
-    if (file_exists($fileSystemPath)) {
-        return $webImagePath . '?v=' . filemtime($fileSystemPath);
-    } else {
-        return $defaultProfileImage;
-    }
+    // Fallback is given project-root relative; the helper adds the '../' depth.
+    return odci_profile_image_url($dbImagePath, __DIR__ . '/..', 'img/cvsu-logo.png');
 }
 
 // Enhanced function to get document submission stats for a faculty member
@@ -219,118 +199,126 @@ function getFacultySubmissionStats($pdo, $userId) {
         'pending_count' => 0,
         'on_time_submissions' => 0,
         'submission_streak' => 0,
-        'average_submission_time' => null
+        'total_files' => 0,
+        'average_submission_time' => null,
+        'academic_year' => null,
+        'semester' => null,
+        'document_types' => []
     ];
 
     try {
-        // Get current academic year and semester
-        $currentYear = date('Y');
+        // Period being reported. Defaults to the newest period that actually has
+        // uploads, because document_requirements is stale (last row is AY 2025)
+        // and a calendar-derived period would report 0% for everyone.
+        $currentYear = (int)date('Y');
         $currentMonth = (int)date('n');
-        
-        // Determine semester based on month (adjust according to your academic calendar)
-        $currentSemester = ($currentMonth >= 6 && $currentMonth <= 11) ? '1st Semester' : '2nd Semester';
+        $currentSemester = ($currentMonth >= 6 && $currentMonth <= 11) ? 'first' : 'second';
 
-        // Count total required documents for current period
+        $latest = odci_latest_submission_period($pdo, (int)$userId);
+        $reportYear = $latest['start_year'] ?: $currentYear;
+        $reportSemester = $latest['semester'] ?: $currentSemester;
+
+        $stats['academic_year'] = odci_academic_year_range($reportYear);
+        $stats['semester'] = $reportSemester;
+
+        // Tracked document types for the period: prefer the requirement rows that
+        // exist for it, otherwise fall back to the canonical category list so an
+        // empty period does not divide by zero.
+        $requirementTypes = odci_period_required_document_types($pdo, $reportYear, $reportSemester);
+        $stats['total_required'] = count($requirementTypes);
+        if ($stats['total_required'] === 0) {
+            $stats['total_required'] = count(odci_default_document_types());
+        }
+
+        // Real submissions: files joined to the folder that carries the category.
+        $categoryMap = odci_category_to_document_type();
         $stmt = $pdo->prepare("
-            SELECT COUNT(DISTINCT document_type) as total_required
-            FROM document_requirements
-            WHERE academic_year = ? 
-            AND semester = ?
-            AND (department_id IS NULL OR department_id = (
-                SELECT department_id FROM users WHERE id = ?
-            ))
-            AND is_required = 1
+            SELECT fo.category AS category,
+                   COUNT(f.id) AS file_count,
+                   SUM(f.file_size) AS total_size,
+                   MAX(f.uploaded_at) AS latest_upload,
+                   MIN(f.uploaded_at) AS first_upload
+            FROM files f
+            INNER JOIN folders fo ON f.folder_id = fo.id
+            WHERE f.uploaded_by = ?
+              AND " . odci_academic_year_sql('f.academic_year') . "
+              AND f.semester = ?
+              AND f.is_deleted = 0
+              AND fo.is_deleted = 0
+              AND fo.category IS NOT NULL
+            GROUP BY fo.category
         ");
-        $stmt->execute([$currentYear, $currentSemester, $userId]);
-        $required = $stmt->fetch();
-        $stats['total_required'] = (int)($required['total_required'] ?? 0);
+        $stmt->execute([(int)$userId, $reportYear, $reportSemester]);
 
-        // Count submitted documents for current period with timing analysis
-        $stmt = $pdo->prepare("
-            SELECT 
-                COUNT(DISTINCT fds.document_type) as total_submitted, 
-                MAX(fds.submitted_at) as latest_submission,
-                COUNT(*) as total_files,
-                AVG(DATEDIFF(fds.submitted_at, dr.deadline_date)) as avg_submission_timing
-            FROM faculty_document_submissions fds
-            LEFT JOIN document_requirements dr ON (
-                fds.document_type = dr.document_type 
-                AND fds.academic_year = dr.academic_year 
-                AND fds.semester = dr.semester
-            )
-            WHERE fds.faculty_id = ?
-            AND fds.academic_year = ?
-            AND fds.semester = ?
-        ");
-        $stmt->execute([$userId, $currentYear, $currentSemester]);
-        $submitted = $stmt->fetch();
-        
-        $stats['total_submitted'] = (int)($submitted['total_submitted'] ?? 0);
-        $stats['latest_submission'] = $submitted['latest_submission'];
-        $stats['total_files'] = (int)($submitted['total_files'] ?? 0);
-        $stats['average_submission_time'] = $submitted['avg_submission_timing'];
+        $latestUpload = null;
+        $totalFiles = 0;
+        $totalSize = 0;
+        $submittedTypes = [];
 
-        // Calculate completion rate
+        foreach ($stmt->fetchAll() as $row) {
+            $matchedType = $categoryMap[$row['category']] ?? $row['category'];
+            $submittedTypes[$matchedType] = [
+                'files' => (int)$row['file_count'],
+                'size' => (int)$row['total_size'],
+                'latest' => $row['latest_upload']
+            ];
+            $totalFiles += (int)$row['file_count'];
+            $totalSize += (int)$row['total_size'];
+            if ($row['latest_upload'] && (!$latestUpload || $row['latest_upload'] > $latestUpload)) {
+                $latestUpload = $row['latest_upload'];
+            }
+        }
+
+        $stats['document_types'] = $submittedTypes;
+        $stats['total_submitted'] = count($submittedTypes);
+        $stats['total_files'] = $totalFiles;
+        $stats['total_size'] = $totalSize;
+        $stats['latest_submission'] = $latestUpload;
+
         if ($stats['total_required'] > 0) {
             $stats['completion_rate'] = round(($stats['total_submitted'] / $stats['total_required']) * 100, 1);
         }
 
-        // Get overdue documents (past deadline)
-        $stmt = $pdo->prepare("
-            SELECT COUNT(*) as overdue_count
-            FROM document_requirements dr
-            LEFT JOIN faculty_document_submissions fds ON (
-                dr.document_type = fds.document_type 
-                AND fds.faculty_id = ? 
-                AND fds.academic_year = dr.academic_year
-                AND fds.semester = dr.semester
-            )
-            WHERE dr.academic_year = ?
-            AND dr.semester = ?
-            AND (dr.department_id IS NULL OR dr.department_id = (
-                SELECT department_id FROM users WHERE id = ?
-            ))
-            AND dr.is_required = 1
-            AND dr.deadline_date < CURDATE()
-            AND fds.id IS NULL
-        ");
-        $stmt->execute([$userId, $currentYear, $currentSemester, $userId]);
-        $overdue = $stmt->fetch();
-        $stats['overdue_count'] = (int)($overdue['overdue_count'] ?? 0);
+        // Deadlines only exist on document_requirements; without one there is
+        // nothing to be late against, so both counts stay at zero.
+        $deadlineMap = odci_period_deadlines($pdo, $reportYear, $reportSemester, (int)$userId);
+        if (!empty($deadlineMap)) {
+            $overdue = 0;
+            foreach ($deadlineMap as $type => $deadline) {
+                if ($deadline === null) {
+                    continue;
+                }
+                if (!isset($submittedTypes[$type]) && strtotime($deadline) < strtotime(date('Y-m-d'))) {
+                    $overdue++;
+                }
+            }
+            $stats['overdue_count'] = $overdue;
+            $stats['pending_count'] = max(0, $stats['total_required'] - $stats['total_submitted'] - $overdue);
 
-        // Get pending documents (not yet submitted, not overdue)
-        $stats['pending_count'] = $stats['total_required'] - $stats['total_submitted'] - $stats['overdue_count'];
-        $stats['pending_count'] = max(0, $stats['pending_count']); // Ensure non-negative
+            $onTime = 0;
+            foreach ($submittedTypes as $type => $info) {
+                if (isset($deadlineMap[$type]) && $deadlineMap[$type] !== null
+                    && $info['latest'] && strtotime($info['latest']) <= strtotime($deadlineMap[$type])) {
+                    $onTime++;
+                }
+            }
+            $stats['on_time_submissions'] = $onTime;
+        } else {
+            $stats['pending_count'] = max(0, $stats['total_required'] - $stats['total_submitted']);
+        }
 
-        // Calculate on-time submissions
+        // Consecutive months (most recent first) in which this user uploaded.
         $stmt = $pdo->prepare("
-            SELECT COUNT(*) as on_time_count
-            FROM faculty_document_submissions fds
-            INNER JOIN document_requirements dr ON (
-                fds.document_type = dr.document_type 
-                AND fds.academic_year = dr.academic_year 
-                AND fds.semester = dr.semester
-            )
-            WHERE fds.faculty_id = ?
-            AND fds.academic_year = ?
-            AND fds.semester = ?
-            AND fds.submitted_at <= dr.deadline_date
+            SELECT DISTINCT DATE_FORMAT(uploaded_at, '%Y-%m') AS ym
+            FROM files
+            WHERE uploaded_by = ?
+              AND is_deleted = 0
+              AND uploaded_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            ORDER BY ym DESC
         ");
-        $stmt->execute([$userId, $currentYear, $currentSemester]);
-        $onTime = $stmt->fetch();
-        $stats['on_time_submissions'] = (int)($onTime['on_time_count'] ?? 0);
-
-        // Calculate submission streak (consecutive months with submissions)
-        $stmt = $pdo->prepare("
-            SELECT COUNT(DISTINCT DATE_FORMAT(submitted_at, '%Y-%m')) as streak_months
-            FROM faculty_document_submissions 
-            WHERE faculty_id = ? 
-            AND submitted_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            ORDER BY submitted_at DESC
-        ");
-        $stmt->execute([$userId]);
-        $streak = $stmt->fetch();
-        $stats['submission_streak'] = (int)($streak['streak_months'] ?? 0);
+        $stmt->execute([(int)$userId]);
+        $months = array_column($stmt->fetchAll(), 'ym');
+        $stats['submission_streak'] = odci_count_month_streak($months);
 
         // Additional metrics
         $stats['submission_percentage'] = $stats['completion_rate'];
@@ -598,7 +586,7 @@ function sendFacultyReminder($pdo, $facultyId, $message, $senderId) {
         
         // Add notification to database
         $notificationTitle = "Document Submission Reminder";
-        addNotification($pdo, $facultyId, $notificationTitle, $message, 'info', 'submission_tracker.php');
+        addNotification($pdo, $facultyId, $notificationTitle, $message, 'info', 'folders.php');
         
         // You can implement email sending here
         // sendEmail($faculty['email'], $notificationTitle, $message);
@@ -668,78 +656,3 @@ $csrfToken = generateCSRFToken();
 
 ?>
 
-
-<script>
-    // Enhanced image error handling function
-    function handleImageError(img) {
-        console.log('Image failed to load:', img.src);
-        console.log('Original path from data attribute:', img.dataset.originalPath);
-        
-        // List of fallback options
-        const fallbacks = [
-            'assets/img/default-avatar.png',
-            '../assets/img/default-avatar.png',
-            '../../assets/img/default-avatar.png',
-            'assets/img/user-placeholder.png',
-            'https://via.placeholder.com/90x90/667eea/ffffff?text=User'
-        ];
-        
-        // Try each fallback
-        let fallbackIndex = parseInt(img.dataset.fallbackIndex || '0');
-        
-        if (fallbackIndex < fallbacks.length) {
-            img.dataset.fallbackIndex = (fallbackIndex + 1).toString();
-            img.src = fallbacks[fallbackIndex];
-            console.log('Trying fallback:', fallbacks[fallbackIndex]);
-        } else {
-            // Last resort: create a colored placeholder
-            img.style.display = 'none';
-            const placeholder = document.createElement('div');
-            placeholder.style.cssText = `
-                width: 90px; 
-                height: 90px; 
-                border-radius: 50%; 
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-                font-size: 24px;
-                margin-right: 28px;
-                border: 4px solid #e8ecf4;
-            `;
-            
-            // Extract initials from alt text
-            const name = img.alt || 'User';
-            const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            placeholder.textContent = initials;
-            placeholder.className = img.className.replace('faculty-avatar', '');
-            
-            img.parentNode.insertBefore(placeholder, img);
-            console.log('Used placeholder with initials:', initials);
-        }
-    }
-
-    // Function to test image loading and provide debug info
-    function debugImageLoading() {
-        document.querySelectorAll('.faculty-avatar').forEach((img, index) => {
-            console.log(`Image ${index}:`, {
-                src: img.src,
-                originalPath: img.dataset.originalPath,
-                alt: img.alt,
-                complete: img.complete,
-                naturalWidth: img.naturalWidth,
-                naturalHeight: img.naturalHeight
-            });
-            
-            // Test if image actually loads
-            if (img.complete && img.naturalHeight === 0) {
-                console.warn(`Image ${index} appears to have failed to load`);
-            }
-        });
-    }
-
-    // Call debug function after page loads (remove this in production)
-    setTimeout(debugImageLoading, 1000);
-</script>
