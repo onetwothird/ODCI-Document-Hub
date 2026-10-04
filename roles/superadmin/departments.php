@@ -5,7 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CVSU NAIC - Department Management</title>
+    <title>Department Management - CVSU Naic</title>
+    <link rel="icon" type="image/png" href="../../img/cvsu-logo.png">
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
