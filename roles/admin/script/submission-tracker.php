@@ -184,15 +184,6 @@ $fileCategories = [
         'required' => false,
         'frequency' => 'Per Activity'
     ],
-    'exam_acknowledgement' => [
-        'name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
-        'db_name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
-        'icon' => 'bxs-receipt',
-        'color' => '#1e40af',
-        'deadline' => 'After exam discussion',
-        'required' => true,
-        'frequency' => 'Per Exam Period'
-    ],
     'consultation_log' => [
         'name' => 'Consultation Log Sheet Form',
         'db_name' => 'Consultation Log Sheet Form',
@@ -200,7 +191,16 @@ $fileCategories = [
         'color' => '#374151',
         'deadline' => 'End of semester',
         'required' => true,
-        'frequency' => 'Per Semester'
+        'frequency' => 'Per Semester',
+     'exam_acknowledgement' => [
+        'name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
+        'db_name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
+        'icon' => 'bxs-receipt',
+        'color' => '#1e40af',
+        'deadline' => 'After exam discussion',
+        'required' => true,
+        'frequency' => 'Per Exam Period'
+    ],   
     ]
 ];
 
