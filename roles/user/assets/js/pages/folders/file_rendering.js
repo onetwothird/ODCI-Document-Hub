@@ -1,24 +1,71 @@
-function renderCategoryFiles(deptId, categoryKey, semester, files) {
+function formatFolderDate(value) {
+    if (!value) return 'Unknown date';
+    const date = new Date(String(value).replace(' ', 'T'));
+    if (isNaN(date.getTime())) return 'Unknown date';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function folderSemesterHeading(label) {
+    return `
+        <div class="folder-semester-heading">
+            <i class='bx bxs-folder'></i>
+            <span>${escapeHtml(label)}</span>
+        </div>
+    `;
+}
+
+function folderSemesterEmptyState(label, hint) {
+    return `
+        <div class="empty-state folder-semester-empty">
+            <i class='bx bx-folder-open'></i>
+            <p>No files in ${escapeHtml(label)}</p>
+            <small>${escapeHtml(hint)}</small>
+        </div>
+    `;
+}
+
+function folderSemesterFooter(options) {
+    const count = Number(options.fileCount) || 0;
+    const deleteAttrs = options.deleteAttributes || '';
+
+    return `
+        <div class="folder-semester-footer">
+            <span><i class='bx bx-file'></i> ${count} ${count === 1 ? 'file' : 'files'} total</span>
+            <span><i class='bx bx-time'></i> Created ${escapeHtml(formatFolderDate(options.createdAt))}</span>
+            ${deleteAttrs ? `<button type="button" class="folder-delete-button" ${deleteAttrs}>
+                <i class='bx bx-trash'></i> Delete folder
+            </button>` : ''}
+        </div>
+    `;
+}
+
+function renderCategoryFiles(deptId, categoryKey, semester, files, meta) {
     const uniqueId = `${deptId}-${categoryKey}`;
     const container = document.getElementById(`files-${uniqueId}-${semester}`);
-    
+    const semesterLabel = semester === 'first' ? 'First Semester' : 'Second Semester';
+
     if (!container) {
         console.error(`Container not found: files-${uniqueId}-${semester}`);
         return;
     }
-    
+
+    // The panel owns its own block layout instead of the surrounding card grid.
+    container.classList.add('folder-semester-host');
+
+    const footer = folderSemesterFooter({
+        fileCount: files.length,
+        createdAt: meta && meta.createdAt,
+        deleteAttributes: `onclick="deleteDocumentCategory(event, '${escapeHtml(categoryKey)}')"`
+    });
+
     if (files.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class='bx bx-folder-open'></i>
-                <p>No files in ${semester === 'first' ? 'First' : 'Second'} Semester</p>
-                <small>Files uploaded to this category and semester will appear here</small>
-            </div>
-        `;
+        container.innerHTML = folderSemesterHeading(semesterLabel)
+            + folderSemesterEmptyState(semesterLabel, 'Files uploaded to this category and semester will appear here')
+            + footer;
         return;
     }
     
-    let html = '';
+    let html = folderSemesterHeading(semesterLabel) + '<div class="folder-semester-files">';
     
     files.forEach(file => {
         // Add null/undefined checks and fallbacks for all file properties
@@ -102,7 +149,7 @@ function renderCategoryFiles(deptId, categoryKey, semester, files) {
         `;
     });
     
-    container.innerHTML = html;
+    container.innerHTML = html + '</div>' + footer;
 }
 
 // Enhanced escapeHtml function to handle null/undefined values
