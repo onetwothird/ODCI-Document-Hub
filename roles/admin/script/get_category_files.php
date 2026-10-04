@@ -50,8 +50,8 @@ try {
         'consultation' => 'Consultation',
         'lecture' => 'Lecture',
         'activities' => 'Activities',
+        'consultation_log' => 'Consultation Log Sheet Form',
         'exam_acknowledgement' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
-        'consultation_log' => 'Consultation Log Sheet Form'
     ];
     
     // Get the actual file_type value
