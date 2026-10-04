@@ -847,7 +847,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
 #content main .todo {
     border: 1px solid var(--cvsu-line) !important;
     border-radius: var(--cvsu-radius) !important;
-    background: #fff !important;
+    background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
     box-shadow: var(--cvsu-shadow-sm) !important;
 }
 #content main .status-item::before,
@@ -972,6 +972,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
     border-bottom: 1px solid var(--cvsu-line) !important;
     background: #fff !important;
 }
+
 #content main .card-header > .card-actions,
 #content main .table-data .head > .card-actions {
     min-height: 0 !important;
@@ -1002,12 +1003,17 @@ body :not(i):not(.bx):not([class*="fa"]) {
     border-color: #cbdccf !important;
     background: var(--cvsu-green-50) !important;
     color: var(--cvsu-green-800) !important;
-    transform: translateY(-1px);
+    transform: none;
 }
 #content main .quick-action > i,
 #content main .action-icon {
-    color: var(--cvsu-green-700) !important;
-    background: var(--cvsu-green-50) !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--cvsu-green-500) 0%, var(--cvsu-green-600) 100%) !important;
+}
+#content main .action-icon > i,
+#content main .action-icon i.bx {
+    color: #ffffff !important;
+    line-height: 1;
 }
 #content main .activity-item { border-bottom-color: var(--cvsu-line) !important; }
 #content main .alert.alert-info { border-left: 0 !important; }
@@ -1285,6 +1291,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
     line-height: 1.35;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 .department-card .custom-folder-item .folder-description {
     display: -webkit-box;
@@ -1296,6 +1303,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
     line-height: 1.4;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 .department-card .custom-folder-item .folder-stats,
 .department-card .custom-folder-item .folder-meta {
@@ -2194,8 +2202,9 @@ button[type="submit"]:not(.btn-danger):not(.btn-secondary):not(.btn-light):not(.
 .btn-primary:hover, .btn-success:hover, .btn-action:hover, .btn-modern:hover,
 .upload-btn:hover,
 button[type="submit"]:not(.btn-danger):hover {
-    background: var(--cvsu-green-800) !important;
-    border-color: var(--cvsu-green-800) !important;
+    background: var(--cvsu-green-700) !important;
+    border-color: var(--cvsu-green-700) !important;
+    color: white !important;
 }
 .btn:active, button.btn:active, .btn-primary:active, .btn-success:active,
 .btn-action:active, .btn-modern:active, .upload-btn:active { transform: translateY(1px); }
@@ -3435,6 +3444,7 @@ body.user-my-files-page #content main .file-description {
     line-height: 1.45;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 body.user-my-files-page #content main .file-actions {
     display: flex;
