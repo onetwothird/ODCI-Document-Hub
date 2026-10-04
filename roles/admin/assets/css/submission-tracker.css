@@ -9,7 +9,7 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -44,13 +44,10 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #28a745 0%, #1e7e34 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-8px);
+}.stat-card:hover{
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
 }
 
@@ -58,10 +55,10 @@ body {
     opacity: 1;
 }
 
-.stat-card.completed::before { background: linear-gradient(90deg, #10b981, #34d399); }
-.stat-card.pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.stat-card.total::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-.stat-card.progress::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.stat-card.completed::before { background: linear-gradient(90deg, #28a745, #34c759); }
+.stat-card.pending::before { background: linear-gradient(90deg, #eab308, #fde047); }
+.stat-card.total::before { background: linear-gradient(90deg, #28a745, #34c759); }
+.stat-card.progress::before { background: linear-gradient(90deg, #eab308, #fde047); }
 
 .stat-icon {
     width: 64px;
@@ -72,15 +69,15 @@ body {
     justify-content: center;
     font-size: 28px;
     color: white;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
     flex-shrink: 0;
     position: relative;
 }
 
-.stat-card.completed .stat-icon { background: linear-gradient(135deg, #10b981, #059669); }
-.stat-card.pending .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.stat-card.total .stat-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.stat-card.progress .stat-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.stat-card.completed .stat-icon { background: linear-gradient(135deg, #28a745, #1e7e34); }
+.stat-card.pending .stat-icon { background: linear-gradient(135deg, #eab308, #ca8a04); }
+.stat-card.total .stat-icon { background: linear-gradient(135deg, #28a745, #1e7e34); }
+.stat-card.progress .stat-icon { background: linear-gradient(135deg, #eab308, #ca8a04); }
 
 .stat-info {
     flex: 1;
@@ -110,7 +107,7 @@ body {
 }
 
 .stat-trend.positive {
-    color: #10b981;
+    color: #28a745;
 }
 
 .stat-trend.negative {
@@ -155,13 +152,13 @@ body {
 }
 
 .filter-tab:hover {
-    background: #e5e7eb;
+    background: #e2e8f0;
     color: #374151;
     transform: translateY(-2px);
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
 }
@@ -206,7 +203,7 @@ body {
 .search-box input {
     width: 100%;
     padding: 14px 16px 14px 48px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 14px;
     background: #f9fafb;
@@ -215,14 +212,14 @@ body {
 
 .search-box input:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #28a745;
     background: white;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .filter-select {
     padding: 14px 16px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid #e2e8f0;
     border-radius: 12px;
     background: white;
     font-size: 14px;
@@ -235,7 +232,7 @@ body {
 
 .filter-select:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: #28a745;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -246,13 +243,13 @@ body {
     align-items: center;
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid #e2e8f0;
     flex-wrap: wrap;
     min-height: 24px;
 }
 
 .filter-indicator {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     padding: 6px 12px;
     border-radius: 20px;
@@ -278,7 +275,7 @@ body {
 }
 
 .filter-indicator:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, #1e7e34, #155724);
     transform: scale(1.05);
 }
 
@@ -376,13 +373,10 @@ body {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #28a745, #1e7e34);
     transform: scaleX(0);
     transition: transform 0.3s ease;
-}
-
-.category-overview-card:hover {
-    transform: translateY(-4px);
+}.category-overview-card:hover{
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
     border-color: #e2e8f0;
 }
@@ -427,11 +421,11 @@ body {
 }
 
 .status-badge.completed {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
 }
 
 .status-badge.pending {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #eab308, #ca8a04);
 }
 
 .status-badge.optional {
@@ -477,7 +471,7 @@ body {
 }
 
 .last-submission {
-    color: #10b981;
+    color: #28a745;
     font-weight: 500;
 }
 
@@ -493,17 +487,14 @@ body {
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border-left: 4px solid #f59e0b;
+    border-left: 4px solid #eab308;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .pending-card.high {
     border-left-color: #dc2626;
-}
-
-.pending-card:hover {
-    transform: translateY(-4px);
+}.pending-card:hover{
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
@@ -567,7 +558,7 @@ body {
 }
 
 .btn-upload {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     border: none;
     padding: 12px 20px;
@@ -600,10 +591,7 @@ body {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     border: 1px solid #f1f5f9;
     transition: all 0.3s ease;
-}
-
-.completed-card:hover {
-    transform: translateY(-4px);
+}.completed-card:hover{
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
@@ -644,7 +632,7 @@ body {
 
 .completed-badge {
     background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    color: #28a745;
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -689,7 +677,7 @@ body {
 }
 
 .file-count {
-    color: #3b82f6;
+    color: #28a745;
     font-weight: 600;
     background: rgba(59, 130, 246, 0.1);
     padding: 4px 8px;
@@ -707,12 +695,12 @@ body {
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border: 2px dashed #e5e7eb;
+    border: 2px dashed #e2e8f0;
 }
 
 .empty-icon {
     font-size: 48px;
-    color: #d1d5db;
+    color: #cbd5e1;
     margin-bottom: 16px;
 }
 
@@ -736,7 +724,7 @@ body {
     background: #f9fafb;
     border-radius: 16px;
     margin: 20px 0;
-    border: 2px dashed #d1d5db;
+    border: 2px dashed #cbd5e1;
 }
 
 .no-filter-results i {
@@ -758,7 +746,7 @@ body {
 }
 
 .no-filter-results button {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -803,7 +791,7 @@ body {
 }
 
 .quick-upload-btn:hover {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
     transform: scale(1.1);
     box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
@@ -832,7 +820,7 @@ body {
 }
 
 .notification-toast.success {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
 }
 
@@ -842,12 +830,12 @@ body {
 }
 
 .notification-toast.info {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #28a745, #1e7e34);
     color: white;
 }
 
 .notification-toast.warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #eab308, #ca8a04);
     color: white;
 }
 
@@ -972,7 +960,6 @@ body {
 .category-overview-card:focus,
 .pending-card:focus,
 .completed-card:focus {
-    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
