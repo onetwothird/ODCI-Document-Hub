@@ -68,6 +68,10 @@ if (session_status() == PHP_SESSION_NONE) {
 require_once __DIR__ . '/schema.php';
 odci_ensure_schema($pdo);
 
+// Shared academic-period / upload-path helpers (period normalisation, folder
+// category <-> document type mapping, stored file path resolution).
+require_once __DIR__ . '/document_period.php';
+
 // Create upload directories if they don't exist
 $directories = [
     UPLOAD_DIR,
