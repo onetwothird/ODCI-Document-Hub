@@ -78,13 +78,20 @@ body {
 #content nav .bx.bx-menu {
 	cursor: pointer;
 	color: var(--light);
+	padding: 8px;
+	border-radius: 6px;
+	transition: background-color 0.3s ease;
+}
+#content nav .bx.bx-menu:hover {
+	background: rgba(255, 255, 255, 0.1);
 }
 #content nav .nav-link {
 	font-size: 16px;
+	font-weight: 500;
 	transition: .3s ease;
 }
 #content nav .nav-link:hover {
-	color: var(--blue);
+	color: rgba(255, 255, 255, 0.8);
 }
 #content nav form {
 	max-width: 400px;
@@ -107,23 +114,37 @@ body {
 	width: 100%;
 	color: var(--dark);
 }
+#content nav form .form-input input::placeholder {
+	color: rgba(255, 255, 255, 0.7);
+}
 #content nav form .form-input button {
 	width: 36px;
 	height: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background: var(--blue);
+	background: var(--sidebar-background);
 	color: var(--light);
 	font-size: 18px;
 	border: none;
 	outline: none;
 	border-radius: 0 36px 36px 0;
 	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+#content nav form .form-input button:hover {
+	background: #266d10;
 }
 #content nav .notification {
 	font-size: 20px;
 	position: relative;
+	text-decoration: none;
+	padding: 8px;
+	border-radius: 6px;
+	transition: background-color 0.3s ease;
+}
+#content nav .notification:hover {
+	background: rgba(255, 255, 255, 0.1);
 }
 #content nav .notification .num {
 	position: absolute;
@@ -132,8 +153,8 @@ body {
 	width: 20px;
 	height: 20px;
 	border-radius: 50%;
-	border: 2px solid var(--light);
-	background: var(--red);
+	border: 2px solid var(--sidebar-background);
+	background: #ff6b6b;
 	color: var(--light);
 	font-weight: 700;
 	font-size: 12px;
@@ -146,15 +167,20 @@ body {
 	height: 36px;
 	object-fit: cover;
 	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.3);
 }
 #content nav .switch-mode {
 	display: block;
 	min-width: 50px;
 	height: 25px;
 	border-radius: 25px;
-	background: var(--grey);
+	background: rgba(255, 255, 255, 0.2);
 	cursor: pointer;
 	position: relative;
+	transition: background-color 0.3s ease;
+}
+#content nav .switch-mode:hover {
+	background: rgba(255, 255, 255, 0.3);
 }
 #content nav .switch-mode::before {
 	content: '';
@@ -163,9 +189,10 @@ body {
 	left: 2px;
 	bottom: 2px;
 	width: calc(25px - 4px);
-	background: var(--blue);
+	background: var(--light);
 	border-radius: 50%;
 	transition: all .3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 #content nav #switch-mode:checked + .switch-mode::before {
 	left: calc(100% - (25px - 4px) - 2px);
@@ -279,20 +306,24 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-	#content {
-		width: calc(100% - 60px);
-		left: 200px;
-	}
-
 	#content nav .nav-link {
 		display: none;
 	}
 	.profile-name {
 		display: none;
 	}
+	.profile-dropdown {
+		right: -8px;
+		min-width: 200px;
+	}
 }
 
 @media screen and (max-width: 576px) {
+	#content nav {
+		padding: 0 12px;
+		grid-gap: 12px;
+	}
+
 	#content nav form .form-input input {
 		display: none;
 	}
@@ -302,7 +333,7 @@ body {
 		height: auto;
 		background: transparent;
 		border-radius: none;
-		color: var(--dark);
+		color: var(--light);
 	}
 
 	#content nav form.show .form-input input {
@@ -314,7 +345,7 @@ body {
 		height: 100%;
 		border-radius: 0 36px 36px 0;
 		color: var(--light);
-		background: var(--red);
+		background: var(--sidebar-background);
 	}
 
 	#content nav form.show ~ .notification,
