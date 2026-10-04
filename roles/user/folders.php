@@ -132,15 +132,15 @@ $fileCategories = [
         'icon' => 'bxs-game',
         'color' => '#be185d'
     ],
-    'exam_acknowledgement' => [
-        'name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
-        'icon' => 'bxs-receipt',
-        'color' => '#1e40af'
-    ],
     'consultation_log' => [
         'name' => 'Consultation Log Sheet Form',
         'icon' => 'bxs-notepad',
         'color' => '#374151'
+    ],
+     'exam_acknowledgement' => [
+        'name' => 'CEIT-QF-03 Discussion of Examination Acknowledgement Receipt Form',
+        'icon' => 'bxs-receipt',
+        'color' => '#1e40af'
     ]
 ];
 
@@ -803,12 +803,6 @@ function getUserInitials($fullName) {
                                         <div class="category-name"><?php echo htmlspecialchars($category['name']); ?></div>
                                         <div class="category-count">0 files</div>
                                     </div>
-                                    <button type="button" class="category-delete-button"
-                                            aria-label="Delete <?php echo htmlspecialchars($category['name'], ENT_QUOTES); ?> folder"
-                                            title="Delete this department folder"
-                                            onclick="deleteDocumentCategory(event, '<?php echo $categoryKey; ?>')">
-                                        <i class='bx bx-trash'></i>
-                                    </button>
                                     <!-- FIXED: Each category has its own unique expand icon -->
                                     <i class='bx bx-chevron-right expand-icon' id="icon-<?php echo $uniqueId; ?>"></i>
                                 </div>
