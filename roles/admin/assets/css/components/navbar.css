@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here */
 
 * {
 	margin: 0;
@@ -15,8 +15,8 @@ li {
 }
 
 :root {
-	--poppins: 'Poppins', sans-serif;
-	--lato: 'Lato', sans-serif;
+	--poppins: var(--font-family);
+	--lato: var(--font-family);
 
 	--sidebar-background: #04500f;
 	--light: #F9F9F9;
