@@ -426,7 +426,8 @@ function folder_status_label(string $status): string
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Folder Management - Admin Panel</title>
+    <title>Folder Management - CVSU Naic</title>
+    <link rel="icon" type="image/png" href="../../img/cvsu-logo.png">
 
     <!-- No Bootstrap and no Font Awesome.
 
