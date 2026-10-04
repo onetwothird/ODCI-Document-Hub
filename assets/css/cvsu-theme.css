@@ -173,7 +173,7 @@ h4, h5, h6 { font-size: var(--fs-base) !important; font-weight: var(--fw-semi) !
 p { line-height: var(--lh-base); margin: 0 0 var(--sp-3); }
 p:last-child { margin-bottom: 0; }
 
-small { font-size: var(--fs-sm); }
+small { font-size: var(--fs-sm); color: var(--cvsu-green-900); }
 
 /* Prose inside long-form pages (report descriptions, shared docs, posts) */
 .prose, .post-content, .rich-text {
@@ -202,16 +202,16 @@ textarea:focus-visible,
 }
 
 /* Slim, branded scrollbars */
-* { scrollbar-width: thin; scrollbar-color: var(--cvsu-green-300) transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--cvsu-green-800) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-    background: var(--cvsu-green-300);
+    background: var(--cvsu-green-800);
     border: 2px solid transparent;
     border-radius: 99px;
     background-clip: content-box;
 }
-*::-webkit-scrollbar-thumb:hover { background: var(--cvsu-green-400); background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--cvsu-green-800); background-clip: content-box; }
 
 
 @media (max-width: 992px) {
@@ -653,16 +653,61 @@ textarea:focus-visible,
                 border-color var(--cvsu-transition);
 }
 
-/* Only interactive cards lift. Static panels must not, or the page reads noisy. */
+/* --------------------------------------------------------------------------
+   HOVER POLICY — the container never moves; only its contents respond.
+
+   A card that translates on hover shifts the whole grid row, which reads as
+   jitter rather than feedback, and it breaks the baseline alignment of every
+   tile beside it. So containers hold their box and change only surface
+   properties (shadow / border), while the *contents* inside them do the
+   moving. Same affordance, no layout shift.
+   -------------------------------------------------------------------------- */
 .card:hover,
 .folder-card:hover,
 .category-card:hover,
 .department-card:hover,
 .post-card:hover,
-.file-card:hover {
-    transform: translateY(-2px);
+.file-card:hover,
+.report-card:hover,
+.activity-card:hover {
+    transform: none;
     box-shadow: var(--cvsu-shadow-md) !important;
     border-color: var(--cvsu-green-300) !important;
+}
+
+/* The contents lift instead. Scoped to direct children so nested interactive
+   elements keep their own hover treatment. */
+.card:hover > .card-icon,
+.card:hover > .stat-icon,
+.card:hover > .bx,
+.card:hover > i,
+.folder-card:hover > .folder-icon,
+.category-card:hover > .category-icon,
+.department-card:hover > .department-icon,
+.file-card:hover > .file-icon,
+.post-card:hover > .post-avatar {
+    transform: translateY(-2px) scale(1.04);
+}
+
+.card:hover > h3,
+.card:hover > .card-title,
+.folder-card:hover > h3,
+.category-card:hover > .category-name,
+.department-card:hover > .department-name {
+    color: var(--cvsu-green-600) !important;
+}
+
+/* Icon badge / avatar transitions are opt-in so they stay in step with the
+   container's own transition timing. */
+.card > .card-icon,
+.card > .stat-icon,
+.card > .bx,
+.folder-card > .folder-icon,
+.category-card > .category-icon,
+.department-card > .department-icon,
+.file-card > .file-icon,
+.post-card > .post-avatar {
+    transition: transform var(--cvsu-transition);
 }
 
 /* Clickable cards get a pointer and a keyboard affordance to match. */
@@ -746,13 +791,8 @@ a.card, a.folder-card, a.category-card, a.department-card,
                 border-color var(--cvsu-transition);
 }
 .stat-card:hover,
-.summary-card:hover { transform: translateY(-2px); box-shadow: var(--cvsu-shadow-md) !important; }
+.summary-card:hover { transform: none; box-shadow: var(--cvsu-shadow-md) !important; border-color: var(--cvsu-green-300) !important; }
 
-/* Gold rail on every second tile in the row. */
-.stat-card:nth-child(even),
-.stats-card:nth-child(even),
-.summary-card:nth-child(even),
-.stat-item:nth-child(even) { border-left-color: var(--cvsu-gold-400) !important; }
 
 .stat-icon,
 .stats-card .stat-icon,
