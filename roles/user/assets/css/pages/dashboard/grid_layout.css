@@ -20,11 +20,32 @@
 
 .card-header {
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 16px;
     border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Card header gold rule ------------------------------------------------
+   The shared design system (assets/css/cvsu-theme.css) draws the brand rule
+   under a card header as a ::after pseudo-element, and on a flex container a
+   pseudo-element becomes a flex item. That turns the header into a three-item
+   row - title, actions, rule - so space-between parks the action icons in the
+   middle of the header instead of at its right edge.
+
+   Giving the rule the full row width drops it onto a line of its own, leaving
+   the title and the actions as the only two items, and the auto margin on the
+   actions pins them to the right edge. Mirrors the admin dashboard so both
+   roles read identically. */
+body.user-dashboard-page #content main .dashboard-card .card-header::after {
+    flex: none;
+    width: 100%;
+}
+
+body.user-dashboard-page #content main .dashboard-card .card-header > .card-actions {
+    margin-left: auto;
+    flex: 0 0 auto;
 }
 
 .card-header h3 {
