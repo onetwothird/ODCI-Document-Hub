@@ -19,8 +19,8 @@
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <!-- Component Stylesheets -->
     <link rel="stylesheet" href="assets/css/base.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/sidebar.css?v=<?= time() ?>">
-    <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/sidebar.css?v=<?= time() ?>">
+<link rel="stylesheet" href="assets/css/components/navbar.css?v=<?= time() ?>">
     
     <link rel="stylesheet" href="../../social_feed/css/social_feed.css?v=<?= time() ?>">
 
