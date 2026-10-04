@@ -38,27 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     progressBars.forEach(bar => progressObserver.observe(bar));
     
-    // Table row hover effects
-    const tableRows = document.querySelectorAll('.enhanced-table tbody tr, .files-table tbody tr');
-    tableRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Card hover effects
-    const cards = document.querySelectorAll('.dashboard-card, .stat-card, .folder-card');
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-        });
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
+    // Card and table row hover is owned entirely by CSS (shadow and tint only, no
+// movement). An inline transform here would override that policy and make the
+// cards jump under the cursor, so the handlers are intentionally absent.
     
     // Action item hover effects
     const actionItems = document.querySelectorAll('.action-item');
