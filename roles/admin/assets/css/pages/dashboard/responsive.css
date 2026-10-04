@@ -16,12 +16,9 @@
     border: 1px solid rgba(0, 0, 0, 0.06);
     transition: all 0.3s ease;
     text-decoration: none;
-}
-
-.action-item:hover {
-    background: rgba(40, 167, 69, 0.04);
-    border-color: rgba(40, 167, 69, 0.2);
-    transform: translateX(4px);
+}.action-item:hover{
+    background: var(--cvsu-green-100);
+    border-color: var(--cvsu-green-100);
 }
 
 .action-content {
@@ -33,7 +30,7 @@
 .action-icon {
     width: 40px;
     height: 40px;
-    background: var(--blue);
+    background: var(--cvsu-green-700);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -54,7 +51,7 @@
 }
 
 .action-item:hover .action-arrow {
-    color: var(--blue);
+    color: var(--cvsu-green-700);
     transform: translateX(4px);
 }
 
@@ -89,7 +86,7 @@
 }
 
 .upload-cta {
-    background: var(--blue);
+    background: var(--cvsu-green-700);
     color: white;
     padding: 16px 24px;
     border-radius: 12px;
@@ -99,13 +96,13 @@
     align-items: center;
     gap: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .upload-cta:hover {
     background: var(--green-hover);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Empty State */
@@ -127,17 +124,17 @@
 }
 
 .empty-state a {
-    color: var(--blue);
+    color: var(--cvsu-green-700);
     text-decoration: none;
     font-weight: 600;
     padding: 12px 24px;
-    background: rgba(40, 167, 69, 0.1);
+    background: var(--cvsu-green-100);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .empty-state a:hover {
-    background: rgba(40, 167, 69, 0.2);
+    background: var(--cvsu-green-100);
 }
 
 /* Responsive Design */
