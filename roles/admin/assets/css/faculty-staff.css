@@ -1,17 +1,212 @@
+/* Aligned with assets/css/base.css + assets/css/cvsu-theme.css.
+   This block previously set --blue to Bootstrap's blue and pulled in
+   emerald/cyan accents, which overrode base.css for the whole page and left
+   the action buttons in three unrelated colours inside a green/gold theme.
+
+   Everything below binds to the shared CVSU tokens (--cvsu-*) that
+   assets/css/cvsu-theme.css defines, so this page follows the system theme
+   instead of carrying its own private palette. The --*-color aliases are kept
+   because view-faculty-staff.php still references them inline. */
 :root {
-            --blue: #007bff;
-            --primary-color: #10b981;
-            --secondary-color: #059669;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --info-color: #17a2b8;
+            --blue: var(--cvsu-green-700);
+            --primary-color: var(--cvsu-green-600);
+            --secondary-color: var(--cvsu-green-700);
+            --success-color: var(--cvsu-green-600);
+            --warning-color: var(--cvsu-gold-600);
+            --gold: var(--cvsu-gold-400);
+            --gold-dark: var(--cvsu-gold-600);
+            --danger-color: var(--cvsu-danger);
+            --info-color: var(--cvsu-gold-600);
+        }
+
+        /* Page shell ---------------------------------------------------------- */
+        #content main {
+            background: transparent;
+        }
+
+        /* Reserve the vertical scrollbar gutter for the whole page.
+
+           #content is sized as `width: calc(100% - 60px)` off the document, and
+           the document is the scroller here (base.css gives html/body
+           `overflow-x: hidden`, not an inner scroll box). So whenever the page
+           grew or shrank past the viewport the scrollbar came and went, the
+           document box lost ~15px, and every width-driven element shifted
+           sideways - most visibly the right-aligned search-clear button, which
+           visibly jumped the moment a filtered list expanded again on clear.
+
+           `scrollbar-gutter: stable` keeps the gutter reserved whether or not a
+           scrollbar is currently needed, so filtering changes the page height
+           without ever changing the page width. */
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        #content main .head-title .left h1 {
+            color: var(--cvsu-green-900);
+        }
+
+        /* Department banner ----------------------------------------------------
+           The one piece of identity on the page: which department this list
+           belongs to, plus its three headline counts. It is built from the
+           canonical card recipe (white fill, --cvsu-line hairline,
+           --cvsu-radius, --cvsu-shadow) so it belongs to the same family as
+           the summary cards and faculty cards below it, with a green rail on
+           the leading edge marking it as context rather than another data
+           card.
+
+           These rules used to sit inside the `max-width: 768px` block at the
+           bottom of this file, which meant desktop never applied them at all:
+           the wrapper collapsed to a plain block and the icon, name, code and
+           counts rendered as loose stacked text. They are global now, and the
+           width-specific behaviour lives with the other responsive rules.
+
+           (.page-context, which sat here before, was left over from an earlier
+           attempt to fold the identity into the page title. Nothing in the
+           markup used it, so it is gone.) */
+        .department-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--sp-5);
+            flex-wrap: wrap;
+            background: var(--cvsu-white);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius);
+            box-shadow: var(--cvsu-shadow);
+            padding: var(--sp-4) var(--sp-5) var(--sp-4) var(--sp-6);
+            margin-bottom: var(--sp-5);
+            overflow: hidden;
+        }
+
+        .department-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 3px;
+        }
+
+        /* Identity row. The shared stylesheet also treats .department-info as a
+           standalone card - it was written for the folders page, where that
+           block IS the card. Here the card is .department-header, so these
+           declarations take the card treatment back off; without them the
+           identity renders as a white card nested inside a white card.
+
+           The shared rules use !important, so this selector has to out-specify
+           `#content main .department-info` as well as match it. */
+        #content main .department-header .department-info {
+            position: static;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            min-width: 0;
+            flex-wrap: wrap;
+            overflow: visible;
+            padding: 0 !important;
+            border: 0 !important;
+            background: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Same reason - the shared theme pins this h2 to body ink at 20px/650.
+           The banner title should carry the green-900 heading colour used by
+           .faculty-name and the dialog titles. */
+        #content main .department-header .department-title {
+            margin: 0 !important;
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--cvsu-green-900) !important;
+        }
+
+        /* Tinted tile, matching the shared .stat-icon icon-badge recipe. */
+        .department-icon {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-700);
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        /* Code sits inline with the name as a quiet chip rather than on its own
+           line, which is what made the earlier version feel fragmented. */
+        .department-code {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            color: var(--cvsu-green-700);
+            white-space: nowrap;
+        }
+
+        .department-stats {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .dept-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--cvsu-surface);
+            border: 1px solid var(--cvsu-line);
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--cvsu-grey-500);
+            white-space: nowrap;
+        }
+
+        .dept-stat i {
+            font-size: 15px;
+            line-height: 1;
+            color: var(--cvsu-green-600);
+        }
+
+        .dept-stat b {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cvsu-green-800);
+        }
+
+        #content main .head-title .breadcrumb li a.active {
+            color: var(--cvsu-green-600);
+        }
+
+        /* Initials tile shown when the stored image cannot be loaded. */
+        .avatar-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--cvsu-green-100), var(--cvsu-green-300));
+            color: var(--cvsu-green-700);
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: 1px;
+            user-select: none;
         }
 
         .faculty-card {
             background: white;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: var(--cvsu-shadow);
             padding: 28px;
             margin-bottom: 24px;
             display: flex;
@@ -32,11 +227,8 @@
             background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             opacity: 0;
             transition: opacity 0.3s ease;
-        }
-        
-        .faculty-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }.faculty-card:hover{
+            box-shadow: var(--cvsu-shadow-md);
             border-left-color: var(--primary-color);
         }
 
@@ -62,26 +254,31 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 28px;
-            border: 4px solid #e8ecf4;
+            /* 2px, not 4px: at 90px the old ring read as a heavy frame rather
+               than a hairline separating the photo from the card. */
+            border: 2px solid var(--cvsu-green-800);
             position: relative;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .faculty-card:hover .faculty-avatar {
-            transform: scale(1.05);
-            border-color: var(--primary-color);
+            transform: scale(1.03);
+            border-color: var(--cvsu-green-800);    
         }
-        
+
+        /* Presence dot: 2px white ring instead of 3px, so it sits on the photo
+           without reading as a second border. */
         .faculty-avatar::after {
             content: '';
             position: absolute;
-            bottom: 4px;
-            right: 4px;
-            width: 18px;
-            height: 18px;
+            bottom: 3px;
+            right: 3px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 2px solid var(--cvsu-white);
+            box-shadow: 0 1px 3px rgba(11, 61, 30, .18);
         }
         
         .faculty-avatar.online::after {
@@ -230,7 +427,7 @@
         }
         
         .progress-fill.high {
-            background: linear-gradient(90deg, var(--success-color), #20c997);
+            background: linear-gradient(90deg, var(--success-color), #34c759);
         }
         
         .progress-fill.medium {
@@ -259,9 +456,15 @@
             align-items: center;
             gap: 4px;
         }
+
+        .status-badge i,
+        .status-badge i.bx {
+            font-size: 13px;
+            line-height: 1;
+        }
         
         .status-badge.complete {
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            background: linear-gradient(135deg, #dcfce7, #a7f3d0);
             color: #155724;
             border: 1px solid rgba(21, 87, 36, 0.2);
         }
@@ -279,13 +482,13 @@
         }
         
         .status-badge.active {
-            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-            color: #0c5460;
-            border: 1px solid rgba(12, 84, 96, 0.2);
+            background: linear-gradient(135deg, #dcfce7, #a7f3d0);
+            color: #155724;
+            border: 1px solid rgba(21, 87, 36, 0.2);
         }
 
         .status-badge.verified {
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            background: linear-gradient(135deg, #dcfce7, #a7f3d0);
             color: #155724;
         }
 
@@ -301,211 +504,352 @@
             min-width: 160px;
         }
         
-        .btn-view, .btn-message, .btn-stats {
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 14px;
+        /* Row actions --------------------------------------------------------------
+   One visual system: "View Submissions" is the primary green action;
+   "Send Message" and "View Stats" use the same neutral secondary surface as
+   the user panel's .btn-secondary (white, hairline border, green on hover),
+   so the three sit together as one button family. All three are built on the
+   shared .btn base so the shape, focus ring and disabled state are identical
+   to every other button in the system. */
+.btn-view, .btn-message, .btn-stats {
+            padding: 10px 16px;
+            border-radius: var(--cvsu-radius-sm);
+            font-size: 13px;
             font-weight: 600;
+            line-height: 1.2;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition),
+                        color var(--cvsu-transition), box-shadow var(--cvsu-transition), transform var(--cvsu-transition);
             text-decoration: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            border: none;
+            gap: 7px;
             position: relative;
-            overflow: hidden;
+            white-space: nowrap;
+            font-family: inherit;
         }
 
-        .btn-view, .btn-message, .btn-stats {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+        /* Primary - CVSU green fill. */
+        .btn-view {
+            background: linear-gradient(135deg, var(--cvsu-green-500) 0%, var(--cvsu-green-700) 100%);
+            border: 1px solid transparent;
+            color: #ffffff;
+            box-shadow: var(--cvsu-shadow-sm);
         }
 
-        .btn-message {
-            background: linear-gradient(135deg, var(--success-color), #20c997);
-        }
-
+        /* Secondary - white surface, green hover (matches .btn-secondary in the user panel). */
+        .btn-message,
         .btn-stats {
-            background: linear-gradient(135deg, var(--info-color), #138496);
+            background: #ffffff;
+            border: 1px solid var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+            box-shadow: var(--cvsu-shadow-sm);
         }
-        
+
+        .btn-message:hover,
+        .btn-stats:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+            box-shadow: var(--cvsu-shadow-md);
+        }
+
+        .btn-view:hover {
+            background: linear-gradient(135deg, var(--cvsu-green-600) 0%, var(--cvsu-green-800) 100%);
+            box-shadow: var(--cvsu-shadow-md);
+        }
+
+        /* Buttons are controls, not containers - a small lift is correct here. */
         .btn-view:hover, .btn-message:hover, .btn-stats:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .department-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border-radius: 16px;
-            color: white;
-            padding: 30px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
+            transform: translateY(-1px);
         }
 
-        .department-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: float 6s ease-in-out infinite;
+        .btn-view:active, .btn-message:active, .btn-stats:active {
+            transform: translateY(0);
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+        /* Shared focus ring so keyboard users get the same affordance as the rest
+           of the system (the base stylesheet draws a green outline). */
+        .btn-view:focus-visible,
+        .btn-message:focus-visible,
+        .btn-stats:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
         }
 
-        .department-info {
-            display: flex;
-            align-items: center;
-            position: relative;
-            z-index: 2;
+        .btn-view.is-busy,
+        .btn-message.is-busy,
+        .btn-stats.is-busy {
+            opacity: .6;
+            pointer-events: none;
         }
-        
-        .department-icon {
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 24px;
-            color: white;
-            font-weight: 800;
-            font-size: 24px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .department-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin: 0 0 6px 0;
-        }
-        
-        .department-code {
-            color: rgba(255,255,255,0.9);
-            font-size: 18px;
-            margin: 0;
-            font-weight: 600;
-        }
-        
-        .department-stats {
-            text-align: right;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .dept-stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            display: block;
-        }
-        
-        .dept-stat-label {
+
+        /* Icon integrity: white on the filled primary, gold on the outlines,
+           regardless of what colour an ancestor happens to set. */
+        .btn-view i, .btn-view i.bx {
+            color: #ffffff !important;
             font-size: 16px;
-            opacity: 0.9;
-            font-weight: 500;
+            line-height: 1;
         }
-        
-        .filters-section {
-            background: white;
-            padding: 24px 28px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 1px solid #f0f4f8;
+
+        .btn-message i, .btn-message i.bx,
+        .btn-stats i, .btn-stats i.bx {
+            color: currentColor;
+            font-size: 16px;
+            line-height: 1;
+            transition: color .25s ease;
         }
-        
+
+        .btn-message:hover i, .btn-message:hover i.bx,
+        .btn-stats:hover i, .btn-stats:hover i.bx {
+            color: currentColor;
+        }
+
+.filters-section {
+            background: var(--cvsu-white);
+            padding: 20px 22px;
+            border-radius: var(--cvsu-radius-lg);
+            margin-bottom: 20px;
+            box-shadow: var(--cvsu-shadow);
+            border: 1px solid var(--cvsu-line);
+        }
+
         .filters-row {
             display: flex;
-            gap: 20px;
+            gap: 12px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
+/* Search ----------------------------------------------------------------
+   The theme sets `padding: 0 var(--sp-3) !important` (0 12px) on every
+   `input[type="text"]`, and that rule is loaded AFTER this file. An attribute
+   selector counts at class level, so `input[type="text"]` scores (0,1,1) and
+   beats a bare `.search-input` at (0,1,0) - the 40px/42px side padding that
+   reserves room for the magnifier and the clear button was being discarded,
+   and the absolutely positioned icon sat on top of the placeholder text.
+   Scoping this rule under `#content main` raises it to (1,1,1) so the reserved
+   gutter actually applies at every viewport width. */
         .search-box {
-            flex: 1;
-            min-width: 280px;
             position: relative;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 14px 18px 14px 50px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
+            flex: 1 1 320px;
+            min-width: 240px;
+            display: flex;
+            align-items: center;
         }
 
-        .search-box::before {
-            content: '\f002';
-            font-family: 'boxicons';
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #a0aec0;
-            font-size: 18px;
-            z-index: 2;
+        #content main .search-input {
+            width: 100%;
+            height: var(--ctl-md) !important;
+            padding: 0 42px 0 40px !important;
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            background: var(--cvsu-surface);
+            color: var(--cvsu-ink);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color var(--cvsu-transition), box-shadow var(--cvsu-transition),
+                        background-color var(--cvsu-transition);
         }
-        
+
+        .search-input::placeholder {
+            color: var(--cvsu-grey-400);
+        }
+
+        .search-input:hover {
+            border-color: var(--cvsu-green-300);
+        }
+
         .search-input:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
+            border-color: var(--cvsu-green-500);
+            box-shadow: var(--cvsu-ring);
+            background: var(--cvsu-white);
         }
-        
-        .filter-select {
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            background: #f8fafc;
+
+        /* The magnifier used to be injected as a ::before with the raw Boxicons
+           codepoint '\f002'. That renders only if the icon font has already loaded and
+           it inherits the font stack rather than the boxicons family, so it frequently
+           showed as a blank box. The markup now carries a real <i class='bx bx-search'>
+           and this rule only positions it. */
+        .search-box > i.bx-search {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--cvsu-grey-400);
+            font-size: 17px;
+            line-height: 1;
+            z-index: 2;
+            pointer-events: none;
+            transition: color var(--cvsu-transition);
+        }
+
+        .search-box:focus-within > i.bx-search {
+            color: var(--cvsu-green-600);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--cvsu-grey-400);
+            font-size: 17px;
+            line-height: 1;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            z-index: 2;
+            transition: background-color var(--cvsu-transition), color var(--cvsu-transition);
         }
-        
+
+        /* Both controls below are toggled with the `hidden` attribute from
+           view-staff.js (clearButton.hidden / resetButton.hidden). The UA
+           stylesheet implements that as `[hidden] { display: none }`, which any
+           author `display` declaration silently outranks - and both of these set
+           one (.search-clear is `display: flex`, .filters-reset is
+           `inline-flex`). The attribute was therefore being set correctly in JS
+           and then ignored by CSS, leaving the clear "x" and the Reset button
+           permanently on screen. Adding the attribute back to the selector
+           raises specificity to (0,2,0) and restores the intended behaviour. */
+        .search-clear[hidden],
+        .filters-reset[hidden] {
+            display: none;
+        }
+
+        .search-clear:hover {
+            background: var(--cvsu-muted-bg);
+            color: var(--cvsu-green-700);
+        }
+
+        .search-clear:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 1px;
+        }
+
+        /* Result / reset footer under the filter row. */
+        .filters-foot {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--cvsu-line);
+        }
+
+        .filters-result {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--cvsu-grey-500);
+        }
+
+        .filters-reset {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid var(--cvsu-line);
+            border-radius: 999px;
+            background: var(--cvsu-white);
+            color: var(--cvsu-green-700);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition);
+        }
+
+        .filters-reset:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-300);
+        }
+
+        .filters-reset i {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .filter-select {
+            height: var(--ctl-md) !important;
+            padding: 0 36px 0 14px !important;
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            background-color: var(--cvsu-surface);
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            -webkit-appearance: none;
+            appearance: none;
+            color: var(--cvsu-grey-700);
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: border-color var(--cvsu-transition), box-shadow var(--cvsu-transition),
+                        background-color var(--cvsu-transition);
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        .filter-select:hover {
+            border-color: var(--cvsu-green-300);
+        }
+
         .filter-select:focus {
             outline: none;
-            border-color: var(--primary-color);
-            background: white;
+            border-color: var(--cvsu-green-500);
+            box-shadow: var(--cvsu-ring);
+            background-color: var(--cvsu-white);
         }
         
         .view-toggle {
             display: flex;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            gap: 2px;
+            padding: 3px;
+            border-radius: var(--cvsu-radius-sm);
             overflow: hidden;
-            background: #f8fafc;
         }
-        
+
         .view-btn {
-            padding: 12px 16px;
+            width: 34px;
+            height: calc(var(--ctl) - 8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border: none;
+            border-radius: 6px;
             background: transparent;
             cursor: pointer;
-            transition: all 0.3s ease;
-            color: #718096;
-            font-size: 16px;
+            transition: background-color var(--cvsu-transition), color var(--cvsu-transition),
+                        box-shadow var(--cvsu-transition);
+            color: var(--cvsu-grey-500);
+            font-size: 17px;
+            line-height: 1;
         }
-        
+
+        .view-btn:hover {
+            color: var(--cvsu-green-700);
+            background: var(--cvsu-green-50);
+        }
+
         .view-btn.active {
-            background: var(--primary-color);
-            color: white;
+            background: var(--cvsu-green-600);
+            color: var(--cvsu-white);
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .view-btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 1px;
         }
         
         .no-faculty, .no-results {
@@ -514,7 +858,7 @@
             color: #718096;
             background: white;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: var(--cvsu-shadow-sm);
         }
         
         .no-faculty i, .no-results i {
@@ -545,59 +889,110 @@
         }
         
         .summary-card {
-            background: white;
-            padding: 28px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            background: var(--cvsu-white);
+            padding: 22px 20px;
+            border-radius: var(--cvsu-radius);
+            /* --cvsu-shadow-sm, not the 0 4px 20px fog this used to carry. At
+               five across, a wide blur turned the row into one grey mass. */
+            box-shadow: var(--cvsu-shadow-sm);
             text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid #f0f4f8;
+            transition: box-shadow var(--cvsu-transition), border-color var(--cvsu-transition),
+                        transform var(--cvsu-transition);
+            border: 1px solid var(--cvsu-line);
         }
 
-        .summary-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-        }
-
+        /* No decorative stripe. The tinted icon tile and the coloured figure
+           already give each card its own accent; a repeated bar across five
+           cards said nothing and competed with them. */
         .summary-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.1);
+            box-shadow: var(--cvsu-shadow-md);
+            border-color: var(--cvsu-green-100);
+            transform: translateY(-2px);
         }
-        
+
         .summary-card-value {
-            font-size: 40px;
-            font-weight: 800;
-            color: var(--primary-color);
-            display: block;
-            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--cvsu-green-800);
+            line-height: 1.1;
         }
-        
+
+        /* Icon and figure share one centred row. */
+        .summary-card-figure {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .summary-card-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .summary-card-icon.tone-green {
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            color: var(--cvsu-green-600);
+        }
+
+        .summary-card-icon.tone-gold {
+            background: var(--cvsu-gold-50);
+            border: 1px solid var(--cvsu-gold-100);
+            color: var(--cvsu-gold-600);
+        }
+
+        .summary-card-value.tone-green {
+            color: var(--cvsu-green-700);
+        }
+
+        .summary-card-value.tone-gold {
+            color: var(--cvsu-gold-700);
+        }
+
         .summary-card-label {
-            font-size: 14px;
-            color: #718096;
+            display: block;
+            font-size: 11px;
+            color: var(--cvsu-grey-500);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
+            letter-spacing: .9px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
-        /* Bulk Actions */
+        /* Bulk Actions
+   A contextual bar that appears once faculty are selected. It sits above the
+   list on a tinted surface with a green rail so it reads as one object with the
+   selection it acts on, rather than loose controls floating on the page. */
         .bulk-actions {
-            background: #f8fafc;
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
             display: none;
             align-items: center;
             gap: 16px;
-            border: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+            position: relative;
+            background: var(--cvsu-green-50);
+            border: 1px solid var(--cvsu-green-100);
+            border-radius: var(--cvsu-radius);
+            padding: 12px 18px 12px 20px;
+            margin-bottom: 16px;
+        }
+
+        .bulk-actions::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: 10px;
+            left: 0;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--cvsu-green-500);
         }
 
         .bulk-actions.active {
@@ -607,15 +1002,43 @@
         .bulk-select-all {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-weight: 600;
-            color: #4a5568;
+            font-size: 13.5px;
+            color: var(--cvsu-green-900);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .bulk-select-all input {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--cvsu-green-600);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Selected count is the figure the user is acting on, so it leads. */
+        .bulk-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: var(--cvsu-green-600);
+            color: var(--cvsu-white);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
         }
 
         .bulk-actions-buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-left: auto;
+            flex-wrap: wrap;
         }
 
         .faculty-checkbox {
@@ -623,6 +1046,10 @@
             top: 20px;
             left: 20px;
             z-index: 10;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--cvsu-green-600);
+            cursor: pointer;
         }
 
         /* Responsive Design */
@@ -662,39 +1089,78 @@
             .faculty-stats {
                 gap: 20px;
             }
-            
+
             .action-buttons {
                 min-width: 140px;
             }
+
+            /* Below this width the three stacked row actions push the card
+               details into a very narrow column, so the buttons move under
+               the content full-width instead. */
+            .faculty-card {
+                flex-wrap: wrap;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .action-buttons .btn-view,
+            .action-buttons .btn-message,
+            .action-buttons .btn-stats {
+                flex: 1;
+            }
         }
-        
+
         @media (max-width: 768px) {
+/* Banner: the identity keeps its own row and the counts drop underneath it
+   full-width, so the two halves never squeeze each other into a narrow
+   column. The base rules for both live at the top of this file. */
             .department-header {
                 flex-direction: column;
-                text-align: center;
-                gap: 20px;
-                padding: 24px;
+                align-items: flex-start;
+                gap: var(--sp-4);
+                padding: var(--sp-4) var(--sp-5) var(--sp-4) var(--sp-6);
             }
-            
+
+            .department-stats {
+                width: 100%;
+            }
+
+            #content main .department-header .department-title {
+                font-size: 17px;
+            }
+
             .filters-row {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .search-box {
                 min-width: unset;
             }
-            
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .view-toggle {
+                align-self: flex-start;
+            }
+
             .faculty-card {
                 flex-direction: column;
                 text-align: center;
                 padding: 24px;
             }
-            
-            .faculty-avatar {
+
+            .faculty-avatar,
+            .avatar-fallback {
                 margin: 0 0 20px 0;
             }
-            
+
             .action-buttons {
                 flex-direction: row;
                 width: 100%;
@@ -709,9 +1175,28 @@
                 padding: 10px 8px;
                 font-size: 12px;
             }
-            
+
             .summary-cards {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .summary-card {
+                padding: 16px 12px;
+            }
+
+            .summary-card-figure {
+                gap: 8px;
+            }
+
+            .summary-card-value {
+                font-size: 22px;
+            }
+
+            .summary-card-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
             }
 
             .faculty-meta {
@@ -720,6 +1205,57 @@
 
             .faculty-stats {
                 justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            /* The row actions stop fitting three across on a phone, so they
+               stack and each takes the full width rather than overflowing. */
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons .btn-view,
+            .action-buttons .btn-message,
+            .action-buttons .btn-stats {
+                flex: none;
+                width: 100%;
+            }
+
+            .bulk-actions-buttons {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .bulk-actions-buttons .btn {
+                flex: 1;
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+            .modal-actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .faculty-card,
+            .summary-card,
+            .btn-view,
+            .btn-message,
+            .btn-stats,
+            .modal-shell,
+            .notification,
+            .progress-fill::after,
+            .spinner {
+                animation: none !important;
+                transition: none !important;
             }
         }
 
@@ -735,32 +1271,314 @@
             100% { background-position: -200% 0; }
         }
 
-        /* Message Modal */
-        .message-modal {
+        /* Dialogs ----------------------------------------------------------
+           Both dialogs (send message, faculty stats) share one shell so they
+           read as a pair. The header carries the same gold-to-green rule the
+           dashboard card headers use, which is what ties the page to the
+           rest of the system. */
+        .modal-backdrop {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            inset: 0;
+            backdrop-filter: blur(2px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+           
         }
 
-        .message-modal.active {
+        .modal-backdrop.active {
             display: flex;
         }
 
-        .message-modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
+        .modal-shell {
+            background: #ffffff;
+            border-radius: var(--cvsu-radius-lg);
+            box-shadow: var(--cvsu-shadow-lg);
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            animation: modalRise var(--cvsu-transition) both;
+        }
+
+        @keyframes modalRise {
+            from { opacity: 0; transform: translateY(12px) scale(.98); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .modal-titlebar {
+            position: relative;
+            padding: 20px 24px 16px;
+        }
+
+        .modal-titlebar h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cvsu-green-900);
+            margin: 0;
+            padding-right: 44px;
+        }
+
+        .modal-titlebar h3 > i {
+            font-size: 22px;
+            color: var(--cvsu-green-600);
+            line-height: 1;
+        }
+
+        /* Brand rule under the dialog title, identical to .card-header::after. */
+        .modal-titlebar::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 4px;
+            margin-top: 14px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            background: #ffffff;
+            color: var(--cvsu-grey-500);
+            font-size: 20px;
+            cursor: pointer;
+            transition: background-color var(--cvsu-transition), color var(--cvsu-transition),
+                        border-color var(--cvsu-transition);
+        }
+
+        .modal-close:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-300);
+            color: var(--cvsu-green-700);
+        }
+
+        .modal-close:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        /* Dialog body / form */
+        .modal-shell form,
+        .stats-body {
+            padding: 22px 24px 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 22px 24px 24px;
+        }
+
+        .form-field {
+            margin-bottom: 16px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--cvsu-green-900);
+        }
+
+        .form-hint {
+            font-weight: 400;
+            color: var(--cvsu-grey-400);
+        }
+
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            background: #ffffff;
+            color: var(--cvsu-ink);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+        }
+
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: var(--cvsu-green-500);
+            box-shadow: var(--cvsu-ring);
+        }
+
+        .form-field input[readonly] {
+            background: var(--cvsu-muted-bg);
+            color: var(--cvsu-grey-500);
+            cursor: default;
+        }
+
+        .form-field textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Shared button treatment for dialog footers. */
+        .modal-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: var(--cvsu-radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: background-color var(--cvsu-transition), border-color var(--cvsu-transition),
+                        color var(--cvsu-transition), box-shadow var(--cvsu-transition);
+        }
+
+        .modal-actions .btn i {
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .modal-actions .btn-primary {
+            background: linear-gradient(135deg, var(--cvsu-green-500) 0%, var(--cvsu-green-700) 100%);
+            color: #ffffff;
+            box-shadow: var(--cvsu-shadow-sm);
+        }
+
+        .modal-actions .btn-primary:hover {
+            background: linear-gradient(135deg, var(--cvsu-green-600) 0%, var(--cvsu-green-800) 100%);
+            box-shadow: var(--cvsu-shadow-md);
+        }
+
+        .modal-actions .btn-secondary {
+            background: #ffffff;
+            border-color: var(--cvsu-line);
+            color: var(--cvsu-grey-500);
+        }
+
+        .modal-actions .btn-secondary:hover {
+            background: var(--cvsu-green-50);
+            border-color: var(--cvsu-green-500);
+            color: var(--cvsu-green-700);
+        }
+
+        .modal-actions .btn:focus-visible {
+            outline: 2px solid var(--cvsu-green-600);
+            outline-offset: 2px;
+        }
+
+        /* Stats dialog */
+        .stats-loading,
+        .stats-error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 20px;
+            color: var(--cvsu-grey-500);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .stats-error i {
+            font-size: 32px;
+            color: var(--cvsu-danger);
+            line-height: 1;
+        }
+
+        .stats-error p {
+            margin: 0;
+        }
+
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--cvsu-green-100);
+            border-top-color: var(--cvsu-green-600);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-period {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--cvsu-grey-500);
+            margin: 0 0 18px;
+        }
+
+        .stats-period i {
+            color: var(--cvsu-green-600);
+            font-size: 16px;
+        }
+
+        .stats-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stats-tile {
+            background: var(--cvsu-surface);
+            border: 1px solid var(--cvsu-line);
+            border-radius: var(--cvsu-radius-sm);
+            padding: 14px 12px;
+            text-align: center;
+        }
+
+        .stats-tile-value {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--cvsu-green-700);
+            line-height: 1.2;
+        }
+
+        .stats-tile-label {
+            display: block;
+            margin-top: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: var(--cvsu-grey-400);
+        }
+
+        .stats-updated {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 14px 0 0;
+            font-size: 12px;
+            color: var(--cvsu-grey-400);
+        }
+
+        .stats-updated i {
+            font-size: 15px;
         }
 
         /* Notification Styles */
@@ -768,33 +1586,58 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 1001;
-            padding: 16px 20px;
-            border-radius: 8px;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: min(380px, calc(100vw - 40px));
+            padding: 14px 18px;
+            border-radius: var(--cvsu-radius-sm);
             font-weight: 500;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 14px;
+            box-shadow: var(--cvsu-shadow-md);
             transform: translateX(400px);
-            transition: all 0.3s ease;
+            transition: transform var(--cvsu-transition), opacity var(--cvsu-transition);
+            opacity: 0;
         }
 
         .notification.show {
             transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification i {
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
         }
 
         .notification.success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
+            background: var(--cvsu-green-50);
+            color: var(--cvsu-green-800);
+            border-left: 4px solid var(--cvsu-green-600);
+        }
+
+        .notification.success i {
+            color: var(--cvsu-green-600);
         }
 
         .notification.error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
+            background: #fef2f2;
+            color: #7f1d1d;
+            border-left: 4px solid var(--cvsu-danger);
+        }
+
+        .notification.error i {
+            color: var(--cvsu-danger);
         }
 
         .notification.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
+            background: var(--cvsu-gold-50);
+            color: var(--cvsu-gold-700);
+            border-left: 4px solid var(--cvsu-gold-500);
+        }
+
+        .notification.info i {
+            color: var(--cvsu-gold-600);
         }
