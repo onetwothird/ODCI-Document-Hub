@@ -32,7 +32,7 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transform: scale(0.9) translateY(20px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
 }
 
 .modal-overlay.show .modal-container {
@@ -159,7 +159,7 @@
     border: 2px solid #e5e7eb;
     border-radius: 12px;
     font-size: 15px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     transition: all 0.3s ease;
     background: #fafbfc;
     box-sizing: border-box;
@@ -324,7 +324,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
 }
 
 .btn-cancel:hover {
@@ -345,7 +345,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
 }
 
 .btn-create:hover {
