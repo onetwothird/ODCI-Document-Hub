@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Aug 18, 2025 at 12:11 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: localhost:3306
+-- Generation Time: Oct 04, 2026 at 02:31 AM
+-- Server version: 8.4.3
+-- PHP Version: 8.3.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -17,56 +17,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
-CREATE DATABASE IF NOT EXISTS `odci_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `odci_db`;
-
-SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `activity_logs`;
-DROP TABLE IF EXISTS `announcements`;
-DROP TABLE IF EXISTS `announcement_views`;
-DROP TABLE IF EXISTS `departments`;
-DROP TABLE IF EXISTS `document_attachments`;
-DROP TABLE IF EXISTS `document_comments`;
-DROP TABLE IF EXISTS `document_files`;
-DROP TABLE IF EXISTS `document_notifications`;
-DROP TABLE IF EXISTS `document_requests`;
-DROP TABLE IF EXISTS `document_requirements`;
-DROP TABLE IF EXISTS `document_status_history`;
-DROP TABLE IF EXISTS `document_submission_history`;
-DROP TABLE IF EXISTS `document_templates`;
-DROP TABLE IF EXISTS `document_workflows`;
-DROP TABLE IF EXISTS `faculty_document_submissions`;
-DROP TABLE IF EXISTS `files`;
-DROP TABLE IF EXISTS `file_comments`;
-DROP TABLE IF EXISTS `file_shares`;
-DROP TABLE IF EXISTS `folders`;
-DROP TABLE IF EXISTS `folder_permissions`;
-DROP TABLE IF EXISTS `notifications`;
-DROP TABLE IF EXISTS `posts`;
-DROP TABLE IF EXISTS `post_comments`;
-DROP TABLE IF EXISTS `post_likes`;
-DROP TABLE IF EXISTS `post_media`;
-DROP TABLE IF EXISTS `post_notifications`;
-DROP TABLE IF EXISTS `post_shares`;
-DROP TABLE IF EXISTS `post_views`;
-DROP TABLE IF EXISTS `system_settings`;
-DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `v_admin_submission_stats`;
-DROP TABLE IF EXISTS `v_announcements_detailed`;
-DROP TABLE IF EXISTS `v_comments_detailed`;
-DROP TABLE IF EXISTS `v_document_requests_detailed`;
-DROP TABLE IF EXISTS `v_files_detailed`;
-DROP TABLE IF EXISTS `v_folders_hierarchy`;
-DROP TABLE IF EXISTS `v_posts_detailed`;
-DROP TABLE IF EXISTS `v_submission_tracker`;
-DROP TABLE IF EXISTS `v_users_detailed`;
-DROP TABLE IF EXISTS `post_saves`;
-DROP TABLE IF EXISTS `post_reports`;
-DROP TABLE IF EXISTS `user_follows`;
-SET FOREIGN_KEY_CHECKS = 1;
-
-
-
 --
 -- Database: `odci_db`
 --
@@ -75,7 +25,7 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE PROCEDURE `InitializeAcademicPeriod` (IN `p_academic_year` YEAR, IN `p_semester` VARCHAR(20))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `InitializeAcademicPeriod` (IN `p_academic_year` YEAR, IN `p_semester` VARCHAR(20))   BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE v_user_id INT;
     DECLARE v_doc_type VARCHAR(100);
@@ -122,7 +72,7 @@ CREATE PROCEDURE `InitializeAcademicPeriod` (IN `p_academic_year` YEAR, IN `p_se
     SELECT CONCAT('Academic period ', p_academic_year, ' - ', p_semester, ' initialized successfully') as result;
 END$$
 
-CREATE PROCEDURE `sp_cleanup_expired_shares` ()   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cleanup_expired_shares` ()   BEGIN
     UPDATE file_shares 
     SET is_active = 0 
     WHERE expires_at < NOW() AND is_active = 1;
@@ -130,7 +80,7 @@ CREATE PROCEDURE `sp_cleanup_expired_shares` ()   BEGIN
     SELECT ROW_COUNT() as expired_shares_count;
 END$$
 
-CREATE PROCEDURE `sp_create_document_workflow` (IN `request_id` INT, IN `document_type` VARCHAR(50))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_create_document_workflow` (IN `request_id` INT, IN `document_type` VARCHAR(50))   BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -176,7 +126,7 @@ CREATE PROCEDURE `sp_create_document_workflow` (IN `request_id` INT, IN `documen
     COMMIT;
 END$$
 
-CREATE PROCEDURE `sp_get_document_stats` (IN `user_id` INT, IN `is_admin` BOOLEAN)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_document_stats` (IN `user_id` INT, IN `is_admin` BOOLEAN)   BEGIN
     IF is_admin THEN
         SELECT 
             COUNT(*) as total_requests,
@@ -206,7 +156,7 @@ CREATE PROCEDURE `sp_get_document_stats` (IN `user_id` INT, IN `is_admin` BOOLEA
     END IF;
 END$$
 
-CREATE PROCEDURE `sp_get_folder_stats` (IN `folder_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_folder_stats` (IN `folder_id` INT)   BEGIN
     SELECT 
         COUNT(f.id) as file_count,
         COALESCE(SUM(f.file_size), 0) as total_size,
@@ -216,7 +166,7 @@ CREATE PROCEDURE `sp_get_folder_stats` (IN `folder_id` INT)   BEGIN
     WHERE f.folder_id = folder_id AND f.is_deleted = 0;
 END$$
 
-CREATE PROCEDURE `sp_get_user_activity` (IN `user_id` INT, IN `days_back` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_get_user_activity` (IN `user_id` INT, IN `days_back` INT)   BEGIN
     SELECT 
         action,
         resource_type,
@@ -229,7 +179,7 @@ CREATE PROCEDURE `sp_get_user_activity` (IN `user_id` INT, IN `days_back` INT)  
     ORDER BY action_count DESC;
 END$$
 
-CREATE PROCEDURE `sp_update_folder_stats` (IN `folder_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_update_folder_stats` (IN `folder_id` INT)   BEGIN
     UPDATE folders f
     SET 
         file_count = (
@@ -245,7 +195,7 @@ CREATE PROCEDURE `sp_update_folder_stats` (IN `folder_id` INT)   BEGIN
     WHERE f.id = folder_id;
 END$$
 
-CREATE PROCEDURE `sp_update_workflow_step` (IN `workflow_id` INT, IN `new_status` VARCHAR(20), IN `user_id` INT, IN `step_notes` TEXT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_update_workflow_step` (IN `workflow_id` INT, IN `new_status` VARCHAR(20), IN `user_id` INT, IN `step_notes` TEXT)   BEGIN
     DECLARE request_id INT;
     DECLARE step_name VARCHAR(100);
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -296,7 +246,7 @@ END$$
 --
 -- Functions
 --
-CREATE FUNCTION `fn_generate_share_token` () RETURNS VARCHAR(255) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_generate_share_token` () RETURNS VARCHAR(255) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
     DECLARE token VARCHAR(255);
     DECLARE token_exists INT DEFAULT 1;
     
@@ -308,7 +258,7 @@ CREATE FUNCTION `fn_generate_share_token` () RETURNS VARCHAR(255) CHARSET utf8mb
     RETURN token;
 END$$
 
-CREATE FUNCTION `fn_generate_tracking_code` () RETURNS VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_generate_tracking_code` () RETURNS VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
     DECLARE next_number INT;
     DECLARE tracking_code VARCHAR(20);
     DECLARE current_month VARCHAR(6);
@@ -326,7 +276,7 @@ CREATE FUNCTION `fn_generate_tracking_code` () RETURNS VARCHAR(20) CHARSET utf8m
     RETURN tracking_code;
 END$$
 
-CREATE FUNCTION `GetCurrentSemester` () RETURNS VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetCurrentSemester` () RETURNS VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_general_ci DETERMINISTIC READS SQL DATA BEGIN
     DECLARE current_month INT;
     SET current_month = MONTH(CURDATE());
     
@@ -348,17 +298,17 @@ DELIMITER ;
 --
 
 CREATE TABLE `activity_logs` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `action` varchar(100) NOT NULL,
-  `resource_type` enum('file','folder','user','announcement','department','system') NOT NULL,
-  `resource_id` int(11) DEFAULT NULL,
-  `description` text DEFAULT NULL,
-  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `action` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `resource_type` enum('file','folder','user','announcement','department','system') COLLATE utf8mb4_general_ci NOT NULL,
+  `resource_id` int DEFAULT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `ip_address` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_general_ci,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ;
 
 --
 -- Dumping data for table `activity_logs`
@@ -438,7 +388,288 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `resource_type`, `resour
 (71, 27, 'login', 'user', 27, 'User logged in successfully', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0', '2025-08-18 02:41:32'),
 (72, 27, 'logout', 'user', 27, 'User logged out', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0', '2025-08-18 03:13:07'),
 (73, 27, 'login', 'user', 27, 'User logged in successfully', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0', '2025-08-18 03:13:14'),
-(74, 27, 'file_download', '', 4, 'Downloaded IPCR Accomplishment file: Linkages-Script.docx', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0', '2025-08-18 05:16:52');
+(74, 27, 'file_download', '', 4, 'Downloaded IPCR Accomplishment file: Linkages-Script.docx', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0', '2025-08-18 05:16:52'),
+(75, 30, 'upload_file', 'file', 23, 'Uploaded file: receipt_JYS-261001-9543 (2).pdf', '{\"file_size\": 46021, \"file_type\": \"document\"}', NULL, NULL, '2026-10-04 08:20:57'),
+(76, 30, 'upload_file', 'file', 24, 'Uploaded file: receipt_JYS-261001-9543 (2).pdf', '{\"file_size\": 46021, \"file_type\": \"document\"}', NULL, NULL, '2026-10-04 08:21:54'),
+(77, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":440,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:19'),
+(78, 29, 'login', 'user', 29, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:23'),
+(79, 29, 'logout', 'user', 29, 'User logged out manually', '{\"session_duration\":4,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:27'),
+(80, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:32'),
+(81, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:33'),
+(82, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:40'),
+(83, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":16,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:48'),
+(84, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:22:53'),
+(85, 30, 'upload_file', 'file', 25, 'Uploaded file: receipt_JYS-261001-9543 (2).pdf', '{\"file_size\": 46021, \"file_type\": \"document\"}', NULL, NULL, '2026-10-04 08:24:31'),
+(86, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":244,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:26:57'),
+(87, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:27:00'),
+(88, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":264,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:31:24'),
+(89, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:31:27'),
+(90, 30, 'upload_file', 'file', 26, 'Uploaded file: Angelito_Decatoria_Resume_A4 (1).pdf', '{\"file_size\": 55835, \"file_type\": \"document\"}', NULL, NULL, '2026-10-04 08:32:59'),
+(91, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":226,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:35:13'),
+(92, 29, 'login', 'user', 29, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:35:16'),
+(93, 29, 'logout', 'user', 29, 'User logged out manually', '{\"session_duration\":20,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:35:36'),
+(94, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:35:41'),
+(95, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":146,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:38:07'),
+(96, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:38:17'),
+(97, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:38:18'),
+(98, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:39:49'),
+(99, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":128,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:40:25'),
+(100, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:40:28'),
+(101, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":211,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:43:59'),
+(102, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:44:04'),
+(103, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:44:07'),
+(104, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":133,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:46:17'),
+(105, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:46:20'),
+(106, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":407,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:53:07'),
+(107, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:53:10'),
+(108, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:54:03'),
+(109, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":102,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:54:52'),
+(110, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:54:55'),
+(111, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":104,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:56:39'),
+(112, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:56:46'),
+(113, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":8,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:56:54'),
+(114, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:56:58'),
+(115, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":132,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:59:10'),
+(116, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 08:59:13'),
+(117, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:00:13'),
+(118, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":63,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:00:16'),
+(119, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:00:19'),
+(120, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":161,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:00'),
+(121, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:04'),
+(122, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:07'),
+(123, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:21'),
+(124, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":19,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:23'),
+(125, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:26'),
+(126, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":16,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:42'),
+(127, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:46'),
+(128, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":6,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:52'),
+(129, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:03:54'),
+(130, 30, 'profile_image_update', 'user', NULL, 'Profile image updated', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:05:38'),
+(131, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":135,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:06:09'),
+(132, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:06:15'),
+(133, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:06:16'),
+(134, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:09:04'),
+(135, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:09:47'),
+(136, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:09:47'),
+(137, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:09:48'),
+(138, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:10:56'),
+(139, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:10:57'),
+(140, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:18:34'),
+(141, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:18:50'),
+(142, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:19:03'),
+(143, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:19:20'),
+(144, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:20:56'),
+(145, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:21:01'),
+(146, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:25:16'),
+(147, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:27:45'),
+(148, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:27:46'),
+(149, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:27:46'),
+(150, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:27:46'),
+(151, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:02'),
+(152, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:10'),
+(153, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:27'),
+(154, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:28'),
+(155, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:28'),
+(156, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:29'),
+(157, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:29'),
+(158, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:29'),
+(159, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:30'),
+(160, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:30'),
+(161, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:30'),
+(162, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:36'),
+(163, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:42'),
+(164, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:46'),
+(165, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:53'),
+(166, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:28:54'),
+(167, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:29:29'),
+(168, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:30:22'),
+(169, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:30:59'),
+(170, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:00'),
+(171, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:00'),
+(172, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:48'),
+(173, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:55'),
+(174, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:56'),
+(175, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:57'),
+(176, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:57'),
+(177, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:57'),
+(178, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:57'),
+(179, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:57'),
+(180, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:58'),
+(181, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:58'),
+(182, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:31:58'),
+(183, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:32:34'),
+(184, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:32:34'),
+(185, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:32:35'),
+(186, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:32:35'),
+(187, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:32:36'),
+(188, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:24'),
+(189, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:25'),
+(190, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:25'),
+(191, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:26'),
+(192, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:26'),
+(193, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:26'),
+(194, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:29'),
+(195, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:29'),
+(196, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:29'),
+(197, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:30'),
+(198, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:30'),
+(199, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:30'),
+(200, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:30'),
+(201, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:31'),
+(202, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:33'),
+(203, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:34'),
+(204, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:34'),
+(205, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:34'),
+(206, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:34'),
+(207, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:34'),
+(208, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:35'),
+(209, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:35'),
+(210, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:33:35');
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `resource_type`, `resource_id`, `description`, `metadata`, `ip_address`, `user_agent`, `created_at`) VALUES
+(211, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:17'),
+(212, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:19'),
+(213, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:19'),
+(214, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:20'),
+(215, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:24'),
+(216, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:34:26'),
+(217, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:34:39'),
+(218, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:07'),
+(219, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:12'),
+(220, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:12'),
+(221, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:12'),
+(222, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:13'),
+(223, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:13'),
+(224, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:14'),
+(225, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:24'),
+(226, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:25'),
+(227, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:25'),
+(228, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:35:25'),
+(229, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:36:48'),
+(230, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:36:52'),
+(231, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:36:52'),
+(232, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:36:53'),
+(233, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:26'),
+(234, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:41'),
+(235, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:53'),
+(236, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:54'),
+(237, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:54'),
+(238, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:37:54'),
+(239, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:03'),
+(240, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:03'),
+(241, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:03'),
+(242, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:03'),
+(243, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(244, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(245, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(246, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(247, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(248, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:04'),
+(249, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:26'),
+(250, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:48'),
+(251, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:49'),
+(252, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:49'),
+(253, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:49'),
+(254, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:38:50'),
+(255, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:39:52'),
+(256, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:39:53'),
+(257, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:39:53'),
+(258, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:39:53'),
+(259, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:39:53'),
+(260, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:40:53'),
+(261, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:40:54'),
+(262, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:40:54'),
+(263, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:25'),
+(264, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:25'),
+(265, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:26'),
+(266, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:26'),
+(267, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:26'),
+(268, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '127.0.0.1', NULL, '2026-10-04 09:42:27'),
+(269, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:29'),
+(270, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:35'),
+(271, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:42:35'),
+(272, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:29'),
+(273, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:42'),
+(274, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:53'),
+(275, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:53'),
+(276, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:53'),
+(277, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:54'),
+(278, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:43:54'),
+(279, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:44:51'),
+(280, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:46:50'),
+(281, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:46:51'),
+(282, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:46:51'),
+(283, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:46:59'),
+(284, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:00'),
+(285, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:00'),
+(286, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:00'),
+(287, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:01'),
+(288, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:16'),
+(289, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:17'),
+(290, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:17'),
+(291, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:17'),
+(292, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:22'),
+(293, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:23'),
+(294, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:37'),
+(295, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:47:37'),
+(296, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:48:09'),
+(297, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:48:18'),
+(298, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:48:18'),
+(299, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:48:56'),
+(300, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:49:53'),
+(301, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:49:59'),
+(302, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:50:07'),
+(303, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:50:14'),
+(304, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:50:15'),
+(305, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:50:16'),
+(306, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:50:16'),
+(307, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:52:46'),
+(308, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:53:19'),
+(309, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:53:43'),
+(310, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:39'),
+(311, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:39'),
+(312, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:40'),
+(313, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:40'),
+(314, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:40'),
+(315, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:45'),
+(316, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:56'),
+(317, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:54:57'),
+(318, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:15'),
+(319, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:16'),
+(320, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:16'),
+(321, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:16'),
+(322, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:16'),
+(323, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:16'),
+(324, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:51'),
+(325, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:52'),
+(326, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:56'),
+(327, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:55:56'),
+(328, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:58:42'),
+(329, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 09:58:52'),
+(330, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:02:01'),
+(331, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:07:03'),
+(332, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:11:25'),
+(333, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:11:39'),
+(334, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:12:00'),
+(335, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:13:30'),
+(336, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":4137,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:15:12'),
+(337, 30, 'login', 'user', 30, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:15:15'),
+(338, 30, 'logout', 'user', 30, 'User logged out manually', '{\"session_duration\":10,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:15:25'),
+(339, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:15:30'),
+(340, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":373,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36', '2026-10-04 10:21:43'),
+(341, 29, 'login', 'user', 29, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Linux; Android 16; Pixel 10) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Mobile Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36', '2026-10-04 10:21:48'),
+(342, 29, 'logout', 'user', 29, 'User logged out manually', '{\"session_duration\":87,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36', '2026-10-04 10:23:15'),
+(343, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Linux; Android 16; Pixel 10) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Mobile Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36', '2026-10-04 10:23:21'),
+(344, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:25:52'),
+(345, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:25:56'),
+(346, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:27:12'),
+(347, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:27:24'),
+(348, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:27:32'),
+(349, 27, 'logout', 'user', 27, 'User logged out manually', '{\"session_duration\":288,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:28:09'),
+(350, 1, 'failed_login', 'user', 1, 'Failed login attempt', '{\"attempt_number\":1,\"ip_address\":\"::1\",\"username_tried\":\"superadmin\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:28:25'),
+(351, 1, 'login', 'user', 1, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:28:29'),
+(352, 1, 'logout', 'user', 1, 'User logged out manually', '{\"session_duration\":27,\"ip_address\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:28:56'),
+(353, 27, 'login', 'user', 27, 'User logged in successfully', '{\"ip_address\":\"::1\",\"user_agent\":\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/154.0.0.0 Safari\\/537.36\",\"remember_me\":\"no\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:29:00'),
+(354, 27, 'view_faculty_list', 'user', NULL, 'Viewed faculty staff page', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', '2026-10-04 10:29:26');
 
 -- --------------------------------------------------------
 
@@ -447,32 +678,32 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `resource_type`, `resour
 --
 
 CREATE TABLE `announcements` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `content` text NOT NULL,
-  `summary` varchar(500) DEFAULT NULL,
-  `image_path` varchar(255) DEFAULT NULL,
-  `priority` enum('low','normal','high','urgent') DEFAULT 'normal',
-  `announcement_type` enum('general','department','urgent','maintenance') DEFAULT 'general',
-  `target_departments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`target_departments`)),
-  `target_roles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`target_roles`)),
-  `is_published` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `summary` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image_path` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `priority` enum('low','normal','high','urgent') COLLATE utf8mb4_general_ci DEFAULT 'normal',
+  `announcement_type` enum('general','department','urgent','maintenance') COLLATE utf8mb4_general_ci DEFAULT 'general',
+  `target_departments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `target_roles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `is_published` tinyint(1) DEFAULT '0',
   `published_at` datetime DEFAULT NULL,
   `expires_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `created_by` int(11) NOT NULL,
-  `updated_by` int(11) DEFAULT NULL,
-  `view_count` int(11) DEFAULT 0,
-  `is_pinned` tinyint(1) DEFAULT 0,
-  `allow_comments` tinyint(1) DEFAULT 1,
-  `send_email` tinyint(1) DEFAULT 0,
-  `email_sent` tinyint(1) DEFAULT 0,
+  `deleted_by` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_by` int NOT NULL,
+  `updated_by` int DEFAULT NULL,
+  `view_count` int DEFAULT '0',
+  `is_pinned` tinyint(1) DEFAULT '0',
+  `allow_comments` tinyint(1) DEFAULT '1',
+  `send_email` tinyint(1) DEFAULT '0',
+  `email_sent` tinyint(1) DEFAULT '0',
   `email_sent_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
 
 -- --------------------------------------------------------
 
@@ -481,12 +712,12 @@ CREATE TABLE `announcements` (
 --
 
 CREATE TABLE `announcement_views` (
-  `id` int(11) NOT NULL,
-  `announcement_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `viewed_at` datetime DEFAULT current_timestamp(),
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL
+  `id` int NOT NULL,
+  `announcement_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `viewed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ip_address` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -511,16 +742,16 @@ DELIMITER ;
 --
 
 CREATE TABLE `departments` (
-  `id` int(11) NOT NULL,
-  `department_code` varchar(10) NOT NULL,
-  `department_name` varchar(100) NOT NULL,
-  `description` text DEFAULT NULL,
-  `head_of_department` varchar(100) DEFAULT NULL,
-  `contact_email` varchar(255) DEFAULT NULL,
-  `contact_phone` varchar(20) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_active` tinyint(1) DEFAULT 1
+  `id` int NOT NULL,
+  `department_code` varchar(10) COLLATE utf8mb4_general_ci NOT NULL,
+  `department_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `head_of_department` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contact_email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `contact_phone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_active` tinyint(1) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -543,20 +774,20 @@ INSERT INTO `departments` (`id`, `department_code`, `department_name`, `descript
 --
 
 CREATE TABLE `document_attachments` (
-  `id` int(11) NOT NULL,
-  `request_id` int(11) NOT NULL,
-  `file_name` varchar(255) NOT NULL,
-  `original_name` varchar(255) NOT NULL,
-  `file_path` varchar(500) NOT NULL,
-  `file_size` bigint(20) DEFAULT NULL,
-  `mime_type` varchar(100) DEFAULT NULL,
-  `file_type` enum('requirement','supporting','output','other') DEFAULT 'supporting',
-  `uploaded_by` int(11) NOT NULL,
-  `uploaded_at` datetime DEFAULT current_timestamp(),
-  `description` text DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `request_id` int NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `original_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(500) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `mime_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_type` enum('requirement','supporting','output','other') COLLATE utf8mb4_general_ci DEFAULT 'supporting',
+  `uploaded_by` int NOT NULL,
+  `uploaded_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `description` text COLLATE utf8mb4_general_ci,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL
+  `deleted_by` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -566,20 +797,20 @@ CREATE TABLE `document_attachments` (
 --
 
 CREATE TABLE `document_comments` (
-  `id` int(11) NOT NULL,
-  `request_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `comment` text NOT NULL,
-  `comment_type` enum('general','status_update','requirement','internal') DEFAULT 'general',
-  `parent_comment_id` int(11) DEFAULT NULL,
-  `is_internal` tinyint(1) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_edited` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `request_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `comment` text COLLATE utf8mb4_general_ci NOT NULL,
+  `comment_type` enum('general','status_update','requirement','internal') COLLATE utf8mb4_general_ci DEFAULT 'general',
+  `parent_comment_id` int DEFAULT NULL,
+  `is_internal` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_edited` tinyint(1) DEFAULT '0',
   `edited_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL
+  `deleted_by` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -589,27 +820,27 @@ CREATE TABLE `document_comments` (
 --
 
 CREATE TABLE `document_files` (
-  `id` int(11) NOT NULL,
-  `submission_id` int(11) NOT NULL,
-  `file_name` varchar(255) NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `file_size` int(11) NOT NULL,
-  `file_type` varchar(100) NOT NULL,
-  `academic_year` year(4) DEFAULT NULL,
-  `semester_period` varchar(20) DEFAULT NULL,
-  `uploaded_by` int(11) NOT NULL,
-  `description` text DEFAULT NULL,
-  `uploaded_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `mime_type` varchar(100) DEFAULT NULL,
-  `download_count` int(11) NOT NULL DEFAULT 0
+  `id` int NOT NULL,
+  `submission_id` int NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_size` int NOT NULL,
+  `file_type` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `academic_year` year DEFAULT NULL,
+  `semester_period` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uploaded_by` int NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `uploaded_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `mime_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `download_count` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `document_files`
 --
 
-INSERT INTO `document_files` (`id`, `submission_id`, `file_name`, `file_path`, `file_size`, `file_type`, `academic_year`, `semester_period`, `uploaded_by`, `description`, `uploaded_at`, `mime_type`) VALUES
-(4, 28, 'Linkages-Script.docx', '../../../uploads/documents/2025/1st_semester/2025_1st_Semester_IPCR_Accomplishment_28_1755455445_68a21fd5e7365.docx', 3520212, 'IPCR Accomplishment', '2025', '1st Semester', 28, '', '2025-08-18 02:30:45', NULL);
+INSERT INTO `document_files` (`id`, `submission_id`, `file_name`, `file_path`, `file_size`, `file_type`, `academic_year`, `semester_period`, `uploaded_by`, `description`, `uploaded_at`, `mime_type`, `download_count`) VALUES
+(4, 28, 'Linkages-Script.docx', '../../../uploads/documents/2025/1st_semester/2025_1st_Semester_IPCR_Accomplishment_28_1755455445_68a21fd5e7365.docx', 3520212, 'IPCR Accomplishment', '2025', '1st Semester', 28, '', '2025-08-18 02:30:45', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -618,18 +849,18 @@ INSERT INTO `document_files` (`id`, `submission_id`, `file_name`, `file_path`, `
 --
 
 CREATE TABLE `document_notifications` (
-  `id` int(11) NOT NULL,
-  `request_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `notification_type` enum('status_change','assignment','deadline','comment','completion') NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `request_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `notification_type` enum('status_change','assignment','deadline','comment','completion') COLLATE utf8mb4_general_ci NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
   `read_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `action_url` varchar(500) DEFAULT NULL,
-  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `action_url` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin
+) ;
 
 -- --------------------------------------------------------
 
@@ -638,26 +869,26 @@ CREATE TABLE `document_notifications` (
 --
 
 CREATE TABLE `document_requests` (
-  `id` int(11) NOT NULL,
-  `tracking_code` varchar(20) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `document_type` enum('certificate','clearance','permit','report','form','other') NOT NULL DEFAULT 'other',
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `priority` enum('low','normal','high','urgent') DEFAULT 'normal',
-  `status` enum('pending','in_progress','under_review','completed','rejected','cancelled') DEFAULT 'pending',
-  `target_department` int(11) DEFAULT NULL,
+  `id` int NOT NULL,
+  `tracking_code` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `user_id` int NOT NULL,
+  `document_type` enum('certificate','clearance','permit','report','form','other') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'other',
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci NOT NULL,
+  `priority` enum('low','normal','high','urgent') COLLATE utf8mb4_general_ci DEFAULT 'normal',
+  `status` enum('pending','in_progress','under_review','completed','rejected','cancelled') COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `target_department` int DEFAULT NULL,
   `expected_completion` date DEFAULT NULL,
   `actual_completion` datetime DEFAULT NULL,
-  `assigned_to` int(11) DEFAULT NULL,
-  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`)),
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `assigned_to` int DEFAULT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `deleted_by` int DEFAULT NULL
+) ;
 
 --
 -- Triggers `document_requests`
@@ -693,16 +924,16 @@ DELIMITER ;
 --
 
 CREATE TABLE `document_requirements` (
-  `id` int(11) NOT NULL,
-  `academic_year` year(4) NOT NULL,
-  `semester` varchar(20) NOT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `document_type` varchar(100) NOT NULL,
-  `is_required` tinyint(1) DEFAULT 1,
+  `id` int NOT NULL,
+  `academic_year` year NOT NULL,
+  `semester` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `department_id` int DEFAULT NULL,
+  `document_type` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `is_required` tinyint(1) DEFAULT '1',
   `deadline_date` date DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `created_by` int(11) NOT NULL
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_by` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -750,14 +981,14 @@ INSERT INTO `document_requirements` (`id`, `academic_year`, `semester`, `departm
 --
 
 CREATE TABLE `document_status_history` (
-  `id` int(11) NOT NULL,
-  `request_id` int(11) NOT NULL,
-  `status` enum('pending','in_progress','under_review','completed','rejected','cancelled') NOT NULL,
-  `changed_by` int(11) NOT NULL,
-  `notes` text DEFAULT NULL,
-  `changed_at` datetime DEFAULT current_timestamp(),
-  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`metadata`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int NOT NULL,
+  `request_id` int NOT NULL,
+  `status` enum('pending','in_progress','under_review','completed','rejected','cancelled') COLLATE utf8mb4_general_ci NOT NULL,
+  `changed_by` int NOT NULL,
+  `notes` text COLLATE utf8mb4_general_ci,
+  `changed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin
+) ;
 
 --
 -- Triggers `document_status_history`
@@ -779,14 +1010,14 @@ DELIMITER ;
 --
 
 CREATE TABLE `document_submission_history` (
-  `id` int(11) NOT NULL,
-  `faculty_id` int(11) NOT NULL,
-  `document_type` varchar(100) NOT NULL,
-  `semester` varchar(50) NOT NULL,
-  `status` enum('submitted','not_submitted','reminder_sent','note_added') NOT NULL,
-  `note` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `faculty_id` int NOT NULL,
+  `document_type` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `semester` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `status` enum('submitted','not_submitted','reminder_sent','note_added') COLLATE utf8mb4_general_ci NOT NULL,
+  `note` text COLLATE utf8mb4_general_ci,
   `reminder_sent` datetime DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -803,20 +1034,20 @@ INSERT INTO `document_submission_history` (`id`, `faculty_id`, `document_type`, 
 --
 
 CREATE TABLE `document_templates` (
-  `id` int(11) NOT NULL,
-  `template_name` varchar(100) NOT NULL,
-  `document_type` enum('certificate','clearance','permit','report','form','other') NOT NULL,
-  `template_description` text DEFAULT NULL,
-  `required_fields` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`required_fields`)),
-  `workflow_steps` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`workflow_steps`)),
-  `estimated_completion_hours` int(11) DEFAULT 24,
-  `department_id` int(11) DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT 1,
-  `created_by` int(11) NOT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int NOT NULL,
+  `template_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `document_type` enum('certificate','clearance','permit','report','form','other') COLLATE utf8mb4_general_ci NOT NULL,
+  `template_description` text COLLATE utf8mb4_general_ci,
+  `required_fields` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `workflow_steps` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `estimated_completion_hours` int DEFAULT '24',
+  `department_id` int DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_by` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT NULL
+) ;
 
 --
 -- Dumping data for table `document_templates`
@@ -836,21 +1067,21 @@ INSERT INTO `document_templates` (`id`, `template_name`, `document_type`, `templ
 --
 
 CREATE TABLE `document_workflows` (
-  `id` int(11) NOT NULL,
-  `request_id` int(11) NOT NULL,
-  `step_number` int(11) NOT NULL,
-  `step_name` varchar(100) NOT NULL,
-  `step_description` text DEFAULT NULL,
-  `assigned_to` int(11) DEFAULT NULL,
-  `assigned_department` int(11) DEFAULT NULL,
-  `status` enum('pending','in_progress','completed','skipped','failed') DEFAULT 'pending',
+  `id` int NOT NULL,
+  `request_id` int NOT NULL,
+  `step_number` int NOT NULL,
+  `step_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `step_description` text COLLATE utf8mb4_general_ci,
+  `assigned_to` int DEFAULT NULL,
+  `assigned_department` int DEFAULT NULL,
+  `status` enum('pending','in_progress','completed','skipped','failed') COLLATE utf8mb4_general_ci DEFAULT 'pending',
   `started_at` datetime DEFAULT NULL,
   `completed_at` datetime DEFAULT NULL,
-  `expected_duration_hours` int(11) DEFAULT NULL,
-  `actual_duration_minutes` int(11) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `expected_duration_hours` int DEFAULT NULL,
+  `actual_duration_minutes` int DEFAULT NULL,
+  `notes` text COLLATE utf8mb4_general_ci,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -860,12 +1091,12 @@ CREATE TABLE `document_workflows` (
 --
 
 CREATE TABLE `faculty_document_submissions` (
-  `id` int(11) NOT NULL,
-  `faculty_id` int(11) NOT NULL,
-  `document_type` varchar(100) NOT NULL,
-  `semester` varchar(50) NOT NULL,
-  `academic_year` year(4) NOT NULL DEFAULT (YEAR(CURDATE())),
-  `submitted_by` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `faculty_id` int NOT NULL,
+  `document_type` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `semester` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `academic_year` year NOT NULL DEFAULT (year(curdate())),
+  `submitted_by` int NOT NULL,
   `submitted_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -883,49 +1114,53 @@ INSERT INTO `faculty_document_submissions` (`id`, `faculty_id`, `document_type`,
 --
 
 CREATE TABLE `files` (
-  `id` int(11) NOT NULL,
-  `file_name` varchar(255) NOT NULL,
-  `original_name` varchar(255) NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `file_size` bigint(20) DEFAULT NULL,
-  `file_type` varchar(100) DEFAULT NULL,
-  `mime_type` varchar(100) DEFAULT NULL,
-  `file_extension` varchar(10) DEFAULT NULL,
-  `uploaded_by` int(11) NOT NULL,
-  `folder_id` int(11) NOT NULL,
-  `uploaded_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `original_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `file_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mime_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_extension` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uploaded_by` int NOT NULL,
+  `folder_id` int NOT NULL,
+  `uploaded_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL,
-  `file_hash` varchar(64) DEFAULT NULL,
-  `download_count` int(11) DEFAULT 0,
+  `deleted_by` int DEFAULT NULL,
+  `file_hash` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `download_count` int DEFAULT '0',
   `last_downloaded` datetime DEFAULT NULL,
-  `last_downloaded_by` int(11) DEFAULT NULL,
-  `is_public` tinyint(1) DEFAULT 0,
-  `public_token` varchar(255) DEFAULT NULL,
-  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permissions`)),
-  `version` int(11) DEFAULT 1,
-  `parent_file_id` int(11) DEFAULT NULL,
-  `tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tags`)),
-  `description` text DEFAULT NULL,
-  `academic_year` varchar(10) DEFAULT NULL COMMENT 'Academic year, e.g. 2026',
-  `semester` enum('first','second') NOT NULL DEFAULT 'first',
-  `thumbnail_path` varchar(255) DEFAULT NULL,
-  `is_favorite` tinyint(1) DEFAULT 0,
+  `last_downloaded_by` int DEFAULT NULL,
+  `is_public` tinyint(1) DEFAULT '0',
+  `public_token` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `version` int DEFAULT '1',
+  `parent_file_id` int DEFAULT NULL,
+  `tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `description` text COLLATE utf8mb4_general_ci,
+  `academic_year` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Academic year, e.g. 2026',
+  `semester` enum('first','second') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'first',
+  `thumbnail_path` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_favorite` tinyint(1) DEFAULT '0',
   `expiry_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
 
 --
 -- Dumping data for table `files`
 --
 
-INSERT INTO `files` (`id`, `file_name`, `original_name`, `file_path`, `file_size`, `file_type`, `mime_type`, `file_extension`, `uploaded_by`, `folder_id`, `uploaded_at`, `updated_at`, `is_deleted`, `deleted_at`, `deleted_by`, `file_hash`, `download_count`, `last_downloaded`, `last_downloaded_by`, `is_public`, `public_token`, `permissions`, `version`, `parent_file_id`, `tags`, `description`, `thumbnail_path`, `is_favorite`, `expiry_date`) VALUES
-(18, '1719775504_summary_form.docx', 'NAIC_QF_xxxx_Summary-of-Comments-and-Action-Taken-Form.docx', 'uploads/1719775504_summary_form.docx', 45678, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 28, 47, '2025-06-30 23:25:04', '2025-08-07 01:55:15', 0, NULL, NULL, 'abc123def456', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Quality assurance summary form', NULL, 0, NULL),
-(19, '1719775992_users_backup.sql', 'users.sql', 'uploads/1719775992_users_backup.sql', 8945, 'database', 'application/sql', 'sql', 29, 47, '2025-06-30 23:33:12', '2025-08-07 01:55:15', 0, NULL, NULL, 'def456ghi789', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Database backup file', NULL, 0, NULL),
-(20, '1719832532_contribution_doc.docx', 'WITH CONTRIBUTION NUMBER.docx', 'uploads/1719832532_contribution_doc.docx', 234567, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 30, 51, '2025-07-01 11:55:32', '2025-08-07 01:55:15', 0, NULL, NULL, 'ghi789jkl012', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Research contribution document', NULL, 0, NULL),
-(21, '1719832561_admin_dashboard.php', 'admindashboard.php', 'uploads/1719832561_admin_dashboard.php', 15678, 'code', 'application/x-php', 'php', 30, 52, '2025-07-01 11:56:01', '2025-08-07 01:55:15', 0, NULL, NULL, 'jkl012mno345', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Admin dashboard source code', NULL, 0, NULL),
-(22, '1719832585_authorization_letter.docx', 'AUTHORIZATION LETTER.docx', 'uploads/1719832585_authorization_letter.docx', 67890, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 28, 46, '2025-07-01 11:56:25', '2025-08-07 01:55:15', 0, NULL, NULL, 'mno345pqr678', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Official authorization letter', NULL, 0, NULL);
+INSERT INTO `files` (`id`, `file_name`, `original_name`, `file_path`, `file_size`, `file_type`, `mime_type`, `file_extension`, `uploaded_by`, `folder_id`, `uploaded_at`, `updated_at`, `is_deleted`, `deleted_at`, `deleted_by`, `file_hash`, `download_count`, `last_downloaded`, `last_downloaded_by`, `is_public`, `public_token`, `permissions`, `version`, `parent_file_id`, `tags`, `description`, `academic_year`, `semester`, `thumbnail_path`, `is_favorite`, `expiry_date`) VALUES
+(18, '1719775504_summary_form.docx', 'NAIC_QF_xxxx_Summary-of-Comments-and-Action-Taken-Form.docx', 'uploads/1719775504_summary_form.docx', 45678, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 28, 47, '2025-06-30 23:25:04', '2026-10-04 00:20:08', 0, NULL, NULL, 'abc123def456', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Quality assurance summary form', '2025', 'first', NULL, 0, NULL),
+(19, '1719775992_users_backup.sql', 'users.sql', 'uploads/1719775992_users_backup.sql', 8945, 'database', 'application/sql', 'sql', 29, 47, '2025-06-30 23:33:12', '2026-10-04 00:20:08', 0, NULL, NULL, 'def456ghi789', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Database backup file', '2025', 'first', NULL, 0, NULL),
+(20, '1719832532_contribution_doc.docx', 'WITH CONTRIBUTION NUMBER.docx', 'uploads/1719832532_contribution_doc.docx', 234567, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 30, 51, '2025-07-01 11:55:32', '2026-10-04 00:20:08', 0, NULL, NULL, 'ghi789jkl012', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Research contribution document', '2025', 'first', NULL, 0, NULL),
+(21, '1719832561_admin_dashboard.php', 'admindashboard.php', 'uploads/1719832561_admin_dashboard.php', 15678, 'code', 'application/x-php', 'php', 30, 52, '2025-07-01 11:56:01', '2026-10-04 08:41:15', 1, '2026-10-04 08:41:15', 30, 'jkl012mno345', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Admin dashboard source code', '2025', 'first', NULL, 0, NULL),
+(22, '1719832585_authorization_letter.docx', 'AUTHORIZATION LETTER.docx', 'uploads/1719832585_authorization_letter.docx', 67890, 'document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx', 28, 46, '2025-07-01 11:56:25', '2026-10-04 00:20:08', 0, NULL, NULL, 'mno345pqr678', 0, NULL, NULL, 0, NULL, NULL, 1, NULL, NULL, 'Official authorization letter', '2025', 'first', NULL, 0, NULL),
+(23, '6ebe041c9bb42fa261aed59cdf4bebbb.pdf', 'receipt_JYS-261001-9543 (2).pdf', 'uploads/departments/3/ipcr_accomplishment/first/2026-2027/6ebe041c9bb42fa261aed59cdf4bebbb.pdf', 46021, 'document', 'application/pdf', 'pdf', 30, 53, '2026-10-04 08:20:57', '2026-10-04 08:20:57', 0, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 1, NULL, '[\"Curriculum\"]', '', '2026-2027', 'first', NULL, 0, NULL),
+(24, 'cbe0774f3b868de7d996e342a751993c.pdf', 'receipt_JYS-261001-9543 (2).pdf', 'uploads/departments/3/ipcr_accomplishment/first/2026-2027/cbe0774f3b868de7d996e342a751993c.pdf', 46021, 'document', 'application/pdf', 'pdf', 30, 53, '2026-10-04 08:21:54', '2026-10-04 08:21:54', 0, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 1, NULL, '[\"Curriculum\"]', '', '2026-2027', 'first', NULL, 0, NULL),
+(25, '2deda2e2041a5f014de33e1554464cd1.pdf', 'receipt_JYS-261001-9543 (2).pdf', 'uploads/departments/3/ipcr_accomplishment/first/2023-2024/2deda2e2041a5f014de33e1554464cd1.pdf', 46021, 'document', 'application/pdf', 'pdf', 30, 57, '2026-10-04 08:24:31', '2026-10-04 08:24:31', 0, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 1, NULL, '[\"Curriculum\",\"Research\"]', '', '2023-2024', 'first', NULL, 0, NULL),
+(26, '9ff16f71ffda9f43e950dd5d81acf49f.pdf', 'Angelito_Decatoria_Resume_A4 (1).pdf', 'uploads/departments/3/exam_acknowledgement/first/2026-2027/9ff16f71ffda9f43e950dd5d81acf49f.pdf', 55835, 'document', 'application/pdf', 'pdf', 30, 61, '2026-10-04 08:32:59', '2026-10-04 09:03:13', 0, NULL, NULL, NULL, 1, '2026-10-04 09:03:13', 27, 0, NULL, NULL, 1, NULL, '[\"Curriculum\"]', '', '2026-2027', 'first', NULL, 0, NULL);
 
 --
 -- Triggers `files`
@@ -961,14 +1196,14 @@ DELIMITER ;
 --
 
 CREATE TABLE `file_comments` (
-  `id` int(11) NOT NULL,
-  `file_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `comment` text NOT NULL,
-  `parent_comment_id` int(11) DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `file_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `comment` text COLLATE utf8mb4_general_ci NOT NULL,
+  `parent_comment_id` int DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -983,26 +1218,47 @@ INSERT INTO `file_comments` (`id`, `file_id`, `user_id`, `comment`, `parent_comm
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `file_downloads`
+--
+
+CREATE TABLE `file_downloads` (
+  `id` bigint UNSIGNED NOT NULL,
+  `file_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `downloaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_ip` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `file_downloads`
+--
+
+INSERT INTO `file_downloads` (`id`, `file_id`, `user_id`, `downloaded_at`, `user_ip`) VALUES
+(1, 26, 27, '2026-10-04 01:03:13', '::1');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `file_shares`
 --
 
 CREATE TABLE `file_shares` (
-  `id` int(11) NOT NULL,
-  `file_id` int(11) NOT NULL,
-  `shared_by` int(11) NOT NULL,
-  `shared_with` int(11) DEFAULT NULL,
-  `share_token` varchar(255) NOT NULL,
-  `share_type` enum('user','public','department') DEFAULT 'user',
-  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permissions`)),
+  `id` int NOT NULL,
+  `file_id` int NOT NULL,
+  `shared_by` int NOT NULL,
+  `shared_with` int DEFAULT NULL,
+  `share_token` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `share_type` enum('user','public','department') COLLATE utf8mb4_general_ci DEFAULT 'user',
+  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
   `expires_at` datetime DEFAULT NULL,
-  `password_protected` tinyint(1) DEFAULT 0,
-  `share_password` varchar(255) DEFAULT NULL,
-  `download_limit` int(11) DEFAULT NULL,
-  `download_count` int(11) DEFAULT 0,
-  `is_active` tinyint(1) DEFAULT 1,
-  `created_at` datetime DEFAULT current_timestamp(),
+  `password_protected` tinyint(1) DEFAULT '0',
+  `share_password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `download_limit` int DEFAULT NULL,
+  `download_count` int DEFAULT '0',
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_accessed` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
 
 --
 -- Dumping data for table `file_shares`
@@ -1019,44 +1275,62 @@ INSERT INTO `file_shares` (`id`, `file_id`, `shared_by`, `shared_with`, `share_t
 --
 
 CREATE TABLE `folders` (
-  `id` int(11) NOT NULL,
-  `folder_name` varchar(100) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_by` int(11) NOT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `parent_id` int(11) DEFAULT NULL,
-  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
+  `id` int NOT NULL,
+  `folder_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `created_by` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `parent_id` int DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `folder_path` varchar(500) DEFAULT NULL,
-  `folder_level` int(11) DEFAULT 0,
-  `is_public` tinyint(1) DEFAULT 0,
-  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permissions`)),
-  `folder_size` bigint(20) DEFAULT 0,
-  `file_count` int(11) DEFAULT 0,
-  `folder_color` varchar(7) DEFAULT '#667eea',
-  `folder_icon` varchar(50) DEFAULT 'fa-folder',
-  `category` varchar(50) DEFAULT NULL,
-  `folder_type` enum('category','custom','system') NOT NULL DEFAULT 'custom',
-  `access_count` int(11) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `deleted_by` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `folder_path` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `folder_level` int DEFAULT '0',
+  `is_public` tinyint(1) DEFAULT '0',
+  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `folder_size` bigint DEFAULT '0',
+  `file_count` int DEFAULT '0',
+  `folder_color` varchar(7) COLLATE utf8mb4_general_ci DEFAULT '#667eea',
+  `folder_icon` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'fa-folder',
+  `category` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `folder_type` enum('category','custom','system') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'custom',
+  `folder_status` enum('active','archived','hidden') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'active',
+  `access_count` int NOT NULL DEFAULT '0',
+  `is_favorite` tinyint(1) NOT NULL DEFAULT '0'
+) ;
 
 --
 -- Dumping data for table `folders`
 --
 
-INSERT INTO `folders` (`id`, `folder_name`, `description`, `created_by`, `created_at`, `updated_at`, `parent_id`, `is_deleted`, `deleted_at`, `deleted_by`, `department_id`, `folder_path`, `folder_level`, `is_public`, `permissions`, `folder_size`, `file_count`, `folder_color`, `folder_icon`) VALUES
-(44, 'IPCR', 'Individual Performance Commitment and Review documents', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/IPCR', 0, 0, NULL, 0, 0, '#667eea', 'fa-chart-line'),
-(45, 'Minutes', 'Meeting minutes and proceedings', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Minutes', 0, 0, NULL, 0, 0, '#38a169', 'fa-file-alt'),
-(46, 'DTR', 'Daily Time Records', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/DTR', 0, 0, NULL, 0, 0, '#ed8936', 'fa-clock'),
-(47, 'Attendance', 'Student and faculty attendance records', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Attendance', 0, 0, NULL, 0, 0, '#9f7aea', 'fa-users'),
-(48, 'Syllabus', 'Course syllabi and curriculum documents', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Syllabus', 0, 1, NULL, 0, 0, '#4299e1', 'fa-book'),
-(49, 'Lecture Notes', 'Teaching materials and lecture notes', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Lecture Notes', 0, 1, NULL, 0, 0, '#48bb78', 'fa-graduation-cap'),
-(50, 'Grading Sheets', 'Student grades and assessment records', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Grading Sheets', 0, 0, NULL, 0, 0, '#e53e3e', 'fa-table'),
-(51, 'Exams', 'Examination papers and answer keys', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Exams', 0, 0, NULL, 0, 0, '#d69e2e', 'fa-file-signature'),
-(52, 'Other Course Materials', 'Additional teaching and learning resources', 27, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, 0, NULL, NULL, 3, '/Other Course Materials', 0, 1, NULL, 0, 0, '#805ad5', 'fa-folder-open');
+INSERT INTO `folders` (`id`, `folder_name`, `description`, `created_by`, `created_at`, `updated_at`, `parent_id`, `is_deleted`, `deleted_at`, `deleted_by`, `department_id`, `folder_path`, `folder_level`, `is_public`, `permissions`, `folder_size`, `file_count`, `folder_color`, `folder_icon`, `category`, `folder_type`, `folder_status`, `access_count`, `is_favorite`) VALUES
+(44, 'IPCR', 'Individual Performance Commitment and Review documents', 27, '2025-08-07 01:55:15', '2026-10-04 10:31:03', NULL, 0, NULL, NULL, 3, '/IPCR', 0, 0, NULL, 0, 0, '#667eea', 'fa-chart-line', NULL, 'category', 'active', 0, 0),
+(45, 'Minutes', 'Meeting minutes and proceedings', 27, '2025-08-07 01:55:15', '2026-10-04 00:20:08', NULL, 0, NULL, NULL, 3, '/Minutes', 0, 0, NULL, 0, 0, '#38a169', 'fa-file-alt', NULL, 'category', 'active', 0, 0),
+(46, 'DTR', 'Daily Time Records', 27, '2025-08-07 01:55:15', '2026-10-04 00:20:08', NULL, 0, NULL, NULL, 3, '/DTR', 0, 0, NULL, 0, 0, '#ed8936', 'fa-clock', NULL, 'category', 'active', 0, 0),
+(47, 'Attendance', 'Student and faculty attendance records', 27, '2025-08-07 01:55:15', '2026-10-04 00:20:08', NULL, 0, NULL, NULL, 3, '/Attendance', 0, 0, NULL, 0, 0, '#9f7aea', 'fa-users', NULL, 'category', 'active', 0, 0),
+(48, 'Syllabus', 'Course syllabi and curriculum documents', 27, '2025-08-07 01:55:15', '2026-10-04 08:41:05', NULL, 1, '2026-10-04 08:41:05', 30, 3, '/Syllabus', 0, 1, NULL, 0, 0, '#4299e1', 'fa-book', NULL, 'category', 'active', 0, 0),
+(49, 'Lecture Notes', 'Teaching materials and lecture notes', 27, '2025-08-07 01:55:15', '2026-10-04 08:41:02', NULL, 1, '2026-10-04 08:41:02', 30, 3, '/Lecture Notes', 0, 1, NULL, 0, 0, '#48bb78', 'fa-graduation-cap', NULL, 'category', 'active', 0, 0),
+(50, 'Grading Sheets', 'Student grades and assessment records', 27, '2025-08-07 01:55:15', '2026-10-04 00:20:08', NULL, 0, NULL, NULL, 3, '/Grading Sheets', 0, 0, NULL, 0, 0, '#e53e3e', 'fa-table', NULL, 'category', 'active', 0, 0),
+(51, 'Exams', 'Examination papers and answer keys', 27, '2025-08-07 01:55:15', '2026-10-04 00:20:08', NULL, 0, NULL, NULL, 3, '/Exams', 0, 0, NULL, 0, 0, '#d69e2e', 'fa-file-signature', NULL, 'category', 'active', 0, 0),
+(52, 'Other Course Materials', 'Additional teaching and learning resources', 27, '2025-08-07 01:55:15', '2026-10-04 08:41:15', NULL, 1, '2026-10-04 08:41:15', 30, 3, '/Other Course Materials', 0, 1, NULL, 550978, 8, '#805ad5', 'fa-folder-open', NULL, 'category', 'active', 0, 0),
+(53, '2026-2027 - First Semester', 'Academic files for First Semester 2026-2027', 30, '2026-10-04 08:20:57', '2026-10-04 08:33:39', NULL, 0, NULL, NULL, 3, '/departments/3/ipcr_accomplishment/first/2026-2027', 2, 0, NULL, 464800, 7, '#10b981', 'bxs-folder', 'ipcr_accomplishment', 'category', 'active', 0, 0),
+(54, 'First Semester', 'First Semester files for Lecture Notes', 27, '2026-10-04 08:21:16', '2026-10-04 08:41:02', 49, 1, '2026-10-04 08:41:02', 30, 3, '/Lecture Notes/first', 1, 1, NULL, 0, 0, '#48bb78', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(55, 'First Semester', 'First Semester files for Syllabus', 27, '2026-10-04 08:21:20', '2026-10-04 08:41:05', 48, 1, '2026-10-04 08:41:05', 30, 3, '/Syllabus/first', 1, 1, NULL, 0, 0, '#4299e1', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(56, 'Second Semester', 'Second Semester files for Lecture Notes', 27, '2026-10-04 08:23:35', '2026-10-04 08:41:02', 49, 1, '2026-10-04 08:41:02', 30, 3, '/Lecture Notes/second', 1, 1, NULL, 0, 0, '#48bb78', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(57, '2023-2024 - First Semester', 'Academic files for First Semester 2023-2024', 30, '2026-10-04 08:24:31', '2026-10-04 08:33:39', NULL, 0, NULL, NULL, 3, '/departments/3/ipcr_accomplishment/first/2023-2024', 2, 0, NULL, 510821, 8, '#10b981', 'bxs-folder', 'ipcr_accomplishment', 'category', 'active', 0, 0),
+(58, 'Second Semester', 'Second Semester files for Syllabus', 27, '2026-10-04 08:24:41', '2026-10-04 08:41:05', 48, 1, '2026-10-04 08:41:05', 30, 3, '/Syllabus/second', 1, 1, NULL, 0, 0, '#4299e1', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(59, 'First Semester', 'First Semester files for Other Course Materials', 27, '2026-10-04 08:31:58', '2026-10-04 08:41:15', 52, 1, '2026-10-04 08:41:15', 30, 3, '/Other Course Materials/first', 1, 1, NULL, 0, 0, '#805ad5', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(60, 'Second Semester', 'Second Semester files for Other Course Materials', 27, '2026-10-04 08:31:59', '2026-10-04 08:41:15', 52, 1, '2026-10-04 08:41:15', 30, 3, '/Other Course Materials/second', 1, 1, NULL, 0, 0, '#805ad5', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(61, '2026-2027 - First Semester', 'Academic files for First Semester 2026-2027', 30, '2026-10-04 08:32:59', '2026-10-04 08:33:39', NULL, 0, NULL, NULL, 3, '/departments/3/exam_acknowledgement/first/2026-2027', 2, 0, NULL, 566656, 9, '#10b981', 'bxs-folder', 'exam_acknowledgement', 'category', 'active', 0, 0),
+(62, 'First Semester', 'First Semester files for IPCR', 27, '2026-10-04 08:36:38', '2026-10-04 08:45:28', 44, 0, NULL, NULL, 3, '/IPCR/first', 1, 0, NULL, 0, 0, '#667eea', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(63, 'Second Semester', 'Second Semester files for IPCR', 27, '2026-10-04 08:36:39', '2026-10-04 08:45:28', 44, 0, NULL, NULL, 3, '/IPCR/second', 1, 0, NULL, 0, 0, '#667eea', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(64, 'First Semester', 'First Semester files for Attendance', 27, '2026-10-04 08:36:40', '2026-10-04 08:45:28', 47, 0, NULL, NULL, 3, '/Attendance/first', 1, 0, NULL, 0, 0, '#9f7aea', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(65, 'First Semester', 'First Semester files for Minutes', 27, '2026-10-04 08:36:43', '2026-10-04 08:45:28', 45, 0, NULL, NULL, 3, '/Minutes/first', 1, 0, NULL, 0, 0, '#38a169', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(66, 'First Semester', 'First Semester files for DTR', 27, '2026-10-04 08:36:43', '2026-10-04 08:45:28', 46, 0, NULL, NULL, 3, '/DTR/first', 1, 0, NULL, 0, 0, '#ed8936', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(67, 'First Semester', 'First Semester files for Grading Sheets', 27, '2026-10-04 08:36:45', '2026-10-04 08:45:28', 50, 0, NULL, NULL, 3, '/Grading Sheets/first', 1, 0, NULL, 0, 0, '#e53e3e', 'bxs-folder', NULL, 'category', 'active', 0, 0),
+(68, 'First Semester', 'First Semester files for Exams', 27, '2026-10-04 08:36:46', '2026-10-04 08:45:28', 51, 0, NULL, NULL, 3, '/Exams/first', 1, 0, NULL, 0, 0, '#d69e2e', 'bxs-folder', NULL, 'category', 'active', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -1065,16 +1339,16 @@ INSERT INTO `folders` (`id`, `folder_name`, `description`, `created_by`, `create
 --
 
 CREATE TABLE `folder_permissions` (
-  `id` int(11) NOT NULL,
-  `folder_id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `role` varchar(20) DEFAULT NULL,
-  `permission_type` enum('read','write','admin') DEFAULT 'read',
-  `granted_by` int(11) NOT NULL,
-  `granted_at` datetime DEFAULT current_timestamp(),
+  `id` int NOT NULL,
+  `folder_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `role` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `permission_type` enum('read','write','admin') COLLATE utf8mb4_general_ci DEFAULT 'read',
+  `granted_by` int NOT NULL,
+  `granted_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `expires_at` datetime DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT 1
+  `is_active` tinyint(1) DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1092,20 +1366,57 @@ INSERT INTO `folder_permissions` (`id`, `folder_id`, `user_id`, `department_id`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int NOT NULL,
+  `sender_id` int NOT NULL,
+  `recipient_id` int NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `priority` enum('low','normal','high','urgent') DEFAULT 'normal',
+  `message_type` enum('general','reminder','announcement','warning','system') DEFAULT 'general',
+  `is_read` tinyint(1) DEFAULT '0',
+  `read_at` datetime DEFAULT NULL,
+  `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `message_templates`
+--
+
+CREATE TABLE `message_templates` (
+  `id` int NOT NULL,
+  `template_name` varchar(100) NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `template_type` enum('general','reminder','announcement','warning') DEFAULT 'general',
+  `is_system` tinyint(1) DEFAULT '0',
+  `created_by` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `notifications`
 --
 
 CREATE TABLE `notifications` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `type` enum('info','success','warning','error') DEFAULT 'info',
-  `action_url` varchar(500) DEFAULT NULL,
-  `action_text` varchar(100) DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `type` enum('info','success','warning','error') COLLATE utf8mb4_general_ci DEFAULT 'info',
+  `action_url` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `action_text` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
   `read_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `expires_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1127,27 +1438,27 @@ INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `type`, `actio
 --
 
 CREATE TABLE `posts` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `content` text NOT NULL,
-  `content_type` enum('text','image','file','link','mixed') DEFAULT 'text',
-  `visibility` enum('public','department','private','custom') DEFAULT 'public',
-  `target_departments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`target_departments`)),
-  `target_users` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`target_users`)),
-  `priority` enum('low','normal','high','urgent') DEFAULT 'normal',
-  `is_pinned` tinyint(1) DEFAULT 0,
-  `is_edited` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `content_type` enum('text','image','file','link','mixed') COLLATE utf8mb4_general_ci DEFAULT 'text',
+  `visibility` enum('public','department','private','custom') COLLATE utf8mb4_general_ci DEFAULT 'public',
+  `target_departments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `target_users` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `priority` enum('low','normal','high','urgent') COLLATE utf8mb4_general_ci DEFAULT 'normal',
+  `is_pinned` tinyint(1) DEFAULT '0',
+  `is_edited` tinyint(1) DEFAULT '0',
   `edited_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `like_count` int(11) DEFAULT 0,
-  `comment_count` int(11) DEFAULT 0,
-  `view_count` int(11) DEFAULT 0,
-  `share_count` int(11) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `deleted_by` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `like_count` int DEFAULT '0',
+  `comment_count` int DEFAULT '0',
+  `view_count` int DEFAULT '0',
+  `share_count` int DEFAULT '0'
+) ;
 
 -- --------------------------------------------------------
 
@@ -1156,19 +1467,19 @@ CREATE TABLE `posts` (
 --
 
 CREATE TABLE `post_comments` (
-  `id` int(11) NOT NULL,
-  `post_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `parent_comment_id` int(11) DEFAULT NULL,
-  `content` text NOT NULL,
-  `is_edited` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `parent_comment_id` int DEFAULT NULL,
+  `content` text COLLATE utf8mb4_general_ci NOT NULL,
+  `is_edited` tinyint(1) DEFAULT '0',
   `edited_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT 0,
+  `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `like_count` int(11) DEFAULT 0
+  `deleted_by` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `like_count` int DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1206,12 +1517,12 @@ DELIMITER ;
 --
 
 CREATE TABLE `post_likes` (
-  `id` int(11) NOT NULL,
-  `post_id` int(11) DEFAULT NULL,
-  `comment_id` int(11) DEFAULT NULL,
-  `user_id` int(11) NOT NULL,
-  `reaction_type` enum('like','love','laugh','angry','sad','wow') DEFAULT 'like',
-  `created_at` datetime DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `post_id` int DEFAULT NULL,
+  `comment_id` int DEFAULT NULL,
+  `user_id` int NOT NULL,
+  `reaction_type` enum('like','love','laugh','angry','sad','wow') COLLATE utf8mb4_general_ci DEFAULT 'like',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1265,21 +1576,21 @@ DELIMITER ;
 --
 
 CREATE TABLE `post_media` (
-  `id` int(11) NOT NULL,
-  `post_id` int(11) NOT NULL,
-  `media_type` enum('image','file','link') NOT NULL,
-  `file_path` varchar(500) DEFAULT NULL,
-  `file_name` varchar(255) DEFAULT NULL,
-  `original_name` varchar(255) DEFAULT NULL,
-  `file_size` bigint(20) DEFAULT NULL,
-  `mime_type` varchar(100) DEFAULT NULL,
-  `url` varchar(1000) DEFAULT NULL,
-  `url_title` varchar(255) DEFAULT NULL,
-  `url_description` text DEFAULT NULL,
-  `url_image` varchar(500) DEFAULT NULL,
-  `thumbnail_path` varchar(500) DEFAULT NULL,
-  `sort_order` int(11) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `media_type` enum('image','file','link') COLLATE utf8mb4_general_ci NOT NULL,
+  `file_path` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `original_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `mime_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `url` varchar(1000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `url_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `url_description` text COLLATE utf8mb4_general_ci,
+  `url_image` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `thumbnail_path` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `sort_order` int DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1289,16 +1600,48 @@ CREATE TABLE `post_media` (
 --
 
 CREATE TABLE `post_notifications` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `post_id` int(11) DEFAULT NULL,
-  `comment_id` int(11) DEFAULT NULL,
-  `triggered_by` int(11) NOT NULL,
-  `notification_type` enum('new_post','post_comment','post_like','comment_like','comment_reply','post_mention','comment_mention') NOT NULL,
-  `message` text NOT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `post_id` int DEFAULT NULL,
+  `comment_id` int DEFAULT NULL,
+  `triggered_by` int NOT NULL,
+  `notification_type` enum('new_post','post_comment','post_like','comment_like','comment_reply','post_mention','comment_mention') COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
   `read_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `post_reports`
+--
+
+CREATE TABLE `post_reports` (
+  `id` int NOT NULL,
+  `post_id` int DEFAULT NULL,
+  `comment_id` int DEFAULT NULL,
+  `user_id` int NOT NULL,
+  `report_reason` enum('spam','harassment','inappropriate','other') COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
+  `status` enum('pending','reviewed','resolved','dismissed') COLLATE utf8mb4_general_ci DEFAULT 'pending',
+  `reviewed_by` int DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `post_saves`
+--
+
+CREATE TABLE `post_saves` (
+  `id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1308,14 +1651,14 @@ CREATE TABLE `post_notifications` (
 --
 
 CREATE TABLE `post_shares` (
-  `id` int(11) NOT NULL,
-  `post_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `share_type` enum('internal','external','copy_link') DEFAULT 'internal',
-  `shared_with` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`shared_with`)),
-  `message` text DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `share_type` enum('internal','external','copy_link') COLLATE utf8mb4_general_ci DEFAULT 'internal',
+  `shared_with` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `message` text COLLATE utf8mb4_general_ci,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ;
 
 --
 -- Triggers `post_shares`
@@ -1339,12 +1682,12 @@ DELIMITER ;
 --
 
 CREATE TABLE `post_views` (
-  `id` int(11) NOT NULL,
-  `post_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `viewed_at` datetime DEFAULT current_timestamp(),
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL
+  `id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `viewed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ip_address` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_general_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1369,15 +1712,15 @@ DELIMITER ;
 --
 
 CREATE TABLE `system_settings` (
-  `id` int(11) NOT NULL,
-  `setting_key` varchar(100) NOT NULL,
-  `setting_value` text DEFAULT NULL,
-  `setting_type` enum('string','integer','boolean','json') DEFAULT 'string',
-  `description` text DEFAULT NULL,
-  `is_public` tinyint(1) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_by` int(11) DEFAULT NULL
+  `id` int NOT NULL,
+  `setting_key` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `setting_value` text COLLATE utf8mb4_general_ci,
+  `setting_type` enum('string','integer','boolean','json') COLLATE utf8mb4_general_ci DEFAULT 'string',
+  `description` text COLLATE utf8mb4_general_ci,
+  `is_public` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1405,35 +1748,35 @@ INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `setting_ty
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` enum('admin','user','super_admin') NOT NULL DEFAULT 'user',
-  `is_approved` tinyint(1) NOT NULL DEFAULT 0,
-  `name` varchar(100) NOT NULL,
-  `mi` varchar(5) DEFAULT NULL,
-  `surname` varchar(100) NOT NULL,
-  `employee_id` varchar(20) DEFAULT NULL,
-  `position` varchar(100) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `is_restricted` tinyint(1) DEFAULT 0,
-  `profile_image` varchar(255) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `address` text DEFAULT NULL,
+  `id` int NOT NULL,
+  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('admin','user','super_admin') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'user',
+  `is_approved` tinyint(1) NOT NULL DEFAULT '0',
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `mi` varchar(5) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `surname` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `employee_id` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `department_id` int DEFAULT NULL,
+  `is_restricted` tinyint(1) DEFAULT '0',
+  `profile_image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` text COLLATE utf8mb4_general_ci,
   `date_of_birth` date DEFAULT NULL,
   `hire_date` date DEFAULT NULL,
   `last_login` datetime DEFAULT NULL,
-  `failed_login_attempts` int(11) DEFAULT 0,
+  `failed_login_attempts` int DEFAULT '0',
   `account_locked_until` datetime DEFAULT NULL,
-  `email_verified` tinyint(1) DEFAULT 0,
-  `email_verification_token` varchar(255) DEFAULT NULL,
-  `password_reset_token` varchar(255) DEFAULT NULL,
+  `email_verified` tinyint(1) DEFAULT '0',
+  `email_verification_token` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password_reset_token` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `password_reset_expires` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `created_by` int(11) DEFAULT NULL,
-  `approved_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_by` int DEFAULT NULL,
+  `approved_by` int DEFAULT NULL,
   `approved_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -1442,13 +1785,26 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `is_approved`, `name`, `mi`, `surname`, `employee_id`, `position`, `department_id`, `is_restricted`, `profile_image`, `phone`, `address`, `date_of_birth`, `hire_date`, `last_login`, `failed_login_attempts`, `account_locked_until`, `email_verified`, `email_verification_token`, `password_reset_token`, `password_reset_expires`, `created_at`, `updated_at`, `created_by`, `approved_by`, `approved_at`) VALUES
-(1, 'superadmin', 'admin@cvsu.edu.ph', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 1, 'System', '', 'Administrator', 'ADMIN001', 'System Administrator', NULL, 0, NULL, NULL, NULL, NULL, NULL, '2025-08-07 17:00:19', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-07 17:00:19', NULL, NULL, NULL),
-(27, 'itdadmin', 'itdadmin@cvsu.edu.ph', '$2y$10$ZM.zHjOD1jFImsnyAJRwCeN2amu/f6YBl6yub49Y71fl0ViHLPtOO', 'admin', 1, 'ITD', '', 'Administrator', 'ITD001', 'Department Administrator', 3, 0, NULL, NULL, NULL, NULL, NULL, '2025-08-18 03:13:14', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-18 03:13:14', NULL, 1, '2025-08-07 01:55:15'),
+(1, 'superadmin', 'admin@cvsu.edu.ph', '$2y$10$CND6crKqAbFCjdqd47cQnOdXZ.j5SAoyCBAgL3vSj14oEKAvXcqfe', 'super_admin', 1, 'System', '', 'Administrator', 'ADMIN001', 'System Administrator', NULL, 0, NULL, NULL, NULL, NULL, NULL, '2026-10-04 10:28:46', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2026-10-04 10:28:46', NULL, NULL, NULL),
+(27, 'itdadmin', 'itdadmin@cvsu.edu.ph', '$2y$10$XybfWU2n.DqnWT8NVcZ7P.ynFH83OaXuf.f315vA93hEq8GIQQHGm', 'admin', 1, 'ITD', '', 'Administrator', 'ITD001', 'Department Administrator', 3, 0, NULL, NULL, NULL, NULL, NULL, '2026-10-04 10:30:03', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2026-10-04 10:30:03', NULL, 1, '2025-08-07 01:55:15'),
 (28, 'hbalanza', 'henry.balanza@cvsu.edu.ph', '$2y$10$kRVE4pnSIX6YvPrVGbMrX.x.0P1pnPsGTpr4P65xChwbJe4Mwedey', 'user', 1, 'Henry', 'R', 'Balanza', 'ITD002', 'Assistant Professor', 3, 0, NULL, NULL, NULL, NULL, NULL, '2025-08-18 01:41:39', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-18 01:41:39', NULL, 27, '2025-08-07 01:55:15'),
-(29, 'mtimola', 'luigi.timola@cvsu.edu.ph', '$2y$10$IrcJneb3t//.O370AcJ75.N20qreX2nHkYp3eWnetOLgSHQ62txMq', 'user', 1, 'Marc Luigi', 'G', 'Timola', 'ITD003', 'Associate Professor', 3, 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-07 10:10:32', NULL, 27, '2025-08-07 01:55:15'),
-(30, 'rriel', 'rj.riel@cvsu.edu.ph', '$2y$10$CTAcrRPYboonzGIiDpw8S.thwJ7ueM0nkVN4XdQo4vNXAmt6aXnYC', 'user', 1, 'Ricky Jay', 'A', 'Riel', 'ITD004', 'Instructor', 3, 0, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-18 00:01:07', NULL, 27, '2025-08-07 01:55:15'),
+(29, 'mtimola', 'luigi.timola@cvsu.edu.ph', '$2y$10$MsFgHnS.lnHydgR59AS6ue.L5CtPU7w86jwkyo.C21/dqCFnSgblm', 'user', 1, 'Marc Luigi', 'G', 'Timola', 'ITD003', 'Associate Professor', 3, 0, NULL, NULL, NULL, NULL, NULL, '2026-10-04 10:22:43', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2026-10-04 10:22:43', NULL, 27, '2025-08-07 01:55:15'),
+(30, 'rriel', 'rj.riel@cvsu.edu.ph', '$2y$10$gnCATAg8c7Extvgzj5DIceeFIWQguzwx0/g0tVjAnz0GoMn1/1J4m', 'user', 1, 'Ricky Jay', 'A', 'Riel', 'ITD004', 'Instructor', 3, 0, 'uploads/profiles/profile_30_1791075938.jpg', NULL, NULL, NULL, NULL, '2026-10-04 10:15:15', 0, NULL, 1, NULL, NULL, NULL, '2025-08-07 01:55:15', '2026-10-04 10:15:15', NULL, 27, '2025-08-07 01:55:15'),
 (31, 'pending_user', 'pending@cvsu.edu.ph', '$2y$10$9ldd1yiEVKJAyXubZ.GLc.ZFkMjkP.j4XqL7VRdBbAR8k2aKXKEI.', 'user', 0, 'John', 'A', 'Doe', 'ITD005', 'Instructor', 3, 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0, NULL, NULL, NULL, '2025-08-07 01:55:15', '2025-08-07 01:55:15', NULL, NULL, NULL),
 (32, 'asd', 'asd@gmail.com', '$2y$10$6YqvkgGXksgDvO5jsbBxv.ahCkx0vx4oyoTsKDqJoSOHKLgFxgnxO', 'user', 1, 'asd', 's', 'asd', 'ITD123', '123wsd', 3, 0, NULL, '9626091407', 'asdasdasd', '2003-12-09', NULL, '2025-08-07 15:50:29', 0, NULL, 0, '71e2fb099ead6dc85a091d2d06e754f5446a6a874357dca410d3e572a1496398', NULL, NULL, '2025-08-07 15:15:15', '2025-08-07 15:50:29', NULL, 1, '2025-08-07 15:16:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_follows`
+--
+
+CREATE TABLE `user_follows` (
+  `id` int NOT NULL,
+  `follower_id` int NOT NULL,
+  `following_id` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1457,15 +1813,15 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `is_approved
 -- (See below for the actual view)
 --
 CREATE TABLE `v_admin_submission_stats` (
-`academic_year` year(4)
-,`semester` varchar(50)
+`academic_year` year
+,`completion_percentage` decimal(26,2)
 ,`department_code` varchar(10)
 ,`department_name` varchar(100)
-,`total_faculty` bigint(21)
-,`submitted_docs` bigint(21)
-,`required_doc_types` bigint(21)
-,`total_required_submissions` bigint(41)
-,`completion_percentage` decimal(26,2)
+,`required_doc_types` bigint
+,`semester` varchar(50)
+,`submitted_docs` bigint
+,`total_faculty` bigint
+,`total_required_submissions` bigint
 );
 
 -- --------------------------------------------------------
@@ -1475,21 +1831,21 @@ CREATE TABLE `v_admin_submission_stats` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_announcements_detailed` (
-`id` int(11)
-,`title` varchar(255)
+`announcement_type` enum('general','department','urgent','maintenance')
 ,`content` text
-,`summary` varchar(500)
-,`image_path` varchar(255)
-,`priority` enum('low','normal','high','urgent')
-,`announcement_type` enum('general','department','urgent','maintenance')
-,`is_published` tinyint(1)
-,`published_at` datetime
-,`expires_at` datetime
-,`view_count` int(11)
-,`is_pinned` tinyint(1)
 ,`created_at` datetime
 ,`created_by_username` varchar(50)
 ,`creator_full_name` varchar(208)
+,`expires_at` datetime
+,`id` int
+,`image_path` varchar(255)
+,`is_pinned` tinyint(1)
+,`is_published` tinyint(1)
+,`priority` enum('low','normal','high','urgent')
+,`published_at` datetime
+,`summary` varchar(500)
+,`title` varchar(255)
+,`view_count` int
 );
 
 -- --------------------------------------------------------
@@ -1499,28 +1855,28 @@ CREATE TABLE `v_announcements_detailed` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_comments_detailed` (
-`id` int(11)
-,`post_id` int(11)
-,`user_id` int(11)
-,`parent_comment_id` int(11)
+`commenter_full_name` varchar(208)
 ,`content` text
-,`is_edited` tinyint(1)
-,`edited_at` datetime
-,`is_deleted` tinyint(1)
-,`deleted_at` datetime
-,`deleted_by` int(11)
 ,`created_at` datetime
-,`updated_at` datetime
-,`like_count` int(11)
-,`username` varchar(50)
-,`name` varchar(100)
-,`mi` varchar(5)
-,`surname` varchar(100)
-,`commenter_full_name` varchar(208)
-,`profile_image` varchar(255)
-,`position` varchar(100)
-,`department_code` varchar(10)
+,`deleted_at` datetime
+,`deleted_by` int
 ,`deleted_by_username` varchar(50)
+,`department_code` varchar(10)
+,`edited_at` datetime
+,`id` int
+,`is_deleted` tinyint(1)
+,`is_edited` tinyint(1)
+,`like_count` int
+,`mi` varchar(5)
+,`name` varchar(100)
+,`parent_comment_id` int
+,`position` varchar(100)
+,`post_id` int
+,`profile_image` varchar(255)
+,`surname` varchar(100)
+,`updated_at` datetime
+,`user_id` int
+,`username` varchar(50)
 );
 
 -- --------------------------------------------------------
@@ -1530,35 +1886,35 @@ CREATE TABLE `v_comments_detailed` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_document_requests_detailed` (
-`id` int(11)
-,`tracking_code` varchar(20)
-,`user_id` int(11)
-,`document_type` enum('certificate','clearance','permit','report','form','other')
-,`title` varchar(255)
-,`description` text
-,`priority` enum('low','normal','high','urgent')
-,`status` enum('pending','in_progress','under_review','completed','rejected','cancelled')
-,`target_department` int(11)
-,`expected_completion` date
-,`actual_completion` datetime
-,`assigned_to` int(11)
-,`metadata` longtext
-,`created_at` datetime
-,`updated_at` datetime
-,`updated_by` int(11)
-,`is_deleted` tinyint(1)
-,`deleted_at` datetime
-,`deleted_by` int(11)
-,`requester_name` varchar(50)
-,`requester_full_name` varchar(208)
-,`requester_email` varchar(255)
-,`requester_department` varchar(100)
-,`target_dept_name` varchar(100)
-,`target_dept_code` varchar(10)
+`actual_completion` datetime
+,`assigned_to` int
 ,`assigned_to_name` varchar(208)
+,`attachment_count` bigint
+,`comment_count` bigint
+,`created_at` datetime
+,`deleted_at` datetime
+,`deleted_by` int
+,`description` text
+,`document_type` enum('certificate','clearance','permit','report','form','other')
+,`expected_completion` date
+,`id` int
+,`is_deleted` tinyint(1)
+,`metadata` longtext
+,`priority` enum('low','normal','high','urgent')
+,`requester_department` varchar(100)
+,`requester_email` varchar(255)
+,`requester_full_name` varchar(208)
+,`requester_name` varchar(50)
+,`status` enum('pending','in_progress','under_review','completed','rejected','cancelled')
+,`target_department` int
+,`target_dept_code` varchar(10)
+,`target_dept_name` varchar(100)
+,`title` varchar(255)
+,`tracking_code` varchar(20)
+,`updated_at` datetime
+,`updated_by` int
 ,`updated_by_name` varchar(208)
-,`comment_count` bigint(21)
-,`attachment_count` bigint(21)
+,`user_id` int
 );
 
 -- --------------------------------------------------------
@@ -1568,21 +1924,21 @@ CREATE TABLE `v_document_requests_detailed` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_files_detailed` (
-`id` int(11)
-,`original_name` varchar(255)
-,`file_name` varchar(255)
-,`file_size` bigint(20)
-,`file_type` varchar(100)
-,`mime_type` varchar(100)
+`download_count` int
 ,`file_extension` varchar(10)
-,`uploaded_at` datetime
-,`download_count` int(11)
-,`is_deleted` tinyint(1)
+,`file_name` varchar(255)
+,`file_size` bigint
+,`file_type` varchar(100)
+,`folder_department` varchar(10)
 ,`folder_name` varchar(100)
 ,`folder_path` varchar(500)
+,`id` int
+,`is_deleted` tinyint(1)
+,`mime_type` varchar(100)
+,`original_name` varchar(255)
+,`uploaded_at` datetime
 ,`uploaded_by_username` varchar(50)
 ,`uploader_full_name` varchar(208)
-,`folder_department` varchar(10)
 );
 
 -- --------------------------------------------------------
@@ -1592,21 +1948,21 @@ CREATE TABLE `v_files_detailed` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_folders_hierarchy` (
-`id` int(11)
-,`folder_name` varchar(100)
-,`folder_path` varchar(500)
-,`folder_level` int(11)
-,`is_public` tinyint(1)
-,`folder_color` varchar(7)
-,`folder_icon` varchar(50)
-,`file_count` int(11)
-,`folder_size` bigint(20)
-,`created_at` datetime
-,`parent_folder_name` varchar(100)
+`created_at` datetime
 ,`created_by_username` varchar(50)
 ,`creator_full_name` varchar(208)
 ,`department_code` varchar(10)
 ,`department_name` varchar(100)
+,`file_count` int
+,`folder_color` varchar(7)
+,`folder_icon` varchar(50)
+,`folder_level` int
+,`folder_name` varchar(100)
+,`folder_path` varchar(500)
+,`folder_size` bigint
+,`id` int
+,`is_public` tinyint(1)
+,`parent_folder_name` varchar(100)
 );
 
 -- --------------------------------------------------------
@@ -1616,36 +1972,36 @@ CREATE TABLE `v_folders_hierarchy` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_posts_detailed` (
-`id` int(11)
-,`user_id` int(11)
+`author_full_name` varchar(208)
+,`comment_count` int
 ,`content` text
 ,`content_type` enum('text','image','file','link','mixed')
-,`visibility` enum('public','department','private','custom')
-,`target_departments` longtext
-,`target_users` longtext
-,`priority` enum('low','normal','high','urgent')
-,`is_pinned` tinyint(1)
-,`is_edited` tinyint(1)
-,`edited_at` datetime
-,`is_deleted` tinyint(1)
-,`deleted_at` datetime
-,`deleted_by` int(11)
 ,`created_at` datetime
-,`updated_at` datetime
-,`like_count` int(11)
-,`comment_count` int(11)
-,`view_count` int(11)
-,`share_count` int(11)
-,`username` varchar(50)
-,`name` varchar(100)
-,`mi` varchar(5)
-,`surname` varchar(100)
-,`author_full_name` varchar(208)
-,`profile_image` varchar(255)
-,`position` varchar(100)
+,`deleted_at` datetime
+,`deleted_by` int
+,`deleted_by_username` varchar(50)
 ,`department_code` varchar(10)
 ,`department_name` varchar(100)
-,`deleted_by_username` varchar(50)
+,`edited_at` datetime
+,`id` int
+,`is_deleted` tinyint(1)
+,`is_edited` tinyint(1)
+,`is_pinned` tinyint(1)
+,`like_count` int
+,`mi` varchar(5)
+,`name` varchar(100)
+,`position` varchar(100)
+,`priority` enum('low','normal','high','urgent')
+,`profile_image` varchar(255)
+,`share_count` int
+,`surname` varchar(100)
+,`target_departments` longtext
+,`target_users` longtext
+,`updated_at` datetime
+,`user_id` int
+,`username` varchar(50)
+,`view_count` int
+,`visibility` enum('public','department','private','custom')
 );
 
 -- --------------------------------------------------------
@@ -1655,23 +2011,23 @@ CREATE TABLE `v_posts_detailed` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_submission_tracker` (
-`user_id` int(11)
-,`username` varchar(50)
-,`name` varchar(100)
-,`surname` varchar(100)
-,`department_id` int(11)
-,`department_name` varchar(100)
+`academic_year` year
 ,`department_code` varchar(10)
-,`academic_year` year(4)
-,`semester` varchar(50)
+,`department_id` int
+,`department_name` varchar(100)
 ,`document_type` varchar(100)
-,`file_count` bigint(21)
-,`latest_upload` datetime
+,`file_count` bigint
 ,`first_upload` datetime
-,`total_size` decimal(32,0)
-,`submitted_at` datetime
-,`submitted_by` int(11)
+,`latest_upload` datetime
+,`name` varchar(100)
+,`semester` varchar(50)
 ,`status` varchar(12)
+,`submitted_at` datetime
+,`submitted_by` int
+,`surname` varchar(100)
+,`total_size` decimal(32,0)
+,`user_id` int
+,`username` varchar(50)
 );
 
 -- --------------------------------------------------------
@@ -1681,106 +2037,25 @@ CREATE TABLE `v_submission_tracker` (
 -- (See below for the actual view)
 --
 CREATE TABLE `v_users_detailed` (
-`id` int(11)
-,`username` varchar(50)
-,`email` varchar(255)
-,`role` enum('admin','user','super_admin')
-,`is_approved` tinyint(1)
-,`name` varchar(100)
-,`mi` varchar(5)
-,`surname` varchar(100)
-,`full_name` varchar(208)
-,`employee_id` varchar(20)
-,`position` varchar(100)
-,`is_restricted` tinyint(1)
-,`last_login` datetime
+`approved_at` datetime
+,`approved_by_username` varchar(50)
 ,`created_at` datetime
 ,`department_code` varchar(10)
 ,`department_name` varchar(100)
-,`approved_by_username` varchar(50)
-,`approved_at` datetime
+,`email` varchar(255)
+,`employee_id` varchar(20)
+,`full_name` varchar(208)
+,`id` int
+,`is_approved` tinyint(1)
+,`is_restricted` tinyint(1)
+,`last_login` datetime
+,`mi` varchar(5)
+,`name` varchar(100)
+,`position` varchar(100)
+,`role` enum('admin','user','super_admin')
+,`surname` varchar(100)
+,`username` varchar(50)
 );
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_admin_submission_stats`
---
-DROP TABLE IF EXISTS `v_admin_submission_stats`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_admin_submission_stats`  AS SELECT `st`.`academic_year` AS `academic_year`, `st`.`semester` AS `semester`, `st`.`department_code` AS `department_code`, `st`.`department_name` AS `department_name`, count(distinct `st`.`user_id`) AS `total_faculty`, count(distinct case when `st`.`status` = 'uploaded' then concat(`st`.`user_id`,'-',`st`.`document_type`) end) AS `submitted_docs`, count(distinct `st`.`document_type`) AS `required_doc_types`, count(distinct `st`.`user_id`) * count(distinct `st`.`document_type`) AS `total_required_submissions`, round(count(distinct case when `st`.`status` = 'uploaded' then concat(`st`.`user_id`,'-',`st`.`document_type`) end) / (count(distinct `st`.`user_id`) * count(distinct `st`.`document_type`)) * 100,2) AS `completion_percentage` FROM `v_submission_tracker` AS `st` WHERE `st`.`academic_year` is not null AND `st`.`semester` is not null GROUP BY `st`.`academic_year`, `st`.`semester`, `st`.`department_code`, `st`.`department_name` ORDER BY `st`.`academic_year` DESC, `st`.`semester` ASC, `st`.`department_name` ASC ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_announcements_detailed`
---
-DROP TABLE IF EXISTS `v_announcements_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_announcements_detailed`  AS SELECT `a`.`id` AS `id`, `a`.`title` AS `title`, `a`.`content` AS `content`, `a`.`summary` AS `summary`, `a`.`image_path` AS `image_path`, `a`.`priority` AS `priority`, `a`.`announcement_type` AS `announcement_type`, `a`.`is_published` AS `is_published`, `a`.`published_at` AS `published_at`, `a`.`expires_at` AS `expires_at`, `a`.`view_count` AS `view_count`, `a`.`is_pinned` AS `is_pinned`, `a`.`created_at` AS `created_at`, `creator`.`username` AS `created_by_username`, concat(`creator`.`name`,' ',ifnull(concat(`creator`.`mi`,'. '),''),`creator`.`surname`) AS `creator_full_name` FROM (`announcements` `a` left join `users` `creator` on(`a`.`created_by` = `creator`.`id`)) WHERE `a`.`is_deleted` = 0 ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_comments_detailed`
---
-DROP TABLE IF EXISTS `v_comments_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_comments_detailed`  AS SELECT `c`.`id` AS `id`, `c`.`post_id` AS `post_id`, `c`.`user_id` AS `user_id`, `c`.`parent_comment_id` AS `parent_comment_id`, `c`.`content` AS `content`, `c`.`is_edited` AS `is_edited`, `c`.`edited_at` AS `edited_at`, `c`.`is_deleted` AS `is_deleted`, `c`.`deleted_at` AS `deleted_at`, `c`.`deleted_by` AS `deleted_by`, `c`.`created_at` AS `created_at`, `c`.`updated_at` AS `updated_at`, `c`.`like_count` AS `like_count`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `commenter_full_name`, `u`.`profile_image` AS `profile_image`, `u`.`position` AS `position`, `d`.`department_code` AS `department_code`, `deleter`.`username` AS `deleted_by_username` FROM (((`post_comments` `c` left join `users` `u` on(`c`.`user_id` = `u`.`id`)) left join `departments` `d` on(`u`.`department_id` = `d`.`id`)) left join `users` `deleter` on(`c`.`deleted_by` = `deleter`.`id`)) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_document_requests_detailed`
---
-DROP TABLE IF EXISTS `v_document_requests_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_document_requests_detailed`  AS SELECT `dr`.`id` AS `id`, `dr`.`tracking_code` AS `tracking_code`, `dr`.`user_id` AS `user_id`, `dr`.`document_type` AS `document_type`, `dr`.`title` AS `title`, `dr`.`description` AS `description`, `dr`.`priority` AS `priority`, `dr`.`status` AS `status`, `dr`.`target_department` AS `target_department`, `dr`.`expected_completion` AS `expected_completion`, `dr`.`actual_completion` AS `actual_completion`, `dr`.`assigned_to` AS `assigned_to`, `dr`.`metadata` AS `metadata`, `dr`.`created_at` AS `created_at`, `dr`.`updated_at` AS `updated_at`, `dr`.`updated_by` AS `updated_by`, `dr`.`is_deleted` AS `is_deleted`, `dr`.`deleted_at` AS `deleted_at`, `dr`.`deleted_by` AS `deleted_by`, `u`.`username` AS `requester_name`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `requester_full_name`, `u`.`email` AS `requester_email`, `ud`.`department_name` AS `requester_department`, `td`.`department_name` AS `target_dept_name`, `td`.`department_code` AS `target_dept_code`, concat(`assigned`.`name`,' ',ifnull(concat(`assigned`.`mi`,'. '),''),`assigned`.`surname`) AS `assigned_to_name`, concat(`updater`.`name`,' ',ifnull(concat(`updater`.`mi`,'. '),''),`updater`.`surname`) AS `updated_by_name`, (select count(0) from `document_comments` where `document_comments`.`request_id` = `dr`.`id` and `document_comments`.`is_deleted` = 0) AS `comment_count`, (select count(0) from `document_attachments` where `document_attachments`.`request_id` = `dr`.`id` and `document_attachments`.`is_deleted` = 0) AS `attachment_count` FROM (((((`document_requests` `dr` left join `users` `u` on(`dr`.`user_id` = `u`.`id`)) left join `departments` `ud` on(`u`.`department_id` = `ud`.`id`)) left join `departments` `td` on(`dr`.`target_department` = `td`.`id`)) left join `users` `assigned` on(`dr`.`assigned_to` = `assigned`.`id`)) left join `users` `updater` on(`dr`.`updated_by` = `updater`.`id`)) WHERE `dr`.`is_deleted` = 0 ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_files_detailed`
---
-DROP TABLE IF EXISTS `v_files_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_files_detailed`  AS SELECT `f`.`id` AS `id`, `f`.`original_name` AS `original_name`, `f`.`file_name` AS `file_name`, `f`.`file_size` AS `file_size`, `f`.`file_type` AS `file_type`, `f`.`mime_type` AS `mime_type`, `f`.`file_extension` AS `file_extension`, `f`.`uploaded_at` AS `uploaded_at`, `f`.`download_count` AS `download_count`, `f`.`is_deleted` AS `is_deleted`, `folder`.`folder_name` AS `folder_name`, `folder`.`folder_path` AS `folder_path`, `uploader`.`username` AS `uploaded_by_username`, concat(`uploader`.`name`,' ',ifnull(concat(`uploader`.`mi`,'. '),''),`uploader`.`surname`) AS `uploader_full_name`, `dept`.`department_code` AS `folder_department` FROM (((`files` `f` left join `folders` `folder` on(`f`.`folder_id` = `folder`.`id`)) left join `users` `uploader` on(`f`.`uploaded_by` = `uploader`.`id`)) left join `departments` `dept` on(`folder`.`department_id` = `dept`.`id`)) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_folders_hierarchy`
---
-DROP TABLE IF EXISTS `v_folders_hierarchy`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_folders_hierarchy`  AS SELECT `f`.`id` AS `id`, `f`.`folder_name` AS `folder_name`, `f`.`folder_path` AS `folder_path`, `f`.`folder_level` AS `folder_level`, `f`.`is_public` AS `is_public`, `f`.`folder_color` AS `folder_color`, `f`.`folder_icon` AS `folder_icon`, `f`.`file_count` AS `file_count`, `f`.`folder_size` AS `folder_size`, `f`.`created_at` AS `created_at`, `parent`.`folder_name` AS `parent_folder_name`, `creator`.`username` AS `created_by_username`, concat(`creator`.`name`,' ',ifnull(concat(`creator`.`mi`,'. '),''),`creator`.`surname`) AS `creator_full_name`, `dept`.`department_code` AS `department_code`, `dept`.`department_name` AS `department_name` FROM (((`folders` `f` left join `folders` `parent` on(`f`.`parent_id` = `parent`.`id`)) left join `users` `creator` on(`f`.`created_by` = `creator`.`id`)) left join `departments` `dept` on(`f`.`department_id` = `dept`.`id`)) WHERE `f`.`is_deleted` = 0 ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_posts_detailed`
---
-DROP TABLE IF EXISTS `v_posts_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_posts_detailed`  AS SELECT `p`.`id` AS `id`, `p`.`user_id` AS `user_id`, `p`.`content` AS `content`, `p`.`content_type` AS `content_type`, `p`.`visibility` AS `visibility`, `p`.`target_departments` AS `target_departments`, `p`.`target_users` AS `target_users`, `p`.`priority` AS `priority`, `p`.`is_pinned` AS `is_pinned`, `p`.`is_edited` AS `is_edited`, `p`.`edited_at` AS `edited_at`, `p`.`is_deleted` AS `is_deleted`, `p`.`deleted_at` AS `deleted_at`, `p`.`deleted_by` AS `deleted_by`, `p`.`created_at` AS `created_at`, `p`.`updated_at` AS `updated_at`, `p`.`like_count` AS `like_count`, `p`.`comment_count` AS `comment_count`, `p`.`view_count` AS `view_count`, `p`.`share_count` AS `share_count`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `author_full_name`, `u`.`profile_image` AS `profile_image`, `u`.`position` AS `position`, `d`.`department_code` AS `department_code`, `d`.`department_name` AS `department_name`, `deleter`.`username` AS `deleted_by_username` FROM (((`posts` `p` left join `users` `u` on(`p`.`user_id` = `u`.`id`)) left join `departments` `d` on(`u`.`department_id` = `d`.`id`)) left join `users` `deleter` on(`p`.`deleted_by` = `deleter`.`id`)) ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_submission_tracker`
---
-DROP TABLE IF EXISTS `v_submission_tracker`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_submission_tracker`  AS SELECT `u`.`id` AS `user_id`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`surname` AS `surname`, `u`.`department_id` AS `department_id`, `d`.`department_name` AS `department_name`, `d`.`department_code` AS `department_code`, `fds`.`academic_year` AS `academic_year`, `fds`.`semester` AS `semester`, `fds`.`document_type` AS `document_type`, count(`df`.`id`) AS `file_count`, max(`df`.`uploaded_at`) AS `latest_upload`, min(`df`.`uploaded_at`) AS `first_upload`, sum(`df`.`file_size`) AS `total_size`, `fds`.`submitted_at` AS `submitted_at`, `fds`.`submitted_by` AS `submitted_by`, CASE WHEN count(`df`.`id`) > 0 THEN 'uploaded' ELSE 'not_uploaded' END AS `status` FROM (((`users` `u` left join `departments` `d` on(`u`.`department_id` = `d`.`id`)) left join `faculty_document_submissions` `fds` on(`u`.`id` = `fds`.`faculty_id`)) left join `document_files` `df` on(`fds`.`id` = `df`.`submission_id` and `df`.`file_type` = `fds`.`document_type`)) WHERE `u`.`role` = 'user' AND `u`.`is_approved` = 1 GROUP BY `u`.`id`, `fds`.`academic_year`, `fds`.`semester`, `fds`.`document_type` ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `v_users_detailed`
---
-DROP TABLE IF EXISTS `v_users_detailed`;
-
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_users_detailed`  AS SELECT `u`.`id` AS `id`, `u`.`username` AS `username`, `u`.`email` AS `email`, `u`.`role` AS `role`, `u`.`is_approved` AS `is_approved`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `full_name`, `u`.`employee_id` AS `employee_id`, `u`.`position` AS `position`, `u`.`is_restricted` AS `is_restricted`, `u`.`last_login` AS `last_login`, `u`.`created_at` AS `created_at`, `d`.`department_code` AS `department_code`, `d`.`department_name` AS `department_name`, `approver`.`username` AS `approved_by_username`, `u`.`approved_at` AS `approved_at` FROM ((`users` `u` left join `departments` `d` on(`u`.`department_id` = `d`.`id`)) left join `users` `approver` on(`u`.`approved_by` = `approver`.`id`)) ;
 
 --
 -- Indexes for dumped tables
@@ -1983,6 +2258,15 @@ ALTER TABLE `file_comments`
   ADD KEY `parent_comment_id` (`parent_comment_id`);
 
 --
+-- Indexes for table `file_downloads`
+--
+ALTER TABLE `file_downloads`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_file_downloads_file` (`file_id`),
+  ADD KEY `idx_file_downloads_user` (`user_id`),
+  ADD KEY `idx_file_downloads_date` (`downloaded_at`);
+
+--
 -- Indexes for table `file_shares`
 --
 ALTER TABLE `file_shares`
@@ -2017,6 +2301,22 @@ ALTER TABLE `folder_permissions`
   ADD KEY `user_id` (`user_id`),
   ADD KEY `department_id` (`department_id`),
   ADD KEY `granted_by` (`granted_by`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_recipient_read` (`recipient_id`,`is_read`),
+  ADD KEY `idx_sender_time` (`sender_id`,`sent_at`),
+  ADD KEY `idx_conversation` (`sender_id`,`recipient_id`,`sent_at`);
+
+--
+-- Indexes for table `message_templates`
+--
+ALTER TABLE `message_templates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `created_by` (`created_by`);
 
 --
 -- Indexes for table `notifications`
@@ -2084,6 +2384,19 @@ ALTER TABLE `post_notifications`
   ADD KEY `idx_post_notifications_created_at` (`created_at`);
 
 --
+-- Indexes for table `post_reports`
+--
+ALTER TABLE `post_reports`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `post_saves`
+--
+ALTER TABLE `post_saves`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_save` (`post_id`,`user_id`);
+
+--
 -- Indexes for table `post_shares`
 --
 ALTER TABLE `post_shares`
@@ -2125,6 +2438,13 @@ ALTER TABLE `users`
   ADD KEY `idx_users_last_login` (`last_login`);
 
 --
+-- Indexes for table `user_follows`
+--
+ALTER TABLE `user_follows`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_follow` (`follower_id`,`following_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -2132,181 +2452,298 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `announcements`
 --
 ALTER TABLE `announcements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `announcement_views`
 --
 ALTER TABLE `announcement_views`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `document_attachments`
 --
 ALTER TABLE `document_attachments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_comments`
 --
 ALTER TABLE `document_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_files`
 --
 ALTER TABLE `document_files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `document_notifications`
 --
 ALTER TABLE `document_notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_requests`
 --
 ALTER TABLE `document_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_requirements`
 --
 ALTER TABLE `document_requirements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `document_status_history`
 --
 ALTER TABLE `document_status_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_submission_history`
 --
 ALTER TABLE `document_submission_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `document_templates`
 --
 ALTER TABLE `document_templates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_workflows`
 --
 ALTER TABLE `document_workflows`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `faculty_document_submissions`
 --
 ALTER TABLE `faculty_document_submissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `file_comments`
 --
 ALTER TABLE `file_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `file_downloads`
+--
+ALTER TABLE `file_downloads`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `file_shares`
 --
 ALTER TABLE `file_shares`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `folders`
 --
 ALTER TABLE `folders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `folder_permissions`
 --
 ALTER TABLE `folder_permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `message_templates`
+--
+ALTER TABLE `message_templates`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_comments`
 --
 ALTER TABLE `post_comments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_likes`
 --
 ALTER TABLE `post_likes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_media`
 --
 ALTER TABLE `post_media`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_notifications`
 --
 ALTER TABLE `post_notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `post_reports`
+--
+ALTER TABLE `post_reports`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `post_saves`
+--
+ALTER TABLE `post_saves`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_shares`
 --
 ALTER TABLE `post_shares`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `post_views`
 --
 ALTER TABLE `post_views`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `system_settings`
 --
 ALTER TABLE `system_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- AUTO_INCREMENT for table `user_follows`
+--
+ALTER TABLE `user_follows`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_admin_submission_stats`
+--
+DROP TABLE IF EXISTS `v_admin_submission_stats`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_admin_submission_stats`  AS SELECT `st`.`academic_year` AS `academic_year`, `st`.`semester` AS `semester`, `st`.`department_code` AS `department_code`, `st`.`department_name` AS `department_name`, count(distinct `st`.`user_id`) AS `total_faculty`, count(distinct (case when (`st`.`status` = 'uploaded') then concat(`st`.`user_id`,'-',`st`.`document_type`) end)) AS `submitted_docs`, count(distinct `st`.`document_type`) AS `required_doc_types`, (count(distinct `st`.`user_id`) * count(distinct `st`.`document_type`)) AS `total_required_submissions`, round(((count(distinct (case when (`st`.`status` = 'uploaded') then concat(`st`.`user_id`,'-',`st`.`document_type`) end)) / (count(distinct `st`.`user_id`) * count(distinct `st`.`document_type`))) * 100),2) AS `completion_percentage` FROM `v_submission_tracker` AS `st` WHERE ((`st`.`academic_year` is not null) AND (`st`.`semester` is not null)) GROUP BY `st`.`academic_year`, `st`.`semester`, `st`.`department_code`, `st`.`department_name` ORDER BY `st`.`academic_year` DESC, `st`.`semester` ASC, `st`.`department_name` ASC ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_announcements_detailed`
+--
+DROP TABLE IF EXISTS `v_announcements_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_announcements_detailed`  AS SELECT `a`.`id` AS `id`, `a`.`title` AS `title`, `a`.`content` AS `content`, `a`.`summary` AS `summary`, `a`.`image_path` AS `image_path`, `a`.`priority` AS `priority`, `a`.`announcement_type` AS `announcement_type`, `a`.`is_published` AS `is_published`, `a`.`published_at` AS `published_at`, `a`.`expires_at` AS `expires_at`, `a`.`view_count` AS `view_count`, `a`.`is_pinned` AS `is_pinned`, `a`.`created_at` AS `created_at`, `creator`.`username` AS `created_by_username`, concat(`creator`.`name`,' ',ifnull(concat(`creator`.`mi`,'. '),''),`creator`.`surname`) AS `creator_full_name` FROM (`announcements` `a` left join `users` `creator` on((`a`.`created_by` = `creator`.`id`))) WHERE (`a`.`is_deleted` = 0) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_comments_detailed`
+--
+DROP TABLE IF EXISTS `v_comments_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_comments_detailed`  AS SELECT `c`.`id` AS `id`, `c`.`post_id` AS `post_id`, `c`.`user_id` AS `user_id`, `c`.`parent_comment_id` AS `parent_comment_id`, `c`.`content` AS `content`, `c`.`is_edited` AS `is_edited`, `c`.`edited_at` AS `edited_at`, `c`.`is_deleted` AS `is_deleted`, `c`.`deleted_at` AS `deleted_at`, `c`.`deleted_by` AS `deleted_by`, `c`.`created_at` AS `created_at`, `c`.`updated_at` AS `updated_at`, `c`.`like_count` AS `like_count`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `commenter_full_name`, `u`.`profile_image` AS `profile_image`, `u`.`position` AS `position`, `d`.`department_code` AS `department_code`, `deleter`.`username` AS `deleted_by_username` FROM (((`post_comments` `c` left join `users` `u` on((`c`.`user_id` = `u`.`id`))) left join `departments` `d` on((`u`.`department_id` = `d`.`id`))) left join `users` `deleter` on((`c`.`deleted_by` = `deleter`.`id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_document_requests_detailed`
+--
+DROP TABLE IF EXISTS `v_document_requests_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_document_requests_detailed`  AS SELECT `dr`.`id` AS `id`, `dr`.`tracking_code` AS `tracking_code`, `dr`.`user_id` AS `user_id`, `dr`.`document_type` AS `document_type`, `dr`.`title` AS `title`, `dr`.`description` AS `description`, `dr`.`priority` AS `priority`, `dr`.`status` AS `status`, `dr`.`target_department` AS `target_department`, `dr`.`expected_completion` AS `expected_completion`, `dr`.`actual_completion` AS `actual_completion`, `dr`.`assigned_to` AS `assigned_to`, `dr`.`metadata` AS `metadata`, `dr`.`created_at` AS `created_at`, `dr`.`updated_at` AS `updated_at`, `dr`.`updated_by` AS `updated_by`, `dr`.`is_deleted` AS `is_deleted`, `dr`.`deleted_at` AS `deleted_at`, `dr`.`deleted_by` AS `deleted_by`, `u`.`username` AS `requester_name`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `requester_full_name`, `u`.`email` AS `requester_email`, `ud`.`department_name` AS `requester_department`, `td`.`department_name` AS `target_dept_name`, `td`.`department_code` AS `target_dept_code`, concat(`assigned`.`name`,' ',ifnull(concat(`assigned`.`mi`,'. '),''),`assigned`.`surname`) AS `assigned_to_name`, concat(`updater`.`name`,' ',ifnull(concat(`updater`.`mi`,'. '),''),`updater`.`surname`) AS `updated_by_name`, (select count(0) from `document_comments` where ((`document_comments`.`request_id` = `dr`.`id`) and (`document_comments`.`is_deleted` = 0))) AS `comment_count`, (select count(0) from `document_attachments` where ((`document_attachments`.`request_id` = `dr`.`id`) and (`document_attachments`.`is_deleted` = 0))) AS `attachment_count` FROM (((((`document_requests` `dr` left join `users` `u` on((`dr`.`user_id` = `u`.`id`))) left join `departments` `ud` on((`u`.`department_id` = `ud`.`id`))) left join `departments` `td` on((`dr`.`target_department` = `td`.`id`))) left join `users` `assigned` on((`dr`.`assigned_to` = `assigned`.`id`))) left join `users` `updater` on((`dr`.`updated_by` = `updater`.`id`))) WHERE (`dr`.`is_deleted` = 0) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_files_detailed`
+--
+DROP TABLE IF EXISTS `v_files_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_files_detailed`  AS SELECT `f`.`id` AS `id`, `f`.`original_name` AS `original_name`, `f`.`file_name` AS `file_name`, `f`.`file_size` AS `file_size`, `f`.`file_type` AS `file_type`, `f`.`mime_type` AS `mime_type`, `f`.`file_extension` AS `file_extension`, `f`.`uploaded_at` AS `uploaded_at`, `f`.`download_count` AS `download_count`, `f`.`is_deleted` AS `is_deleted`, `folder`.`folder_name` AS `folder_name`, `folder`.`folder_path` AS `folder_path`, `uploader`.`username` AS `uploaded_by_username`, concat(`uploader`.`name`,' ',ifnull(concat(`uploader`.`mi`,'. '),''),`uploader`.`surname`) AS `uploader_full_name`, `dept`.`department_code` AS `folder_department` FROM (((`files` `f` left join `folders` `folder` on((`f`.`folder_id` = `folder`.`id`))) left join `users` `uploader` on((`f`.`uploaded_by` = `uploader`.`id`))) left join `departments` `dept` on((`folder`.`department_id` = `dept`.`id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_folders_hierarchy`
+--
+DROP TABLE IF EXISTS `v_folders_hierarchy`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_folders_hierarchy`  AS SELECT `f`.`id` AS `id`, `f`.`folder_name` AS `folder_name`, `f`.`folder_path` AS `folder_path`, `f`.`folder_level` AS `folder_level`, `f`.`is_public` AS `is_public`, `f`.`folder_color` AS `folder_color`, `f`.`folder_icon` AS `folder_icon`, `f`.`file_count` AS `file_count`, `f`.`folder_size` AS `folder_size`, `f`.`created_at` AS `created_at`, `parent`.`folder_name` AS `parent_folder_name`, `creator`.`username` AS `created_by_username`, concat(`creator`.`name`,' ',ifnull(concat(`creator`.`mi`,'. '),''),`creator`.`surname`) AS `creator_full_name`, `dept`.`department_code` AS `department_code`, `dept`.`department_name` AS `department_name` FROM (((`folders` `f` left join `folders` `parent` on((`f`.`parent_id` = `parent`.`id`))) left join `users` `creator` on((`f`.`created_by` = `creator`.`id`))) left join `departments` `dept` on((`f`.`department_id` = `dept`.`id`))) WHERE (`f`.`is_deleted` = 0) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_posts_detailed`
+--
+DROP TABLE IF EXISTS `v_posts_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_posts_detailed`  AS SELECT `p`.`id` AS `id`, `p`.`user_id` AS `user_id`, `p`.`content` AS `content`, `p`.`content_type` AS `content_type`, `p`.`visibility` AS `visibility`, `p`.`target_departments` AS `target_departments`, `p`.`target_users` AS `target_users`, `p`.`priority` AS `priority`, `p`.`is_pinned` AS `is_pinned`, `p`.`is_edited` AS `is_edited`, `p`.`edited_at` AS `edited_at`, `p`.`is_deleted` AS `is_deleted`, `p`.`deleted_at` AS `deleted_at`, `p`.`deleted_by` AS `deleted_by`, `p`.`created_at` AS `created_at`, `p`.`updated_at` AS `updated_at`, `p`.`like_count` AS `like_count`, `p`.`comment_count` AS `comment_count`, `p`.`view_count` AS `view_count`, `p`.`share_count` AS `share_count`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `author_full_name`, `u`.`profile_image` AS `profile_image`, `u`.`position` AS `position`, `d`.`department_code` AS `department_code`, `d`.`department_name` AS `department_name`, `deleter`.`username` AS `deleted_by_username` FROM (((`posts` `p` left join `users` `u` on((`p`.`user_id` = `u`.`id`))) left join `departments` `d` on((`u`.`department_id` = `d`.`id`))) left join `users` `deleter` on((`p`.`deleted_by` = `deleter`.`id`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_submission_tracker`
+--
+DROP TABLE IF EXISTS `v_submission_tracker`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_submission_tracker`  AS SELECT `u`.`id` AS `user_id`, `u`.`username` AS `username`, `u`.`name` AS `name`, `u`.`surname` AS `surname`, `u`.`department_id` AS `department_id`, `d`.`department_name` AS `department_name`, `d`.`department_code` AS `department_code`, `fds`.`academic_year` AS `academic_year`, `fds`.`semester` AS `semester`, `fds`.`document_type` AS `document_type`, count(`df`.`id`) AS `file_count`, max(`df`.`uploaded_at`) AS `latest_upload`, min(`df`.`uploaded_at`) AS `first_upload`, sum(`df`.`file_size`) AS `total_size`, `fds`.`submitted_at` AS `submitted_at`, `fds`.`submitted_by` AS `submitted_by`, (case when (count(`df`.`id`) > 0) then 'uploaded' else 'not_uploaded' end) AS `status` FROM (((`users` `u` left join `departments` `d` on((`u`.`department_id` = `d`.`id`))) left join `faculty_document_submissions` `fds` on((`u`.`id` = `fds`.`faculty_id`))) left join `document_files` `df` on(((`fds`.`id` = `df`.`submission_id`) and (`df`.`file_type` = `fds`.`document_type`)))) WHERE ((`u`.`role` = 'user') AND (`u`.`is_approved` = 1)) GROUP BY `u`.`id`, `fds`.`academic_year`, `fds`.`semester`, `fds`.`document_type` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_users_detailed`
+--
+DROP TABLE IF EXISTS `v_users_detailed`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_users_detailed`  AS SELECT `u`.`id` AS `id`, `u`.`username` AS `username`, `u`.`email` AS `email`, `u`.`role` AS `role`, `u`.`is_approved` AS `is_approved`, `u`.`name` AS `name`, `u`.`mi` AS `mi`, `u`.`surname` AS `surname`, concat(`u`.`name`,' ',ifnull(concat(`u`.`mi`,'. '),''),`u`.`surname`) AS `full_name`, `u`.`employee_id` AS `employee_id`, `u`.`position` AS `position`, `u`.`is_restricted` AS `is_restricted`, `u`.`last_login` AS `last_login`, `u`.`created_at` AS `created_at`, `d`.`department_code` AS `department_code`, `d`.`department_name` AS `department_name`, `approver`.`username` AS `approved_by_username`, `u`.`approved_at` AS `approved_at` FROM ((`users` `u` left join `departments` `d` on((`u`.`department_id` = `d`.`id`))) left join `users` `approver` on((`u`.`approved_by` = `approver`.`id`))) ;
 
 --
 -- Constraints for dumped tables
@@ -2456,6 +2893,19 @@ ALTER TABLE `folder_permissions`
   ADD CONSTRAINT `folder_permissions_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `message_templates`
+--
+ALTER TABLE `message_templates`
+  ADD CONSTRAINT `message_templates_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -2522,65 +2972,6 @@ ALTER TABLE `users`
   ADD CONSTRAINT `fk_user_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_user_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL;
 COMMIT;
-
-
--- --------------------------------------------------------
-
-CREATE TABLE `post_saves` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `post_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_save` (`post_id`,`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE `post_reports` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `post_id` int(11) DEFAULT NULL,
-  `comment_id` int(11) DEFAULT NULL,
-  `user_id` int(11) NOT NULL,
-  `report_reason` enum('spam','harassment','inappropriate','other') NOT NULL,
-  `description` text DEFAULT NULL,
-  `status` enum('pending','reviewed','resolved','dismissed') DEFAULT 'pending',
-  `reviewed_by` int(11) DEFAULT NULL,
-  `reviewed_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE `user_follows` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `follower_id` int(11) NOT NULL,
-  `following_id` int(11) NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_follow` (`follower_id`,`following_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
--- Department-folder upload and reporting schema additions
--- --------------------------------------------------------
-
-CREATE TABLE `file_downloads` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `file_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `downloaded_at` timestamp NULL DEFAULT current_timestamp(),
-  `user_ip` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_file_downloads_file` (`file_id`),
-  KEY `idx_file_downloads_user` (`user_id`),
-  KEY `idx_file_downloads_date` (`downloaded_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-UPDATE `files`
-SET `academic_year` = YEAR(`uploaded_at`)
-WHERE `academic_year` IS NULL;
-
-UPDATE `folders`
-SET `folder_type` = 'category'
-WHERE `folder_type` = 'custom' AND `department_id` IS NOT NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
