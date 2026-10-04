@@ -1,0 +1,242 @@
+/* Document Tracker Statistics Cards - Green Theme (matching dashboard) */
+
+/* Dashboard palette - repoint accent variables to CVSU greens */
+body.admin-dashboard-page {
+    --blue: var(--cvsu-green-700);
+    --light-blue: var(--cvsu-green-100);
+    --yellow: var(--cvsu-green-700);
+    --light-yellow: var(--cvsu-green-100);
+    --orange: var(--cvsu-green-700);
+    --light-orange: var(--cvsu-green-100);
+    --purple: var(--cvsu-green-700);
+    --light-purple: var(--cvsu-green-100);
+    --red: var(--cvsu-green-700);
+    --light-red: var(--cvsu-green-100);
+    --green-hover: var(--cvsu-green-700);
+}
+
+/* Surface-only hover: the shadow deepens, the card does not move */
+body.admin-dashboard-page #content main .box-info li:hover,
+body.admin-dashboard-page #content main .stat-card:hover,
+body.admin-dashboard-page #content main .status-item:hover,
+body.admin-dashboard-page #content main .dashboard-card:hover {
+    transform: none !important;
+}
+
+body.admin-dashboard-page #content main .doc-table tbody tr:hover {
+    transform: none !important;
+}
+
+/* Stats grid - 4 columns on desktop */
+.box-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 36px;
+}
+
+/* Breathing room between the cards */
+body.admin-dashboard-page #content main .box-info {
+    gap: 30px !important;
+    row-gap: 30px !important;
+}
+
+/* The overview row carries only two actionable tiles */
+body.admin-dashboard-page #content main .box-info.stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Vertical rhythm: panel rows below stat cards */
+body.admin-dashboard-page #content main .dashboard-grid {
+    margin-top: 30px !important;
+}
+
+.box-info li {
+    padding: 24px;
+    background: var(--light);
+    border-radius: 20px;
+    display: flex;
+    gap: 24px;
+    border: 1px solid var(--cvsu-green-100);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.box-info li:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Card internals - two-level stack: metric row + supporting content */
+body.admin-dashboard-page #content main .box-info li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    container-type: inline-size;
+}
+
+.stat-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+/* Icon container - badge keeps size, radius, centring */
+#content main .box-info li .stat-head > i.bx {
+    flex: 0 0 auto;
+    background-color: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-family: 'boxicons' !important;
+    line-height: 1;
+}
+
+/* Figure takes width left over by badge */
+body.admin-dashboard-page #content main .box-info li .stat-head > h3 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    color: var(--cvsu-green-900) !important;
+    font-size: clamp(18px, 8cqi, 23px) !important;
+    font-weight: 680 !important;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+}
+
+.box-info li .stat-label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cvsu-grey-500);
+}
+
+/* Push the bar to the foot of the card */
+body.admin-dashboard-page #content main .box-info li .progress-bar {
+    margin-top: auto;
+}
+
+/* Month-over-month delta shown under each statistic */
+.box-info li .change {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.box-info li .change i {
+    font-size: 15px;
+    flex: 0 0 auto;
+    font-family: 'boxicons' !important;
+    line-height: 1;
+}
+
+.box-info li .change.positive { color: var(--cvsu-green-700); }
+.box-info li .change.negative { color: var(--cvsu-gold-700); }
+.box-info li .change.neutral  { color: var(--cvsu-grey-500); }
+
+/* Share bar */
+.progress-bar {
+    width: 100%;
+    height: 7px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: var(--cvsu-green-100);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--cvsu-green-700);
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar-note {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--cvsu-grey-500);
+}
+
+/* Status items (overview row) */
+.status-item {
+    padding: 20px;
+    background: var(--light);
+    border-radius: 20px;
+    border: 1px solid var(--cvsu-green-100);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.status-item:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-head i.bx {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-family: 'boxicons' !important;
+    line-height: 1;
+}
+
+.stat-head h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cvsu-green-900);
+}
+
+.stat-label {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--cvsu-grey-500);
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .box-info {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .box-info li {
+        padding: 20px;
+    }
+
+    body.admin-dashboard-page #content main .box-info.stats-overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .box-info {
+        grid-template-columns: 1fr;
+    }
+
+    body.admin-dashboard-page #content main .box-info.stats-overview {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    body.admin-dashboard-page #content main .box-info.stats-overview {
+        grid-template-columns: 1fr !important;
+    }
+}
