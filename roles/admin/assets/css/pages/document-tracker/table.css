@@ -1,0 +1,500 @@
+/* Document Tracker Table - Green Theme (matching dashboard) */
+
+/* Table Container */
+.table-container {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid var(--cvsu-grey-200);
+    overflow: hidden;
+}
+
+/* Scrollable Table Wrapper */
+.table-scroll-wrapper {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 100%;
+    /* Fade the right edge so it reads as scrollable when columns overflow */
+    background:
+        linear-gradient(to right, #ffffff 30%, rgba(255, 255, 255, 0)) left center / 40px 100% no-repeat local,
+        linear-gradient(to left, #ffffff 30%, rgba(255, 255, 255, 0)) right center / 40px 100% no-repeat local,
+        radial-gradient(farthest-side at 0 50%, rgba(15, 23, 42, .10), rgba(15, 23, 42, 0)) left center / 14px 100% no-repeat scroll,
+        radial-gradient(farthest-side at 100% 50%, rgba(15, 23, 42, .10), rgba(15, 23, 42, 0)) right center / 14px 100% no-repeat scroll;
+    background-color: #ffffff;
+    border: 1px solid var(--cvsu-grey-200);
+    border-radius: 16px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar {
+    height: 12px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 6px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--cvsu-green-700), var(--cvsu-green-600));
+    border-radius: 6px;
+}
+
+/* Scroll hint - mobile only */
+.table-scroll-hint {
+    display: none;
+    margin: 0 0 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    font-size: 12.5px;
+    font-weight: 600;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-scroll-hint i {
+    font-size: 17px;
+    color: #22c55e;
+}
+
+@media screen and (max-width: 992px) {
+    .table-scroll-hint {
+        display: flex;
+    }
+}
+
+/* Document Table */
+.doc-table {
+    width: 100%;
+    min-width: 1180px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: var(--poppins);
+    background: #ffffff;
+}
+
+/* Header */
+.doc-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+    color: #0f3d1e;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 14px 12px;
+    border-bottom: 2px solid var(--cvsu-grey-200);
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Group header row */
+.doc-table thead tr:first-child th {
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: #0f3d1e;
+    border-bottom: 1px solid var(--cvsu-grey-200);
+}
+
+.doc-table thead th small {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #00040a;
+}
+
+/* Vertical document-type labels */
+.doc-table thead th[title] {
+    height: 132px;
+    padding: 10px 6px;
+    vertical-align: bottom;
+}
+
+.doc-table thead th[title] span {
+    display: inline-block;
+    writing-mode: horizontal-tb;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: #475569;
+}
+
+/* Pinned faculty column */
+.doc-table th.faculty-cell,
+.doc-table td.faculty-cell {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    min-width: 260px;
+    max-width: 260px;
+    background: #ffffff;
+    border-right: 1px solid var(--cvsu-grey-200);
+    text-align: left;
+}
+
+.doc-table thead th.faculty-cell {
+    z-index: 25;
+    background: #f8fafc;
+    vertical-align: middle;
+    padding-left: 18px;
+}
+
+/* Body */
+.doc-table tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef2f6;
+    background: #ffffff;
+}
+
+/* Zebra banding */
+.doc-table tbody tr:nth-child(even) td {
+    background: #fbfdfc;
+}
+
+/* Row hover */
+.doc-table tbody tr:hover td {
+    background: #f0fdf4;
+    box-shadow: none;
+}
+
+/* Faculty cell - NO hover color */
+.doc-table tbody tr:hover td.faculty-cell {
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Status matrix cells */
+.doc-table td.status-cell {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px 8px;
+    border-left: 1px solid #f4f7fa;
+    transition: background-color 0.2s ease;
+}
+
+.doc-table td.status-cell:hover {
+    transform: none;
+    background: #f0fdf4;
+}
+
+.doc-table td.status-cell .file-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--cvsu-green-700);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 3px rgba(30, 126, 52, .3);
+}
+
+.doc-table td.status-cell .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 6px;
+    border-radius: 50%;
+    font-size: 13px;
+    color: #ffffff;
+    font-family: 'boxicons' !important;
+    line-height: 1;
+}
+
+.doc-table td.status-cell .status-indicator.submitted {
+    background: var(--cvsu-green-700);
+}
+
+.doc-table td.status-cell .status-indicator.not-submitted {
+    background: var(--cvsu-grey-200);
+    color: #94a3b8;
+}
+
+.doc-table td.status-cell .status-indicator i {
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1;
+    font-family: 'boxicons' !important;
+}
+
+.doc-table td.status-cell .status-indicator.not-submitted i {
+    color: #fcfdff;
+}
+
+.doc-table td.status-cell .submission-info {
+    margin-top: 5px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #94a3b8;
+}
+
+.doc-table td.status-cell .submission-info small {
+    display: block;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Not-submitted cells are deliberately quiet */
+.doc-table td.status-cell.not-submitted {
+    background-image: none;
+}
+
+.doc-table td.status-cell.not-submitted .submission-info {
+    color: #cbd5e1;
+}
+
+/* Progress column */
+.doc-table td.progress-cell {
+    text-align: center;
+    padding: 12px 10px;
+    border-left: 1px solid var(--cvsu-grey-200);
+    background: #fbfdfc;
+}
+
+.doc-table .progress-circle {
+    display: inline-block;
+    line-height: 0;
+}
+
+.doc-table .progress-circle text {
+    font-family: var(--poppins);
+    font-weight: 700;
+    fill: #0f3d1e;
+}
+
+/* Progress header */
+.progress-header {
+    background: #f8fafc !important;
+    border-left: 1px solid var(--cvsu-grey-200);
+}
+
+/* Faculty compact cell */
+.faculty-compact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.faculty-avatar-small {
+    flex-shrink: 0;
+}
+
+.faculty-basic-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.faculty-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.faculty-id {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.faculty-expand-icon {
+    flex-shrink: 0;
+    color: #adb5bd;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.faculty-cell:hover .faculty-expand-icon {
+    transform: translateX(2px);
+    color: var(--cvsu-green-700);
+}
+
+/* Status indicator dot on avatar */
+.status-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #28a745;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    border-radius: 50%;
+}
+
+/* Faculty cell hover */
+.doc-table tbody tr:hover .faculty-cell {
+    background: #f0fdf4 !important;
+}
+
+/* Responsive Table */
+@media screen and (max-width: 1200px) {
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        min-width: 230px;
+        max-width: 230px;
+    }
+
+    .doc-table thead th[title] {
+        height: 116px;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .doc-table {
+        min-width: 1040px;
+    }
+
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        min-width: 210px;
+        max-width: 210px;
+    }
+
+    .doc-table thead th[title] {
+        height: 104px;
+    }
+
+    .doc-table thead th[title] span {
+        font-size: 10px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .table-container {
+        border-radius: 12px;
+    }
+    
+    .table-scroll-wrapper {
+        border-radius: 12px;
+    }
+
+    .doc-table {
+        min-width: 940px;
+    }
+
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        min-width: 190px;
+        max-width: 190px;
+    }
+
+    .doc-table thead th,
+    .doc-table tbody td {
+        padding: 10px 8px;
+    }
+
+    .doc-table thead th[title] {
+        height: 96px;
+    }
+
+    /* Hide progress column on narrow screens */
+    .doc-table td.progress-cell {
+        display: none;
+    }
+
+    .doc-table thead th[rowspan="2"]:last-child {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .table-scroll-wrapper {
+        border-radius: 12px;
+    }
+
+    .doc-table {
+        min-width: 860px;
+    }
+
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        min-width: 172px;
+        max-width: 172px;
+    }
+
+    .doc-table thead th[title] {
+        height: 88px;
+    }
+
+    .doc-table td.status-cell .submission-info {
+        display: none;
+    }
+    
+    .doc-table thead th[title] span {
+        font-size: 10px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .table-scroll-wrapper {
+        overflow: visible;
+        border: 1px solid #cbd5e1;
+    }
+
+    .doc-table {
+        min-width: 0;
+    }
+
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        position: static;
+    }
+    
+    .table-scroll-hint {
+        display: none !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .doc-table td.status-cell {
+        min-height: 60px;
+        padding: 15px 10px;
+    }
+    
+    .doc-table th.faculty-cell,
+    .doc-table td.faculty-cell {
+        cursor: default;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .doc-table {
+        font-size: 15px;
+    }
+    
+    .doc-table thead th[title] span {
+        font-weight: 600;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+    .doc-table thead th[title] {
+        height: 80px;
+    }
+}
