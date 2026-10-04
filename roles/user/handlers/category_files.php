@@ -78,11 +78,11 @@ try {
         exit();
     }
 
-    // Get files for first semester
-    $firstSemesterFiles = getFilesByCategorySemester($pdo, $requestedDepartmentId, $category, 'first');
+    // Get files for first semester - only current user's files
+    $firstSemesterFiles = getFilesByCategorySemester($pdo, $requestedDepartmentId, $category, 'first', $currentUser['id']);
     
-    // Get files for second semester  
-    $secondSemesterFiles = getFilesByCategorySemester($pdo, $requestedDepartmentId, $category, 'second');
+    // Get files for second semester - only current user's files
+    $secondSemesterFiles = getFilesByCategorySemester($pdo, $requestedDepartmentId, $category, 'second', $currentUser['id']);
     
     // Calculate total files count - THIS WAS MISSING
     $totalFiles = count($firstSemesterFiles) + count($secondSemesterFiles);
@@ -91,19 +91,44 @@ try {
         'success' => true,
         'first_semester' => $firstSemesterFiles,
         'second_semester' => $secondSemesterFiles,
-        'total_files' => $totalFiles  // ADD THIS LINE
+        'total_files' => $totalFiles,  // ADD THIS LINE
+        'created_at' => [
+            'first' => getCategorySemesterCreatedAt($pdo, $requestedDepartmentId, $category, 'first'),
+            'second' => getCategorySemesterCreatedAt($pdo, $requestedDepartmentId, $category, 'second')
+        ]
     ]);
 
-} catch(Exception $e) {
+} catch(Throwable $e) {
     error_log("Error fetching category files: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database error occurred']);
 }
 
-function getFilesByCategorySemester($pdo, $departmentId, $category, $semester) {
+function getCategorySemesterCreatedAt($pdo, $departmentId, $category, $semester) {
+    try {
+        $semesterPattern = '%' . ($semester === 'first' ? 'First Semester' : 'Second Semester') . '%';
+        $stmt = $pdo->prepare("
+            SELECT MIN(fo.created_at) AS created_at
+            FROM folders fo
+            WHERE fo.department_id = ?
+              AND fo.category = ?
+              AND fo.folder_name LIKE ?
+              AND fo.is_deleted = 0
+        ");
+        $stmt->execute([$departmentId, $category, $semesterPattern]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return !empty($row['created_at']) ? $row['created_at'] : null;
+    } catch (Throwable $e) {
+        error_log("Error reading category created_at for {$category}: " . $e->getMessage());
+        return null;
+    }
+}
+
+function getFilesByCategorySemester($pdo, $departmentId, $category, $semester, $userId = null) {
     try {
         // Get all academic years, not just current year
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT 
                 f.id,
                 f.file_name,
@@ -126,16 +151,25 @@ function getFilesByCategorySemester($pdo, $departmentId, $category, $semester) {
             AND fo.folder_name LIKE ?
             AND f.is_deleted = 0 
             AND fo.is_deleted = 0
-            ORDER BY f.uploaded_at DESC
-        ");
+        ";
         
         $semesterPattern = '%' . ($semester === 'first' ? 'First Semester' : 'Second Semester') . '%';
-        $stmt->execute([$departmentId, $category, $semesterPattern]);
+        $params = [$departmentId, $category, $semesterPattern];
         
+        // Filter by user ID if provided (for privacy - users only see their own files)
+        if ($userId !== null) {
+            $sql .= " AND f.uploaded_by = ?";
+            $params[] = $userId;
+        }
+        
+        $sql .= " ORDER BY f.uploaded_at DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Process files to ensure proper data format
-        foreach ($files as &$file) {
+        foreach ($files as $index => $file) {
             // Parse tags if they exist
             if (!empty($file['tags'])) {
                 $decoded = json_decode($file['tags'], true);
@@ -160,11 +194,13 @@ function getFilesByCategorySemester($pdo, $departmentId, $category, $semester) {
             
             // Add file icon based on extension
             $file['file_icon'] = getFileIcon($file['file_extension']);
+            
+            $files[$index] = $file;
         }
         
         return $files;
         
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("Error getting files for category {$category}, semester {$semester}: " . $e->getMessage());
         return [];
     }
