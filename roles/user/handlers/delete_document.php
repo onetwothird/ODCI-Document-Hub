@@ -15,12 +15,12 @@ if (!$currentUser || !$currentUser['is_approved']) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: submission_tracker.php');
+    header('Location: folders.php');
     exit();
 }
 
 $documentId = $_POST['document_id'] ?? 0;
-$redirectUrl = $_POST['redirect_url'] ?? 'submission_tracker.php';
+$redirectUrl = $_POST['redirect_url'] ?? 'folders.php';
 
 if (!$documentId) {
     header('Location: ' . $redirectUrl . '?error=invalid_document');
