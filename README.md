@@ -226,7 +226,7 @@ This project is proprietary software developed for **Cavite State University - N
 
 | Role | Name | Contact |
 |------|------|---------|
-| **Senior Software Engineer** | [Your Name] | [your.email@cvsu.edu.ph] |
+| **Senior Software Engineer** | [ANGELITO P. DECATORIA III | [nc.angelitoiii.decatoria@cvsu.edu.ph] |
 | **System Administrator** | ITD Department | itd@cvsu.edu.ph |
 
 ---
