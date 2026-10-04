@@ -1,4 +1,5 @@
 /* Enhanced Submission Tracker Styles for Better UX */
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here */
 
 /* Main Layout Improvements */
 * {
@@ -8,7 +9,7 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     min-height: 100vh;
     overflow-x: hidden;
