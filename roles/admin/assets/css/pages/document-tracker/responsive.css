@@ -1,0 +1,351 @@
+/* Document Tracker Responsive - Green Theme (matching dashboard) */
+
+/* Enhanced Quick Actions - already in grid_layout.css, keeping for completeness */
+.quick-actions {
+    display: grid;
+    gap: 12px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.action-item:hover {
+    background: var(--cvsu-green-100);
+    border-color: var(--cvsu-green-100);
+}
+
+.action-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.action-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--cvsu-green-700);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.action-item p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--cvsu-green-700);
+}
+
+.action-arrow {
+    color: var(--dark-grey);
+    transition: all 0.2s ease;
+}
+
+.action-item:hover .action-arrow {
+    color: var(--cvsu-green-700);
+    transform: translateX(4px);
+}
+
+/* Enhanced Account Info - already in grid_layout.css */
+.account-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.info-item {
+    background: var(--cvsu-green-50);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--cvsu-green-100);
+}
+
+.info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cvsu-grey-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+/* Upload CTA */
+.upload-cta {
+    background: var(--cvsu-green-700);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.upload-cta:hover {
+    background: var(--cvsu-green-800);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.empty-state a {
+    color: var(--cvsu-green-700);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 12px 24px;
+    background: var(--cvsu-green-100);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.empty-state a:hover {
+    background: var(--cvsu-green-200);
+}
+
+/* Stats overview grid */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 36px;
+}
+
+@media screen and (max-width: 768px) {
+    .stats-overview {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .box-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .account-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .table-header-info .header-content h2 {
+        font-size: 16px;
+    }
+    
+    .header-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .filter-form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .select-wrapper {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .card-header h3 {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .action-item {
+        padding: 14px;
+    }
+    
+    .action-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .info-item {
+        padding: 14px;
+    }
+    
+    .head-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .head-title .right {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .head-title .right .btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .breadcrumb {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* Additional utility classes for responsive behavior */
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none !important;
+    }
+    
+    .desktop-only {
+        display: block !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .btn,
+    .action-item,
+    .faculty-actions button,
+    .document-status {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px;
+    }
+    
+    .status-cell {
+        min-height: 60px;
+        padding: 15px 10px;
+    }
+    
+    .faculty-cell {
+        cursor: default;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .doc-table {
+        font-size: 15px;
+    }
+    
+    .faculty-cell strong {
+        font-weight: 600;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 85vh;
+        margin: 5% auto;
+    }
+    
+    .modal-body {
+        max-height: 60vh;
+    }
+    
+    .faculty-card {
+        padding: 12px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .modal,
+    .faculty-actions,
+    .filter-advanced,
+    .btn,
+    .card-actions,
+    .period-filter-inline,
+    .table-scroll-hint {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .table-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .doc-table th,
+    .doc-table td {
+        border: 1px solid #000;
+        padding: 8px;
+    }
+    
+    .faculty-cell {
+        position: static !important;
+        box-shadow: none !important;
+    }
+}
