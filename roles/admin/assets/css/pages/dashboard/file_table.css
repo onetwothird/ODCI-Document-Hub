@@ -35,12 +35,14 @@
     gap: 12px;
 }
 
+/* Icon container - same green-100 surface and green-700 glyph as the statistic
+   tiles, so every icon container in the panel reads as one set. */
 .file-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: var(--light-blue);
-    color: var(--blue);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,13 +73,13 @@
 }
 
 .status-badge.status-favorite {
-    background: var(--light-yellow);
-    color: var(--yellow);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
 }
 
 .status-badge.status-public {
-    background: var(--light-blue);
-    color: var(--blue);
+    background: var(--cvsu-green-100);
+    color: var(--cvsu-green-700);
 }
 
 .status-badge.status-private {
