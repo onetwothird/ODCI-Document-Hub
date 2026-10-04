@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - CVSU Naic</title>
+    <link rel="icon" type="image/png" href="../img/cvsu-logo.png">
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="script/css/register.css">
     <link rel="stylesheet" href="../assets/css/cvsu-auth.css?v=1.8.6">
@@ -23,7 +24,7 @@
 
             <div class="header-section">
                 <h1 class="main-title">ODCI Document Management System</h1>
-                <p class="system-name">Registration Portal</p>
+                <p class="sub-title">Registration Portal</p>
             </div>
 
             <div class="wizard-progress">
