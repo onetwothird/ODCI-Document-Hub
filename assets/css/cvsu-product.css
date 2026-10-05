@@ -60,9 +60,15 @@ body :not(i):not(.bx):not([class*="fa"]) {
     box-shadow: 4px 0 18px rgba(12, 38, 25, .08);
     transition: width .22s ease, transform .22s ease !important;
     overflow-x: hidden;
-    overflow-y: hidden;
+    /* Scroll rather than clip. The menu is a fixed-height flex column, and the
+       superadmin list is long enough to pass the viewport height on a laptop,
+       which would otherwise put Logout permanently out of reach. The rule
+       scrollbar stays hidden so the rail keeps its clean edge. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: none;
 }
+#sidebar::-webkit-scrollbar { display: none; }
 #sidebar.expanded { width: 264px !important; }
 #sidebar .sidebar-header,
 #sidebar .brand {
@@ -73,6 +79,12 @@ body :not(i):not(.bx):not([class*="fa"]) {
     background: var(--cvsu-green-900) !important;
     border-bottom: 1px solid rgba(255,255,255,.1);
     box-sizing: border-box;
+}
+/* The rail scrolls, so the brand row has to pin to the top of it. */
+#sidebar .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 #sidebar .cvsu-drawer-back { display: none; }
 #sidebar .brand {
