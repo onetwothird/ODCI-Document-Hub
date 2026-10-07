@@ -43,12 +43,12 @@ class Utils {
         const notification = this.createNotificationElement(message, type);
         document.body.appendChild(notification);
         
-        // Auto remove after 3 seconds
+        // Auto remove after 1 second
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.remove();
             }
-        }, 3000);
+        }, 1000);
     }
 
     // Create notification element
