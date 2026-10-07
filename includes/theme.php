@@ -23,7 +23,7 @@ if (!defined('ODCI_THEME_LOADED')) {
     define('ODCI_THEME_LOADED', true);
 
     // Bump this to bust caches after editing the shared design-system assets.
-    $themeVersion = '1.11.0';
+    $themeVersion = '1.11.1';
 
     // Work out the relative URL from the calling page back to the project root.
     $themePrefix = '../../';
