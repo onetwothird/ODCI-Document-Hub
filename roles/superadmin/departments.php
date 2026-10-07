@@ -17,30 +17,30 @@
         /* Department Management Redesigned CSS - Following Modern Design System */
 
 :root {
-    --poppins: 'Poppins';
+    --poppins: 'Plus Jakarta Sans', 'Poppins', sans-serif;
     
-    /* Modern Color Palette */
-    --primary-color: #10b981;
-    --secondary-color: #059669;
+    /* CVSU brand palette (mirrors assets/css/cvsu-theme.css) */
+    --primary-color: #28a745;
+    --secondary-color: #1e7e34;
     --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #17a2b8;
-    --green: #10b981;
-    --warning-orange: #f59e0b;
-    --danger-red: #ef4444;
-    --info-cyan: #06b6d4;
+    --warning-color: #e0a000;
+    --danger-color: #dc2626;
+    --info-color: #1e7e34;
+    --green: #28a745;
+    --warning-orange: #e0a000;
+    --danger-red: #dc2626;
+    --info-cyan: #166534;
 
     
     /* Overview Card Colors */
-    --total-color: #ffc107;
-    --total-bg: linear-gradient(135deg, #f5ca4b, #ac944d);
+    --total-color: #b8860b;
+    --total-bg: linear-gradient(90deg, var(--total-color), #f0c000);
 
-    --active-color: #10b981;
-    --active-bg: linear-gradient(135deg, #10b981, #059669);
+    --active-color: #1e7e34;
+    --active-bg: linear-gradient(90deg, var(--active-color), #28a745);
     
-    --inactive-color: #ef4444;
-    --inactive-bg: linear-gradient(135deg, #ef4444, #dc2626);
+    --inactive-color: #dc2626;
+    --inactive-bg: linear-gradient(90deg, var(--inactive-color), #b91c1c);
     
     /* Neutrals */
     --gray-50: #f8fafc;
@@ -70,18 +70,18 @@
 
 .dept-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
     gap: 25px;
     margin-top: 30px;
 }
 
 .dept-card {
     background: white;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
+    transition: box-shadow .18s ease, border-color .18s ease;
+    border: 1px solid var(--cvsu-line, #e6ebe7);
     position: relative;
     overflow: hidden;
 }
@@ -98,9 +98,10 @@
 }
 
 
+/* Container holds still - the contents carry the feedback. */
 .dept-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    transform: none;
+    box-shadow: var(--cvsu-shadow-md, 0 6px 20px rgba(11, 61, 30, .10));
 }
 
 .dept-card.inactive {
@@ -122,18 +123,18 @@
 }
 
 .dept-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #10b981, #06d485ff);
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--cvsu-green-600, #1e7e34), var(--cvsu-green-800, #14532d));
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 28px;
+    font-size: 26px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.22);
 }
 
 .dept-icon::before {
@@ -143,8 +144,8 @@
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-    animation: shimmer 3s infinite;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+    animation: shimmer 6s infinite linear;
 }
 
 @keyframes shimmer {
@@ -189,7 +190,7 @@
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(220, 252, 231, 0.6));
     padding: 4px 12px;
     border-radius: 12px;
     display: inline-block;
@@ -217,11 +218,11 @@
 
 .stat-item {
     text-align: center;
-    transition: transform 0.2s ease;
+    transition: color .18s ease;
 }
 
 .stat-item:hover {
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .stat-number {
@@ -317,38 +318,39 @@
 }
 
 .btn-primary { 
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 .btn-success { 
-    background: linear-gradient(135deg, var(--success-color), #20c997);
+    background: var(--cvsu-green-600, #1e7e34);
     color: white;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 .btn-warning { 
-    background: linear-gradient(135deg, var(--warning-color), #fd7e14);
-    color: var(--gray-800);
-    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    background: var(--cvsu-gold-400, #f0c000);
+    color: var(--cvsu-green-900, #0b3d1e);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 .btn-danger { 
-    background: linear-gradient(135deg, var(--danger-color), #e74c3c);
+    background: var(--cvsu-danger, #dc2626);
     color: white;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 .btn-secondary { 
-    background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
-    color: white;
-    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    background: white;
+    color: var(--cvsu-green-700, #166534);
+    border: 1px solid var(--cvsu-line, #e6ebe7);
+    box-shadow: none;
 }
 
 .btn:hover { 
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transform: none;
+    box-shadow: var(--cvsu-shadow-md, 0 6px 20px rgba(11, 61, 30, .10));
 }
 
 .filters {
@@ -362,10 +364,10 @@
 .filter-tabs {
     display: flex;
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 6px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-    border: 1px solid var(--gray-200);
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
+    border: 1px solid var(--cvsu-line, #e6ebe7);
 }
 
 .filter-tab {
@@ -398,10 +400,10 @@
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
+    transform: none;
 }
 
 .modal {
@@ -512,8 +514,8 @@
     outline: none;
     border-color: var(--primary-color);
     background: white;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.14);
+    transform: none;
 }
 
 .form-group textarea {
@@ -539,31 +541,23 @@
 }
 
 .alert {
-    padding: 20px 25px;
-    border-radius: 16px;
-    margin-bottom: 25px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 24px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: none;
+    border: 1px solid transparent;
 }
 
 .alert i {
-    font-size: 20px;
+    font-size: 18px;
 }
 
-.alert-success {
-    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-    border: 2px solid rgba(40, 167, 69, 0.2);
-    color: var(--success-color);
-}
-
-.alert-error {
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
-    border: 2px solid rgba(220, 53, 69, 0.2);
-    color: var(--danger-color);
-}
+.alert-success { border-color: var(--cvsu-green-300, #6ee7a0); }
+.alert-error   { border-color: #fca5a5; }
 
 .pagination {
     display: flex;
@@ -586,182 +580,109 @@
 }
 
 .pagination a:hover {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    background: var(--cvsu-green-50, #f0fdf4);
+    color: var(--cvsu-green-800, #14532d);
+    border-color: var(--cvsu-green-300, #6ee7a0);
+    transform: none;
+    box-shadow: none;
 }
 
 .pagination .current {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    border-color: var(--cvsu-green-500, #28a745);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 .stats-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    margin-bottom: 35px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
 }
 
 .overview-card {
-    background: white;
-    padding: 35px 30px;
-    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 24px 22px;
+    border-radius: 12px;
     text-align: center;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-.overview-card:nth-child(1) {
-    background: linear-gradient(135deg, rgba(245, 202, 75, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
-}
-
-.overview-card:nth-child(1)::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--total-bg);
-}
-
-.overview-card:nth-child(1) i {
-    color: var(--total-color);
-    background: linear-gradient(135deg, rgba(245, 202, 75, 0.1), rgba(172, 148, 77, 0.1));
-    padding: 15px;
-    border-radius: 50%;
-    box-shadow: 0 8px 25px rgba(245, 202, 75, 0.2);
-}
-
-.overview-card:nth-child(1) h3 {
-    color: var(--total-color);
-}
-
-/* Alternative: If you want more vibrant yellow/gold styling */
-.overview-card:nth-child(1) {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
-    border: 1px solid rgba(255, 193, 7, 0.1);
-}
-
-.overview-card:nth-child(1)::before {
-    background: linear-gradient(135deg, #ffc107, #e0a800);
-}
-
-.overview-card:nth-child(1) i {
-    color: #ffc107;
-    background: linear-gradient(135deg, #ffc107;), rgba(224, 168, 0, 0.1));
-    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.25);
-}
-
-
-
-/* Overview Card - Active Departments */
-.overview-card:nth-child(2) {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
-}
-
-.overview-card:nth-child(2)::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--active-bg);
-}
-
-.overview-card:nth-child(2) i {
-    color: var(--active-color);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-    padding: 15px;
-    border-radius: 50%;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
-}
-
-.overview-card:nth-child(2) h3 {
-    color: var(--active-color);
-}
-
-/* Overview Card - Inactive Departments */
-.overview-card:nth-child(3) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
-}
-
-.overview-card:nth-child(3)::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--inactive-bg);
-}
-
-.overview-card:nth-child(3) i {
-    color: var(--inactive-color);
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-    padding: 15px;
-    border-radius: 50%;
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
-}
-
-.overview-card:nth-child(3) h3 {
-    color: var(--inactive-color);
+    box-shadow: 0 1px 3px rgba(24, 47, 31, .05);
+    transition: box-shadow .18s ease, border-color .18s ease;
+    border: 1px solid var(--cvsu-line, #e6ebe7);
 }
 
 .overview-card i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    opacity: 0.9;
-    transition: all 0.3s ease;
+    width: 52px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.6rem;
+    background: var(--cvsu-green-50, #f0f7f1);
+    color: var(--cvsu-green-600, #006b2e);
+    transition: transform .18s ease;
 }
 
-.overview-card:hover i {
-    transform: scale(1.1) rotate(5deg);
+/* Total Departments - gold accent */
+.overview-card:nth-child(1) i {
+    background: #fbf5e5;
+    color: #b8860b;
+}
+
+/* Active Departments */
+.overview-card:nth-child(2) i {
+    background: #f0f7f1;
+    color: #006b2e;
+}
+
+/* Inactive Departments */
+.overview-card:nth-child(3) i {
+    background: #fef2f2;
+    color: #dc2626;
 }
 
 .overview-card h3 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-}
-
-.overview-card:hover h3 {
-    transform: translateY(-3px);
+    line-height: 1;
+    color: #004d24;
+    transition: color .18s ease;
 }
 
 .overview-card p {
     margin: 0;
-    color: var(--gray-500);
-    font-size: 14px;
-    font-weight: 600;
+    color: var(--gray-500, #647168);
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: .04em;
 }
 
+/* Container stays put - only the icon inside responds. */
 .overview-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    transform: none;
+    border-color: #c8dccb;
+    box-shadow: 0 6px 20px rgba(24, 47, 31, .08);
+}
+
+.overview-card:hover i {
+    transform: scale(1.06);
 }
 
 /* Empty State Styling */
 .dept-grid + div[style*="text-align: center"] {
     background: white;
-    border-radius: 24px;
-    padding: 80px 40px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-    margin: 40px 0;
-    border: 2px dashed var(--gray-300);
+    border-radius: 12px;
+    padding: 60px 32px;
+    box-shadow: none;
+    margin: 32px 0;
+    border: 2px dashed var(--cvsu-line, #e6ebe7);
 }
 
 .dept-grid + div[style*="text-align: center"] i {
@@ -780,44 +701,91 @@
     font-size: 16px;
 }
 
-/* Add Department Button - Header Style */
-.head-title .btn-download {
-    height: auto;
-    padding: 12px 24px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
+/* Header actions - layout only; cvsu-theme.css paints .btn-* colours. */
+.head-title {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 22px 24px;
+    background: white;
+    border: 1px solid var(--cvsu-line, #e6ebe7);
+    border-radius: 12px;
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
+    position: relative;
+    overflow: hidden;
+}
+
+.head-title::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cvsu-green-500, #28a745), var(--cvsu-gold-400, #f0c000));
+}
+
+.head-title .left { min-width: 0; }
+
+.head-title .right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.head-title .left h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--cvsu-ink, #16241c);
+    margin-bottom: 6px;
+}
+
+.head-title .btn {
+    height: auto;
+    padding: 10px 18px;
+    border-radius: 8px;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
     font-weight: 600;
     font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    border: none;
+    transition: background .18s ease, border-color .18s ease, color .18s ease;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     text-decoration: none;
 }
 
-.head-title .btn-download:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-}
-
-.head-title .btn-download i {
-    font-size: 16px;
+.head-title .btn:hover {
+    transform: none;
 }
 
 @media (max-width: 768px) {
+    .head-title {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 20px;
+        margin-bottom: 18px;
+    }
+
+    .head-title .right {
+        justify-content: flex-start;
+    }
+
+    .head-title .right .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
     .dept-grid {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
+
     .filters {
         flex-direction: column;
         align-items: stretch;
@@ -857,12 +825,12 @@
     }
     
     .overview-card {
-        padding: 25px 20px;
+        padding: 20px 16px;
     }
     
     .stats-overview {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+        gap: 12px;
     }
 }
     </style>
@@ -870,7 +838,7 @@
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body>
+<body class="superadmin-departments-page">
 <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -890,10 +858,16 @@
                         <li><a class="active" href="#">Departments</a></li>
                     </ul>
                 </div>
-                <button onclick="openModal('createDeptModal')" class="btn-download">
-                    <i class='bx bx-buildings'></i>
-                    <span class="text">Add Department</span>
-                </button>
+                <div class="right">
+                    <button class="btn btn-secondary" type="button" title="Refresh" onclick="window.location.reload()">
+                        <i class='bx bx-refresh'></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button onclick="openModal('createDeptModal')" class="btn btn-primary">
+                        <i class='bx bx-buildings'></i>
+                        <span class="text">Add Department</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Alerts -->
