@@ -74,18 +74,24 @@ if (!$currentUser) {
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #006b2e;
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #004d24;
+            box-shadow: 0 4px 12px rgba(0, 107, 46, 0.28);
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: #fff;
+            color: #004d24;
+            border: 1px solid #e2e9e3;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f7f1;
+            border-color: #c8dccb;
         }
 
         .btn-success {
@@ -139,8 +145,8 @@ if (!$currentUser) {
 
         .form-control:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #006b2e;
+            box-shadow: 0 0 0 3px rgba(0, 107, 46, 0.1);
         }
 
         .breadcrumb {
@@ -155,7 +161,7 @@ if (!$currentUser) {
         }
 
         .breadcrumb a {
-            color: #667eea;
+            color: #006b2e;
             text-decoration: none;
             font-weight: 500;
         }
@@ -208,6 +214,7 @@ if (!$currentUser) {
             padding: 12px;
             color: #555;
             text-decoration: none;
+            border: 1px solid transparent;
             border-radius: 8px;
             transition: all 0.3s ease;
             font-weight: 500;
@@ -215,13 +222,19 @@ if (!$currentUser) {
 
         .folder-link:hover,
         .folder-link.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            transform: translateX(5px);
+            background: #f0f7f1;
+            color: #004d24;
+            border: 1px solid #d7e6da;
         }
 
         .folder-link i {
             font-size: 18px;
+            color: #006b2e;
+        }
+
+        .folder-link.active i,
+        .folder-link:hover i {
+            color: #004d24;
         }
 
         .folder-info {
@@ -274,7 +287,7 @@ if (!$currentUser) {
         }
 
         .view-toggle button.active {
-            background: #667eea;
+            background: #006b2e;
             color: white;
         }
 
@@ -316,27 +329,27 @@ if (!$currentUser) {
         }
 
         .file-icon.folder {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);
         }
 
         .file-icon.document {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #e0b53b 0%, #b8860b 100%);
         }
 
         .file-icon.image {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #3aa564 0%, #1e7e34 100%);
         }
 
         .file-icon.video {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #d4a72c 0%, #9a6f0a 100%);
         }
 
         .file-icon.audio {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            background: linear-gradient(135deg, #7d8f83 0%, #5b6b60 100%);
         }
 
         .file-icon.archive {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            background: linear-gradient(135deg, #a9b8ad 0%, #7d8f83 100%);
         }
 
         .file-info {
@@ -387,7 +400,7 @@ if (!$currentUser) {
 
         .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
             gap: 20px;
             margin-bottom: 25px;
         }
@@ -409,7 +422,7 @@ if (!$currentUser) {
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);
         }
 
         .stat-number {
@@ -488,19 +501,19 @@ if (!$currentUser) {
         }
 
         .upload-area {
-            border: 2px dashed #667eea;
+            border: 2px dashed #006b2e;
             border-radius: 12px;
             padding: 40px 20px;
             text-align: center;
-            background: #f8f9ff;
+            background: #f0f7f1;
             margin-bottom: 20px;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
+            border-color: #004d24;
+            background: #e4f0e6;
         }
 
         .upload-area.dragover {
@@ -510,7 +523,7 @@ if (!$currentUser) {
 
         .upload-icon {
             font-size: 48px;
-            color: #667eea;
+            color: #006b2e;
             margin-bottom: 15px;
         }
 
@@ -552,15 +565,15 @@ if (!$currentUser) {
         }
 
         .pagination button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+            background: #f0f7f1;
+            color: #004d24;
+            border-color: #c8dccb;
         }
 
         .pagination button.active {
-            background: #667eea;
+            background: #006b2e;
             color: white;
-            border-color: #667eea;
+            border-color: #006b2e;
         }
 
         .pagination button:disabled {
@@ -587,7 +600,7 @@ if (!$currentUser) {
         }
 
         .storage-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
@@ -723,12 +736,12 @@ if (!$currentUser) {
                         <p style="margin: 0; opacity: 0.9;">Monitor system storage consumption</p>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 18px; font-weight: 600;">2.3 GB / 10 GB</div>
-                        <div style="opacity: 0.8;">23% Used</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="storageUsedText">- / -</div>
+                        <div style="opacity: 0.8;" id="storagePercentText">- Used</div>
                     </div>
                 </div>
                 <div class="storage-bar">
-                    <div class="storage-progress" style="width: 23%;"></div>
+                    <div class="storage-progress" id="storageProgress" style="width: 0%;"></div>
                 </div>
             </div>
 
@@ -1032,7 +1045,7 @@ if (!$currentUser) {
                 html += `
                     <li class="folder-item">
                         <a href="#" class="folder-link ${isActive}" style="${indent}" onclick="navigateToFolder(${folder.id})">
-                            <i class='bx bx-folder' style="color: ${folder.folder_color || '#667eea'}"></i>
+                            <i class='bx bx-folder' style="color: ${folder.folder_color || '#006b2e'}"></i>
                             <div class="folder-info">
                                 <div class="folder-name">${folder.folder_name}</div>
                                 <div class="folder-stats">${folder.file_count || 0} files</div>
@@ -1197,6 +1210,16 @@ if (!$currentUser) {
                     document.getElementById('totalFolders').textContent = stats.data.total_folders.toLocaleString();
                     document.getElementById('totalSize').textContent = formatFileSize(stats.data.total_size);
                     document.getElementById('totalDownloads').textContent = stats.data.total_downloads.toLocaleString();
+
+                    // Live storage usage against the 10 GB plan quota.
+                    const quotaBytes = 10 * 1024 * 1024 * 1024;
+                    const usedBytes = Number(stats.data.total_size) || 0;
+                    const percent = Math.min(100, (usedBytes / quotaBytes) * 100);
+                    document.getElementById('storageUsedText').textContent =
+                        `${formatFileSize(usedBytes)} / ${formatFileSize(quotaBytes)}`;
+                    document.getElementById('storagePercentText').textContent =
+                        `${percent.toFixed(1)}% Used`;
+                    document.getElementById('storageProgress').style.width = `${percent}%`;
                 }
             } catch (error) {
                 console.error('Error loading statistics:', error);
