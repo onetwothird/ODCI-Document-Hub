@@ -1,5 +1,8 @@
 /* Sidebar Component Styles - Green Theme */
-/* Typography loaded once in shared cvsu-theme.css — do NOT import here */
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here.
+   Kept byte-identical with roles/admin/assets/css/components/sidebar.css and
+   roles/superadmin/assets/css/sidebar.css so all three roles ship the
+   same sidebar UI. Change one, change all three. */
 
 /* Sidebar CSS Variables - Green Theme */
 :root {
