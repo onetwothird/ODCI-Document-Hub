@@ -7,7 +7,7 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     display: flex;
     align-items: center;
     gap: 12px;

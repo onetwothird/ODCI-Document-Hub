@@ -425,7 +425,7 @@
     color: #64748b;
     transition: all 0.3s ease;
     font-size: 14px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -538,7 +538,7 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     display: flex;
     align-items: center;
     gap: 12px;

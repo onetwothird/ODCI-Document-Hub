@@ -1,7 +1,8 @@
-/* Shared ODCI product styling. Loaded after legacy role styles and cvsu-theme.css. */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* Shared ODCI product styling. Loaded after legacy role styles and cvsu-theme.css.
+   Typography (Plus Jakarta Sans) is loaded once in cvsu-theme.css — do NOT import again. */
 
 :root {
+    /* Colour palette (product-specific darker green variant) */
     --cvsu-green-900: #004d24;
     --cvsu-green-800: #005a2b;
     --cvsu-green-700: #006b2e;
@@ -42,11 +43,11 @@ html { scroll-behavior: smooth; }
 body {
     background: var(--cvsu-surface) !important;
     color: var(--cvsu-ink) !important;
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif !important;
+    font-family: var(--font-family) !important;
     font-feature-settings: "cv11", "ss01";
 }
 body :not(i):not(.bx):not([class*="fa"]) {
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif !important;
+    font-family: var(--font-family) !important;
 }
 
 /* Compact, shared navigation system across user, admin and superadmin. */
@@ -59,9 +60,15 @@ body :not(i):not(.bx):not([class*="fa"]) {
     box-shadow: 4px 0 18px rgba(12, 38, 25, .08);
     transition: width .22s ease, transform .22s ease !important;
     overflow-x: hidden;
-    overflow-y: hidden;
+    /* Scroll rather than clip. The menu is a fixed-height flex column, and the
+       superadmin list is long enough to pass the viewport height on a laptop,
+       which would otherwise put Logout permanently out of reach. The rule
+       scrollbar stays hidden so the rail keeps its clean edge. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: none;
 }
+#sidebar::-webkit-scrollbar { display: none; }
 #sidebar.expanded { width: 264px !important; }
 #sidebar .sidebar-header,
 #sidebar .brand {
@@ -72,6 +79,12 @@ body :not(i):not(.bx):not([class*="fa"]) {
     background: var(--cvsu-green-900) !important;
     border-bottom: 1px solid rgba(255,255,255,.1);
     box-sizing: border-box;
+}
+/* The rail scrolls, so the brand row has to pin to the top of it. */
+#sidebar .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 #sidebar .cvsu-drawer-back { display: none; }
 #sidebar .brand {

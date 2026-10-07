@@ -286,6 +286,7 @@ $maxFiles = ini_get('max_file_uploads');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload <?php echo htmlspecialchars($docType); ?> - CVSU Naic</title>
+    <link rel="icon" type="image/png" href="../../../img/cvsu-logo.png">
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -1,11 +1,12 @@
 /* Sidebar Component Styles - Green Theme */
-
-/* Import required fonts */
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
+/* Typography loaded once in shared cvsu-theme.css — do NOT import here.
+   Kept byte-identical with roles/user/assets/css/components/sidebar.css and
+   roles/superadmin/assets/css/sidebar.css so all three roles ship the
+   same sidebar UI. Change one, change all three. */
 
 /* Sidebar CSS Variables - Green Theme */
 :root {
-    --sidebar-poppins: 'Poppins';
+    --sidebar-poppins: var(--font-family);
     --sidebar-background: #04500f; /* Green background for sidebar */
     --sidebar-green: #ffffff; /* White for icons and text */
     --sidebar-green-hover: #266d10; /* Light green for hover */

@@ -1,5 +1,5 @@
 /* Registration Form Styles - Based on Login Styles with Enhancements */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Typography loaded once in shared cvsu-theme.css / cvsu-auth.css — do NOT import here */
 
 /* Reset and Base Styles */
 * {
@@ -9,7 +9,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -18,7 +18,7 @@ body {
 .auth-page {
     width: 100%;
     min-height: 100vh;
-    background-image: url('../../img/cvsu-naic-bg.png');
+    background-image: url('../../img/cvsu-naic-bg.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -99,7 +99,7 @@ body {
 }
 
 .main-title {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
     color: #1a202c;
     line-height: 1.3;
@@ -107,19 +107,19 @@ body {
 }
 
 .sub-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
-    color: #2d3748;
-    line-height: 1.3;
-    margin-bottom: 8px;
+    color: #59675e;
+    line-height: 1.4;
+    margin-top: 2px;
 }
 
 .system-name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
-    color: #718096;
+    color: #6c786f;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
 }
 
 /* Wizard Progress Indicator */
@@ -426,16 +426,18 @@ body {
     transition: all 0.3s ease;
 }
 
-.alert-error {
+.auth-page .alert-error {
     background-color: #fef2f2;
     color: #dc2626;
-    border-color: #fecaca;
+    border: 1px solid #dc2626 !important;
+    border-radius: 7px !important;
 }
 
-.alert-success {
+.auth-page .alert-success {
     background-color: #f0fdf4;
     color: #16a34a;
-    border-color: #bbf7d0;
+    border: 1px solid #16a34a !important;
+    border-radius: 7px !important;
 }
 
 .alert-icon {
@@ -561,7 +563,6 @@ select.form-input {
 /* Error state styling */
 .form-input.error {
     border-color: #dc2626;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .form-input.error:focus {
@@ -698,7 +699,7 @@ select.form-input {
     }
     
     .main-title {
-        font-size: 17px;
+        font-size: 18px;
     }
     
     .sub-title {
@@ -756,7 +757,7 @@ select.form-input {
     }
     
     .system-name {
-        font-size: 12px;
+        font-size: 13px;
     }
     
     .form-input {

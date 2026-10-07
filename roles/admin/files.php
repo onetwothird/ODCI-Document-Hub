@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
@@ -359,7 +359,8 @@ function getProfileImageUrl($profile_image) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Files Management - Admin Panel</title>
+    <title>Document Files Management - CVSU Naic</title>
+    <link rel="icon" type="image/png" href="../../img/cvsu-logo.png">
     <!-- No Bootstrap. This page used to load Bootstrap 5 and build its filter
          grid, table, badges, pagination and modal out of Bootstrap classes,
          which put a second design system on the page and left the layout at the

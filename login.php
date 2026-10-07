@@ -14,6 +14,7 @@
     <title>Login - CVSU Naic</title>
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="login/script/css/login.css">
+    <link rel="icon" type="image/png" href="img/cvsu-logo.png">
     <link rel="stylesheet" href="assets/css/cvsu-auth.css?v=1.8.6">
 </head>
 

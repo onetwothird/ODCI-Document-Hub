@@ -1,16 +1,15 @@
 /* Authentication pages share the same restrained ODCI brand as the workspace. */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 
 .auth-page {
     min-height: 100vh;
     padding: clamp(18px, 4vw, 40px) !important;
-    background-color: #004d24 !important;
     background-image:
-        linear-gradient(115deg, rgba(0, 77, 36, .70), rgba(0, 107, 46, .48)),
-        url("../../img/cvsu-naic-bg.png") !important;
+        linear-gradient(to top, rgba(6, 141, 64, 0.15) 0%, transparent 80%),
+        url("../../img/cvsu-naic-bg.jpg") !important;
     background-position: center;
     background-size: cover;
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -21,7 +20,6 @@
     max-width: 460px !important;
     max-height: calc(100vh - 36px);
     border: 1px solid rgba(255,255,255,.72) !important;
-    border-top: 3px solid #006b2e !important;
     border-radius: 12px !important;
     background: #fff !important;
     box-shadow: 0 24px 70px rgba(5, 24, 14, .28) !important;
@@ -36,17 +34,24 @@
 .auth-page .main-title,
 .auth-page .login-header h3 {
     color: #202c25 !important;
-    font-size: 19px !important;
+    font-size: 20px !important;
     line-height: 1.35;
     font-weight: 650 !important;
 }
-.auth-page .sub-title { color: #59675e !important; font-size: 13px !important; }
+.auth-page .sub-title {
+    color: #59675e !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin-top: 2px !important;
+}
 .auth-page .system-name {
     color: #6c786f !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     letter-spacing: .08em !important;
+    margin-top: 12px !important;
 }
-.auth-page .form-label { color: #34443a !important; font-size: 12px !important; }
+.auth-page .form-label { color: #34443a !important; font-size: 13px !important; }
 .auth-page .form-input,
 .auth-page input[type="text"],
 .auth-page input[type="email"],
@@ -57,7 +62,7 @@
     border-radius: 7px !important;
     background: #fff !important;
     color: #202c25 !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
 }
 .auth-page .form-input:focus,
 .auth-page input:focus,
