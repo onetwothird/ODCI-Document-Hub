@@ -1,32 +1,32 @@
 :root {
-    --poppins: 'Poppins', sans-serif;
-    
-    /* Modern Color Palette */
-    --primary-color: #10b981;
-    --secondary-color: #059669;
+    --poppins: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+
+    /* CVSU brand palette (mirrors assets/css/cvsu-theme.css) */
+    --primary-color: #28a745;
+    --secondary-color: #1e7e34;
     --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #17a2b8;
-    --green: #10b981;
-    --warning-orange: #f59e0b;
-    --danger-red: #ef4444;
-    --info-cyan: #06b6d4;
-    
+    --warning-color: #e0a000;
+    --danger-color: #dc2626;
+    --info-color: #1e7e34;
+    --green: #28a745;
+    --warning-orange: #e0a000;
+    --danger-red: #dc2626;
+    --info-cyan: #166534;
+
     /* User Status Colors */
-    --approved-color: #10b981;
-    --approved-bg: linear-gradient(135deg, #10b981, #059669);
-    
-    --pending-color: #f59e0b;
-    --pending-bg: linear-gradient(135deg, #f59e0b, #d97706);
-    
-    --restricted-color: #ef4444;
-    --restricted-bg: linear-gradient(135deg, #ef4444, #dc2626);
-    
+    --approved-color: #1e7e34;
+    --approved-bg: linear-gradient(90deg, var(--approved-color), #28a745);
+
+    --pending-color: #b8860b;
+    --pending-bg: linear-gradient(90deg, var(--pending-color), #e0a000);
+
+    --restricted-color: #dc2626;
+    --restricted-bg: linear-gradient(90deg, var(--restricted-color), #b91c1c);
+
     /* Role Colors */
-    --admin-color: #8b5cf6;
-    --user-color: #06b6d4;
-    --super-admin-color: #f59e0b;
+    --admin-color: #166534;
+    --user-color: #374151;
+    --super-admin-color: #b8860b;
     
     /* Neutrals */
     --gray-50: #f8fafc;
@@ -53,22 +53,25 @@
 
 body {
     font-family: var(--poppins);
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: #fafbfa;
     color: var(--gray-800);
     line-height: 1.6;
     min-height: 100vh;
 }
 
-/* Header Styles */
+/* Header Styles - same surface recipe as the dashboard header card */
 .head-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    padding: 30px 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 22px 24px;
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+    border: 1px solid var(--cvsu-line, #e6ebe7);
+    border-radius: 12px;
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
     position: relative;
     overflow: hidden;
 }
@@ -79,15 +82,28 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--cvsu-gold-400, #f0c000));
+}
+
+.head-title .left,
+.head-title .right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.head-title .left {
+    display: block;
 }
 
 .head-title .left h1 {
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--gray-800);
-    margin-bottom: 8px;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
 }
 
 .breadcrumb {
@@ -115,77 +131,81 @@ body {
     color: var(--primary-color);
 }
 
+/* Header action button - the theme paints .btn-* variants; here we only keep
+   the inline layout. Hover stays surface-only (no lift on the card itself). */
 .btn-download {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 16px;
-    font-size: 16px;
+    background: white;
+    color: var(--cvsu-green-700, #166534);
+    border: 1px solid var(--cvsu-line, #e6ebe7);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 8px;
+    transition: background .18s ease, border-color .18s ease, color .18s ease;
+    text-decoration: none;
 }
 
 .btn-download:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+    transform: none;
+    background: var(--cvsu-green-50, #f0fdf4);
+    border-color: var(--cvsu-green-300, #6ee7a0);
+    color: var(--cvsu-green-800, #14532d);
+    box-shadow: none;
 }
 
 /* Stats Overview */
 .stats-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
     gap: 25px;
     margin-bottom: 35px;
 }
 
 .overview-card {
     background: white;
-    padding: 35px 30px;
-    border-radius: 20px;
+    padding: 28px 26px;
+    border-radius: 12px;
     text-align: center;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255,255,255,0.2);
+    transition: box-shadow .18s ease, border-color .18s ease;
+    border: 1px solid var(--cvsu-line, #e6ebe7);
 }
 
+/* Containers stay put - only the icon/number inside responds. */
 .overview-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    transform: none;
+    box-shadow: var(--cvsu-shadow-md, 0 6px 20px rgba(11, 61, 30, .10));
 }
 
 .overview-card i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    opacity: 0.9;
-    transition: all 0.3s ease;
-    padding: 15px;
+    font-size: 2.25rem;
+    margin-bottom: 12px;
+    opacity: 0.95;
+    transition: transform .18s ease;
+    padding: 14px;
     border-radius: 50%;
 }
 
 .overview-card:hover i {
-    transform: scale(1.1) rotate(5deg);
+    transform: scale(1.06);
 }
 
 .overview-card h3 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: 800;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
+    margin-bottom: 6px;
+    transition: color .18s ease;
 }
 
 .overview-card:hover h3 {
-    transform: translateY(-3px);
+    transform: none;
 }
 
 .overview-card p {
@@ -199,7 +219,7 @@ body {
 
 /* Total Users */
 .overview-card:nth-child(1) {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .overview-card:nth-child(1)::before {
@@ -209,22 +229,22 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    background: linear-gradient(90deg, var(--cvsu-green-600, #1e7e34), var(--cvsu-green-400, #34c759));
 }
 
 .overview-card:nth-child(1) i {
-    color: #6366f1;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+    color: var(--cvsu-green-600, #1e7e34);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(220, 252, 231, 0.6));
+    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.18);
 }
 
 .overview-card:nth-child(1) h3 {
-    color: #6366f1;
+    color: var(--cvsu-green-600, #1e7e34);
 }
 
 /* Approved Users */
 .overview-card:nth-child(2) {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .overview-card:nth-child(2)::before {
@@ -239,8 +259,8 @@ body {
 
 .overview-card:nth-child(2) i {
     color: var(--approved-color);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.12), rgba(220, 252, 231, 0.6));
+    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.18);
 }
 
 .overview-card:nth-child(2) h3 {
@@ -249,7 +269,7 @@ body {
 
 /* Pending Users */
 .overview-card:nth-child(3) {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(224, 160, 0, 0.06) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .overview-card:nth-child(3)::before {
@@ -264,8 +284,8 @@ body {
 
 .overview-card:nth-child(3) i {
     color: var(--pending-color);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+    background: linear-gradient(135deg, rgba(224, 160, 0, 0.14), rgba(255, 246, 214, 0.7));
+    box-shadow: 0 6px 18px rgba(224, 160, 0, 0.18);
 }
 
 .overview-card:nth-child(3) h3 {
@@ -274,7 +294,7 @@ body {
 
 /* Restricted Users */
 .overview-card:nth-child(4) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
 }
 
 .overview-card:nth-child(4)::before {
@@ -289,8 +309,8 @@ body {
 
 .overview-card:nth-child(4) i {
     color: var(--restricted-color);
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.12), rgba(254, 226, 226, 0.7));
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.16);
 }
 
 .overview-card:nth-child(4) h3 {
@@ -300,7 +320,7 @@ body {
 /* User Grid Layout */
 .user-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
     gap: 24px;
     margin-top: 24px;
 }
@@ -308,28 +328,29 @@ body {
 /* User Card Styling */
 .user-card {
     background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
     padding: 0;
-    transition: all 0.3s ease;
-    border: 1px solid #e8eaed;
+    transition: box-shadow .18s ease, border-color .18s ease;
+    border: 1px solid var(--cvsu-line, #e6ebe7);
     overflow: hidden;
     position: relative;
 }
 
+/* Card holds still - only the contents react on hover. */
 .user-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: none;
+    box-shadow: var(--cvsu-shadow-md, 0 6px 20px rgba(11, 61, 30, .10));
 }
 
 /* User Header */
 .user-header {
     padding: 24px 24px 20px 24px;
-    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--cvsu-green-50, #f0fdf4) 0%, #ffffff 100%);
     display: flex;
     align-items: center;
     gap: 16px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--cvsu-line, #e6ebe7);
 }
 
 .user-avatar {
@@ -338,7 +359,7 @@ body {
     border-radius: 50%;
     position: relative;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.18);
 }
 
 .user-avatar img,
@@ -353,7 +374,7 @@ body {
     font-size: 24px;
     font-weight: 600;
     color: white;
-    background: linear-gradient(135deg, #007bff, #4a90e2);
+    background: linear-gradient(135deg, var(--cvsu-green-600, #1e7e34), var(--cvsu-green-800, #14532d));
 }
 
 .user-info {
@@ -473,44 +494,46 @@ body {
     text-overflow: ellipsis;
 }
 
+/* Local colour fallbacks - cvsu-theme.css repaints .btn-* variants and wins,
+   these keep the page correct if the theme stylesheet is ever unavailable. */
 .btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: var(--cvsu-green-500, #28a745);
     color: white;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    transform: translateY(-1px);
+    background: var(--cvsu-green-600, #1e7e34);
+    transform: none;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #28a745, #1e7e34);
+    background: var(--cvsu-green-600, #1e7e34);
     color: white;
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #1e7e34, #155724);
-    transform: translateY(-1px);
+    background: var(--cvsu-green-700, #166534);
+    transform: none;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #ffc107, #e0a800);
-    color: #212529;
+    background: var(--cvsu-gold-400, #f0c000);
+    color: var(--cvsu-green-900, #0b3d1e);
 }
 
 .btn-warning:hover {
-    background: linear-gradient(135deg, #e0a800, #d39e00);
-    transform: translateY(-1px);
+    background: var(--cvsu-gold-500, #e0a000);
+    transform: none;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #dc3545, #c82333);
+    background: var(--cvsu-danger, #dc2626);
     color: white;
 }
 
 .btn-danger:hover {
-    background: linear-gradient(135deg, #c82333, #bd2130);
-    transform: translateY(-1px);
+    background: #b91c1c;
+    transform: none;
 }
 
 .btn i {
@@ -618,9 +641,9 @@ body {
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, #007bff, #4a90e2);
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    border-color: #007bff;
+    border-color: var(--cvsu-green-500, #28a745);
 }
 
 .filter-group {
@@ -703,60 +726,56 @@ body {
 }
 
 .pagination .current {
-    background: linear-gradient(135deg, #007bff, #4a90e2);
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    border: 1px solid #007bff;
+    border: 1px solid var(--cvsu-green-500, #28a745);
 }
 
-/* Alerts */
+/* Alerts - variant classes (alert-warning / alert-info / alert-success /
+   alert-error) are painted by cvsu-theme.css; here we only set structure. */
 .alert {
-    padding: 20px 25px;
-    border-radius: 16px;
-    margin-bottom: 25px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 24px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: none;
+    border: 1px solid transparent;
 }
 
 .alert i {
-    font-size: 20px;
+    font-size: 18px;
 }
 
-.alert-success {
-    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-    border: 2px solid rgba(40, 167, 69, 0.2);
-    color: var(--success-color);
-}
-
-.alert-error {
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
-    border: 2px solid rgba(220, 53, 69, 0.2);
-    color: var(--danger-color);
-}
+.alert-success { border-color: var(--cvsu-green-300, #6ee7a0); }
+.alert-error   { border-color: #fca5a5; }
+.alert-warning { border-color: var(--cvsu-gold-300, #ffd24d); }
+.alert-info    { border-color: var(--cvsu-green-300, #6ee7a0); }
 
 /* Empty State */
 .empty-state {
     text-align: center;
-    padding: 80px 20px;
+    padding: 60px 20px;
     color: var(--gray-500);
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-    margin-top: 30px;
+    border-radius: 12px;
+    border: 1px dashed var(--cvsu-line, #e6ebe7);
+    box-shadow: none;
+    margin-top: 24px;
 }
 
 .empty-state i {
-    font-size: 64px;
-    margin-bottom: 20px;
+    font-size: 56px;
+    margin-bottom: 16px;
     display: block;
     color: var(--gray-300);
 }
 
 .empty-state h3 {
     color: var(--gray-600);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 600;
 }
 
@@ -782,18 +801,18 @@ body {
 }
 
 .pagination a:hover {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    background: var(--cvsu-green-50, #f0fdf4);
+    color: var(--cvsu-green-800, #14532d);
+    border-color: var(--cvsu-green-300, #6ee7a0);
+    transform: none;
+    box-shadow: none;
 }
 
 .pagination .current {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: var(--cvsu-green-500, #28a745);
     color: white;
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    border-color: var(--cvsu-green-500, #28a745);
+    box-shadow: 0 1px 2px rgba(11, 61, 30, 0.14);
 }
 
 /* Modal Styles */
@@ -896,7 +915,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.25);
 }
 
 .close {
@@ -989,8 +1008,8 @@ body {
 .form-group textarea:focus {
     border-color: var(--primary-color);
     background: white;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1), inset 0 2px 4px rgba(0,0,0,0.05);
-    transform: translateY(-2px);
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.12);
+    transform: none;
 }
 
 .form-group input[type="checkbox"] {
@@ -1026,7 +1045,7 @@ body {
 }
 
 .form-group input[type="checkbox"]:focus {
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
     transform: none;
 }
 
@@ -1113,10 +1132,10 @@ body {
 }
 
 .modal-actions .btn-secondary:hover {
-    background: var(--gray-200);
-    color: var(--gray-700);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: var(--cvsu-green-50, #f0fdf4);
+    color: var(--cvsu-green-800, #14532d);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Loading States */
@@ -1249,7 +1268,7 @@ body {
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
     .user-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
         gap: 20px;
     }
     
@@ -1262,13 +1281,24 @@ body {
 @media (max-width: 768px) {
     .head-title {
         flex-direction: column;
-        gap: 20px;
-        text-align: center;
-        padding: 25px;
+        align-items: stretch;
+        gap: 14px;
+        text-align: left;
+        padding: 20px;
+        margin-bottom: 18px;
     }
-    
+
+    .head-title .right {
+        justify-content: flex-start;
+    }
+
+    .head-title .right .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
     .stats-overview {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
         gap: 15px;
     }
     
@@ -1333,10 +1363,5 @@ body {
     
     .user-detail-value {
         font-size: 12px;
-    }
-    
-    .btn {
-        font-size: 11px;
-        padding: 6px 12px;
     }
 }
