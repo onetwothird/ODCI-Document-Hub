@@ -99,32 +99,11 @@
     color: var(--management-green-dark) !important;
 }
 
-/* Sidebar states are quiet, legible, and identical across the four pages. */
-.superadmin-management-page #sidebar .side-menu li a {
-    border-radius: 8px !important;
-    transition: background-color .16s ease, color .16s ease, transform .16s ease !important;
-}
-
-.superadmin-management-page #sidebar .side-menu li.active a,
-.superadmin-management-page #sidebar .side-menu li a.active {
-    color: #fff !important;
-    background: rgba(255,255,255,.15) !important;
-    box-shadow: inset 3px 0 var(--management-gold) !important;
-}
-
-.superadmin-management-page #sidebar .side-menu li.active a .bx,
-.superadmin-management-page #sidebar .side-menu li a.active .bx {
-    color: #f0d98e !important;
-}
-
-.superadmin-management-page #sidebar .side-menu li a:hover {
-    color: #fff !important;
-    background: rgba(255,255,255,.1) !important;
-}
-
-.superadmin-management-page #sidebar .side-menu li a:hover .bx {
-    color: #f0d98e !important;
-}
+/* Sidebar states are deliberately NOT restyled here. They are owned by the
+   shared nav system in assets/css/cvsu-product.css, which is what keeps the
+   sidebar identical on these pages and on the admin / user dashboards. A
+   page-scoped override here out-specifies that shared rule, and is the one
+   thing that makes a page's sidebar look different from the others. */
 
 .superadmin-management-page #content > .files-container,
 .superadmin-management-page #content > .container-fluid,
@@ -204,6 +183,32 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
+}
+
+/* Page title block (used by Folder Management) */
+.superadmin-management-page .head-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.superadmin-management-page .head-title .left {
+    min-width: 0;
+}
+
+.superadmin-management-page .head-title .left h1 {
+    color: var(--management-ink) !important;
+    font-size: clamp(21px, 2vw, 28px) !important;
+    font-weight: 650 !important;
+    letter-spacing: -.025em;
+    line-height: 1.25;
+}
+
+.superadmin-management-page .head-title .btn {
+    min-height: 40px;
 }
 
 .superadmin-management-page .files-actions,
@@ -491,13 +496,14 @@
 
 .superadmin-management-page .folder-card {
     padding: 18px !important;
-    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+    transition: border-color .16s ease, box-shadow .16s ease !important;
 }
 
+/* Container stays put - only the contents/icon respond on hover. */
 .superadmin-management-page .folder-card:hover {
     border-color: #c8dccb !important;
     box-shadow: 0 5px 16px rgba(24,47,31,.08) !important;
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .superadmin-management-page .folder-header,
@@ -697,6 +703,16 @@
     .superadmin-management-page .page-header {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .superadmin-management-page .head-title {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .superadmin-management-page .head-title .btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .superadmin-management-page .files-actions,
