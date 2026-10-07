@@ -24,14 +24,14 @@ if (!$currentUser) {
     <link rel="stylesheet" href="assets/css/navbar.css?v=<?= time() ?>">
     <style>
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --info: #2980b9;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
+            --primary: #004d24;
+            --secondary: #006b2e;
+            --success: #1e7e34;
+            --warning: #b8860b;
+            --danger: #dc2626;
+            --info: #006b2e;
+            --light: #f0f7f1;
+            --dark: #202c25;
         }
         
         body {
@@ -47,8 +47,8 @@ if (!$currentUser) {
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: none;
+            box-shadow: 0 10px 20px rgba(24,47,31,0.1);
         }
         
         .card {
@@ -104,8 +104,7 @@ if (!$currentUser) {
         }
         
         .activity-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(24,47,31,0.1);
         }
         
         .chart-container {
@@ -135,6 +134,12 @@ if (!$currentUser) {
             padding: 6px 10px;
             border-radius: 20px;
         }
+
+        /* Rebrand Bootstrap's blue utility badges to the CVSU green. */
+        .badge.bg-primary {
+            background: #006b2e !important;
+            color: #fff !important;
+        }
         
         .table th {
             border-top: none;
@@ -155,14 +160,13 @@ if (!$currentUser) {
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            background: var(--secondary);
             border: none;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(45deg, var(--secondary), var(--primary));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            background: var(--primary);
+            box-shadow: 0 4px 8px rgba(24,47,31,0.15);
         }
         
         .custom-range-inputs {
@@ -311,7 +315,7 @@ if (!$currentUser) {
                 <!-- Statistics Cards -->
                 <div class="row mb-4">
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #3498db, #2980b9);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #0a8f3c, #006b2e);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-file"></i>
@@ -324,7 +328,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #f39c12, #e67e22);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #e0b53b, #b8860b);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-folder"></i>
@@ -337,7 +341,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #27ae60, #229954);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #3aa564, #1e7e34);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-users"></i>
@@ -350,7 +354,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #9b59b6, #8e44ad);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #7d8f83, #5b6b60);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-file-alt"></i>
@@ -363,7 +367,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #e74c3c, #c0392b);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #d4a72c, #9a6f0a);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-share-alt"></i>
@@ -376,7 +380,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #2c3e50, #34495e);">
+                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #004d24, #003318);">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-hdd"></i>
@@ -422,7 +426,7 @@ if (!$currentUser) {
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activities</h5>
-                        <a href="?type=activities&range=<?php echo $date_range; ?>" class="btn btn-sm btn-outline-primary">View All</a>
+                        <a href="?type=activities&range=<?php echo $date_range; ?>" class="btn btn-sm btn-outline">View All</a>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($data['activities'])): ?>
@@ -545,7 +549,7 @@ if (!$currentUser) {
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <div class="avatar-placeholder me-3 rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <div class="avatar-placeholder me-3 rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background:#006b2e;">
                                                             <?php echo strtoupper(substr($user['name'] ?? 'U', 0, 1) . substr($user['surname'] ?? 'S', 0, 1)); ?>
                                                         </div>
                                                         <div>
@@ -669,7 +673,7 @@ if (!$currentUser) {
                         <?php echo $data['stats']['files']['new_files']; ?>,
                         <?php echo $data['stats']['files']['deleted_files']; ?>
                     ],
-                    backgroundColor: ['#3498db', '#27ae60', '#e74c3c'],
+                    backgroundColor: ['#006b2e', '#d4a72c', '#dc2626'],
                     borderWidth: 2,
                     borderColor: '#fff'
                 }]
@@ -699,7 +703,7 @@ if (!$currentUser) {
                 datasets: [{
                     label: 'Files',
                     data: [<?php echo implode(',', array_column($data['departments'], 'file_count')); ?>],
-                    backgroundColor: '#3498db',
+                    backgroundColor: '#0a8f3c',
                     borderRadius: 5
                 }]
             },
