@@ -121,11 +121,11 @@
             }
         });
 
-        // Auto-dismiss alerts
+        // Auto-dismiss alerts after 1 second
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 300);
             });
-        }, 1800);
+        }, 1000);
