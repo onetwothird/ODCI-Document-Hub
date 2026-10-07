@@ -447,7 +447,7 @@ function formatFileSize($bytes) {
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body>
+<body class="superadmin-document-tracker-page">
     <!-- Sidebar -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -663,14 +663,14 @@ function formatFileSize($bytes) {
                                                             style="width: 100%; height: 100%; object-fit: cover;"
                                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                         <div class="fallback-avatar" style="display: none; width: 100%; height: 100%; 
-                                                            background: linear-gradient(135deg, var(--primary-color, #007bff), #4a90e2); 
+                                                            background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                                             color: white; font-size: 18px; font-weight: bold; 
                                                             display: flex; align-items: center; justify-content: center;">
                                                             <?= $first_letter ?>
                                                         </div>
                                                     <?php else: ?>
                                                         <div class="letter-avatar" style="width: 100%; height: 100%; 
-                                                            background: linear-gradient(135deg, var(--primary-color, #007bff), #4a90e2); 
+                                                            background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                                             color: white; font-size: 18px; font-weight: bold; 
                                                             display: flex; align-items: center; justify-content: center;">
                                                             <?= $first_letter ?>
@@ -758,7 +758,7 @@ function formatFileSize($bytes) {
                                                 <svg width="60" height="60">
                                                     <circle cx="30" cy="30" r="24" fill="none" stroke="#e0e0e0" stroke-width="4"/>
                                                     <circle cx="30" cy="30" r="24" fill="none" 
-                                                            stroke="<?= $staff_progress == 100 ? '#28a745' : ($staff_progress >= 50 ? '#ffc107' : '#dc3545') ?>" 
+                                                            stroke="<?= $staff_progress == 100 ? '#28a745' : ($staff_progress >= 50 ? '#d4a72c' : '#dc3545') ?>" 
                                                             stroke-width="4" 
                                                             stroke-dasharray="<?= 2 * M_PI * 24 ?>" 
                                                             stroke-dashoffset="<?= 2 * M_PI * 24 * (1 - $staff_progress / 100) ?>"
@@ -863,10 +863,10 @@ function formatFileSize($bytes) {
                         onmouseout="this.style.transform='scale(1)'">
                     <div class="fallback-avatar" 
                         style="display: none; width: 100%; height: 100%; 
-                                background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                 color: white; font-size: 32px; font-weight: bold; 
                                 display: flex; align-items: center; justify-content: center; 
-                                border-radius: 50%; box-shadow: 0 4px 15px rgba(0,123,255,0.3);">
+                                border-radius: 50%; box-shadow: 0 4px 15px rgba(0,107,46,0.3);">
                         ${firstLetter}
                     </div>
                 `;
@@ -874,10 +874,10 @@ function formatFileSize($bytes) {
                 avatarContent = `
                     <div class="letter-avatar" 
                         style="width: 100%; height: 100%; 
-                                background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                 color: white; font-size: 32px; font-weight: bold; 
                                 display: flex; align-items: center; justify-content: center; 
-                                border-radius: 50%; box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+                                border-radius: 50%; box-shadow: 0 4px 15px rgba(0,107,46,0.3);
                                 transition: transform 0.3s ease;"
                         onmouseover="this.style.transform='scale(1.05)'"
                         onmouseout="this.style.transform='scale(1)'">
@@ -922,7 +922,7 @@ function formatFileSize($bytes) {
                                 ${faculty.position || 'Faculty Member'}
                             </p>
                             <div class="department-badge" 
-                                style="display: inline-block; background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                style="display: inline-block; background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                         color: white; padding: 4px 12px; border-radius: 20px; 
                                         font-size: 12px; font-weight: 600;">
                                 ${faculty.department_name || 'No Department'}
@@ -931,17 +931,17 @@ function formatFileSize($bytes) {
                     </div>
                     
                     <div class="info-grid" 
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); 
                                 gap: 20px; margin-bottom: 25px;">
                         
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #007bff; transition: transform 0.2s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'">
+                                    border-left: 4px solid #006b2e; transition: transform 0.2s ease;"
+                            onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
+                            onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class='bx bx-building' style="font-size: 24px; color: #007bff;"></i>
+                                <i class='bx bx-building' style="font-size: 24px; color: #006b2e;"></i>
                                 <div>
                                     <strong style="color: #2c3e50; display: block; margin-bottom: 4px;">Department</strong>
                                     <span style="color: #6c757d;">${faculty.department_name || 'No Department'}</span>
@@ -954,8 +954,8 @@ function formatFileSize($bytes) {
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
                                     border-left: 4px solid #28a745; transition: transform 0.2s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'">
+                            onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
+                            onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <i class='bx bx-id-card' style="font-size: 24px; color: #28a745;"></i>
                                 <div>
@@ -969,15 +969,15 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #ffc107; transition: transform 0.2s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'">
+                                    border-left: 4px solid #d4a72c; transition: transform 0.2s ease;"
+                            onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
+                            onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class='bx bx-envelope' style="font-size: 24px; color: #ffc107;"></i>
+                                <i class='bx bx-envelope' style="font-size: 24px; color: #d4a72c;"></i>
                                 <div>
                                     <strong style="color: #2c3e50; display: block; margin-bottom: 4px;">Email</strong>
                                     <a href="mailto:${faculty.email}" 
-                                    style="color: #007bff; text-decoration: none;"
+                                    style="color: #006b2e; text-decoration: none;"
                                     onmouseover="this.style.textDecoration='underline'"
                                     onmouseout="this.style.textDecoration='none'">
                                         ${faculty.email}
@@ -989,11 +989,11 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #17a2b8; transition: transform 0.2s ease;"
-                            onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'">
+                                    border-left: 4px solid #0a8f3c; transition: transform 0.2s ease;"
+                            onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
+                            onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class='bx bx-user-circle' style="font-size: 24px; color: #17a2b8;"></i>
+                                <i class='bx bx-user-circle' style="font-size: 24px; color: #0a8f3c;"></i>
                                 <div>
                                     <strong style="color: #2c3e50; display: block; margin-bottom: 4px;">Status</strong>
                                     <span style="color: #28a745; font-weight: 600;">
@@ -1009,11 +1009,11 @@ function formatFileSize($bytes) {
                                 border-top: 1px solid #e9ecef;">
                         <button class="btn btn-primary" 
                                 onclick="viewAllSubmissions(${faculty.id})"
-                                style="background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                style="background: linear-gradient(135deg, #0a8f3c, #006b2e); 
                                     border: none; padding: 12px 20px; border-radius: 8px; 
                                     color: white; font-weight: 600; cursor: pointer; 
                                     transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;"
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,123,255,0.3)'"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0,107,46,0.3)'"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
                             <i class='bx bx-file'></i> View All Documents
                         </button>
@@ -1029,7 +1029,7 @@ function formatFileSize($bytes) {
                         </button>
                         <button class="btn btn-info" 
                                 onclick="exportFacultyData(${faculty.id})"
-                                style="background: linear-gradient(135deg, #17a2b8, #20c997); 
+                                style="background: linear-gradient(135deg, #0a8f3c, #20c997); 
                                     border: none; padding: 12px 20px; border-radius: 8px; 
                                     color: white; font-weight: 600; cursor: pointer; 
                                     transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;"
@@ -1139,7 +1139,7 @@ function formatFileSize($bytes) {
             title.textContent = `Not Submitted: ${docType}`;
             content.innerHTML = `
                 <div style="text-align: center; padding: 30px;">
-                    <i class='bx bx-info-circle' style="font-size: 48px; color: #17a2b8; margin-bottom: 15px;"></i>
+                    <i class='bx bx-info-circle' style="font-size: 48px; color: #0a8f3c; margin-bottom: 15px;"></i>
                     <h4 style="color: #2c3e50; margin-bottom: 10px;">Document Not Submitted</h4>
                     <p style="color: #6c757d; margin-bottom: 15px;">
                         <strong>${facultyName}</strong> has not submitted any files for <strong>"${docType}"</strong> 
@@ -1253,7 +1253,7 @@ function formatFileSize($bytes) {
             const colors = {
                 success: { bg: 'rgba(212, 237, 218, 0.95)', color: '#155724', border: '#28a745' },
                 error: { bg: 'rgba(248, 215, 218, 0.95)', color: '#721c24', border: '#dc3545' },
-                info: { bg: 'rgba(209, 236, 241, 0.95)', color: '#0c5460', border: '#17a2b8' }
+                info: { bg: 'rgba(209, 236, 241, 0.95)', color: '#0c5460', border: '#0a8f3c' }
             };
             
             const style = colors[type] || colors.info;
