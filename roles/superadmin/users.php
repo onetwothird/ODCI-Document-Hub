@@ -17,7 +17,7 @@
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body>
+<body class="superadmin-users-page">
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -37,10 +37,16 @@
                         <li><a class="active" href="#">Users</a></li>
                     </ul>
                 </div>
-                <button onclick="openModal('createUserModal')" class="btn-download">
-                    <i class='bx bx-user-plus'></i>
-                    <span class="text">Add User</span>
-                </button>
+                <div class="right">
+                    <button class="btn btn-secondary" type="button" title="Refresh" onclick="window.location.reload()">
+                        <i class='bx bx-refresh'></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button onclick="openModal('createUserModal')" class="btn btn-primary">
+                        <i class='bx bx-user-plus'></i>
+                        <span>Add User</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Alerts -->
@@ -121,7 +127,7 @@
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="fallback-avatar" 
                                          style="display: none; width: 100%; height: 100%; 
-                                                background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                                background: linear-gradient(135deg, var(--cvsu-green-600), var(--cvsu-green-800)); 
                                                 color: white; font-weight: bold; 
                                                 align-items: center; justify-content: center; 
                                                 border-radius: 50%;">
@@ -130,7 +136,7 @@
                                 <?php else: ?>
                                     <div class="letter-avatar" 
                                          style="width: 100%; height: 100%; 
-                                                background: linear-gradient(135deg, #007bff, #4a90e2); 
+                                                background: linear-gradient(135deg, var(--cvsu-green-600), var(--cvsu-green-800)); 
                                                 color: white; font-weight: bold; 
                                                 display: flex; align-items: center; justify-content: center; 
                                                 border-radius: 50%;">
@@ -192,12 +198,12 @@
                         </div>
                         
                         <div class="user-actions">
-                            <button onclick="editUser(<?php echo $user['id']; ?>)" class="btn btn-primary">
+                            <button onclick="editUser(<?php echo $user['id']; ?>)" class="btn btn-secondary">
                                 <i class='bx bx-edit'></i> Edit
                             </button>
                             
                             <?php if (!$user['is_approved']): ?>
-                                <button onclick="approveUser(<?php echo $user['id']; ?>)" class="btn btn-success">
+                                <button onclick="approveUser(<?php echo $user['id']; ?>)" class="btn btn-primary">
                                     <i class='bx bx-check'></i> Approve
                                 </button>
                             <?php endif; ?>
@@ -217,7 +223,7 @@
             </div>
 
             <?php if (empty($users)): ?>
-                <div style="text-align: center; padding: 60px; color: #666;">
+                <div class="empty-state">
                     <i class='bx bx-user' style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
                     <h3>No users found</h3>
                     <p>Try adjusting your search or filter criteria</p>
@@ -333,7 +339,7 @@
                     <textarea id="address" name="address" rows="3"></textarea>
                 </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <div class="modal-actions" style="justify-content: flex-end; margin-top: 30px;">
                     <button type="button" onclick="closeModal('createUserModal')" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create User</button>
                 </div>
@@ -423,7 +429,7 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <div class="modal-actions" style="justify-content: flex-end; margin-top: 30px;">
                     <button type="button" onclick="closeModal('editUserModal')" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update User</button>
                 </div>
@@ -452,7 +458,7 @@
                     <input type="password" id="confirm_password" name="confirm_password" required>
                 </div>
                 
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <div class="modal-actions" style="justify-content: flex-end; margin-top: 30px;">
                     <button type="button" onclick="closeModal('resetPasswordModal')" class="btn btn-secondary">Cancel</button>
                     <button type="submit" class="btn btn-warning">Reset Password</button>
                 </div>
