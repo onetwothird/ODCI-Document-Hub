@@ -24,7 +24,7 @@
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
 
-<body>
+<body class="superadmin-dashboard-page">
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -39,25 +39,31 @@
                 <div class="left">
                     <h1>Super Admin Dashboard</h1>
                     <ul class="breadcrumb">
-                        <li><a href="#">Dashboard</a></li>
+                        <li><a href="dashboard.php">Dashboard</a></li>
                         <li><i class='bx bx-chevron-right'></i></li>
                         <li><a class="active" href="#">Overview</a></li>
                     </ul>
                 </div>
-                <a href="backup.php" class="btn-download">
-                    <i class='bx bxs-download'></i>
-                    <span class="text">Backup System</span>
-                </a>
+                <div class="right">
+                    <button class="btn btn-secondary" type="button" title="Refresh" onclick="window.location.reload()">
+                        <i class='bx bx-refresh'></i>
+                        <span>Refresh</span>
+                    </button>
+                    <a href="users.php" class="btn btn-primary" title="Manage users">
+                        <i class='bx bx-user-plus'></i>
+                        <span>Add User</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Alert for pending users -->
             <?php if ($stats['pending_users'] > 0): ?>
-                <div class="alert warning">
+                <div class="alert alert-warning">
                     <i class='bx bxs-error-circle'></i>
                     <div>
-                        <strong>Pending Approvals:</strong> You have <?php echo $stats['pending_users']; ?> user
-                        registration(s) waiting for approval.
-                        <a href="users.php?filter=pending" style="color: var(--blue); margin-left: 10px;">Review Now</a>
+                        <strong>Pending Approvals:</strong> <?php echo $stats['pending_users']; ?> user
+                        registration(s) are waiting for approval.
+                        <a href="users.php?filter=pending">Review Now</a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -174,7 +180,7 @@
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <div style="text-align: center; padding: 40px; color: #666;">
+                            <div class="empty-state">
                                 <i class='bx bx-time' style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
                                 <p>No recent activities</p>
                             </div>
@@ -187,13 +193,14 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
+                <!-- Quick Actions - one tile per module that actually exists in
+                     the superadmin sidebar, so nothing here can dead-end. -->
                 <div class="todo" style="flex: 1;">
                     <div class="head">
                         <h3>Quick Actions</h3>
                         <i class='bx bx-plus'></i>
                     </div>
-                    <div style="display: grid; gap: 15px;">
+                    <div style="display: grid; gap: 12px;">
                         <a href="users.php?action=create" class="quick-action">
                             <i class='bx bx-user-plus'></i>
                             <div>Add User</div>
@@ -202,9 +209,13 @@
                             <i class='bx bx-buildings'></i>
                             <div>Add Department</div>
                         </a>
-                        <a href="social_feed.php?action=create" class="quick-action">
-                            <i class='bx bx-megaphone'></i>
-                            <div>New Announcement</div>
+                        <a href="files.php" class="quick-action">
+                            <i class='bx bxs-file'></i>
+                            <div>Manage Files</div>
+                        </a>
+                        <a href="document-tracker.php" class="quick-action">
+                            <i class='bx bx-check-square'></i>
+                            <div>Document Tracker</div>
                         </a>
                         <a href="reports.php" class="quick-action">
                             <i class='bx bx-bar-chart-alt'></i>
@@ -213,10 +224,6 @@
                         <a href="settings.php" class="quick-action">
                             <i class='bx bx-cog'></i>
                             <div>System Settings</div>
-                        </a>
-                        <a href="backup.php" class="quick-action">
-                            <i class='bx bx-download'></i>
-                            <div>Backup Data</div>
                         </a>
                     </div>
                 </div>
@@ -230,6 +237,7 @@
                         <i class='bx bx-bar-chart'></i>
                     </div>
                     <?php if (!empty($stats['department_stats'])): ?>
+                        <div class="table-scroll">
                         <table style="width: 100%;">
                             <thead>
                                 <tr>
@@ -251,10 +259,7 @@
                                             </div>
                                         </td>
                                         <td style="text-align: center;">
-                                            <span
-                                                style="background: var(--light-blue); padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
-                                                <?php echo $dept['user_count']; ?>
-                                            </span>
+                                            <span class="badge primary"><?php echo $dept['user_count']; ?></span>
                                         </td>
                                         <td style="text-align: center;"><?php echo $dept['folder_count']; ?></td>
                                         <td style="text-align: center;"><?php echo $dept['file_count']; ?></td>
@@ -265,8 +270,9 @@
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        </div>
                     <?php else: ?>
-                        <div style="text-align: center; padding: 40px; color: #666;">
+                        <div class="empty-state">
                             <i class='bx bx-buildings' style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
                             <p>No department data available</p>
                         </div>
@@ -282,30 +288,37 @@
                         <i class='bx bx-info-circle'></i>
                     </div>
                     <div style="padding: 20px 0;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 20px; font-size: 14px;">
                             <div>
-                                <strong>System Version:</strong><br>
-                                <span style="color: #666;">MyDrive v2.0</span>
+                                <strong>Application</strong><br>
+                                <span style="color: var(--text-secondary);">ODCI Document Hub</span>
                             </div>
                             <div>
-                                <strong>PHP Version:</strong><br>
-                                <span style="color: #666;"><?php echo phpversion(); ?></span>
+                                <strong>Campus</strong><br>
+                                <span style="color: var(--text-secondary);">CVSU Naic</span>
                             </div>
                             <div>
-                                <strong>Database:</strong><br>
-                                <span style="color: #666;">MySQL/MariaDB</span>
+                                <strong>PHP Version</strong><br>
+                                <span style="color: var(--text-secondary);"><?php echo htmlspecialchars(phpversion()); ?></span>
                             </div>
                             <div>
-                                <strong>Last Backup:</strong><br>
-                                <span style="color: #666;">Never</span>
+                                <strong>Database</strong><br>
+                                <span style="color: var(--text-secondary);"><?php
+                                    try {
+                                        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+                                        echo htmlspecialchars(strtoupper($driver) === 'MYSQL' ? 'MySQL / MariaDB' : strtoupper($driver));
+                                    } catch (Exception $e) {
+                                        echo 'MySQL / MariaDB';
+                                    }
+                                ?></span>
                             </div>
                             <div>
-                                <strong>Disk Usage:</strong><br>
-                                <span style="color: #666;"><?php echo formatFileSize($stats['storage_used']); ?></span>
+                                <strong>Storage Used</strong><br>
+                                <span style="color: var(--text-secondary);"><?php echo formatFileSize($stats['storage_used']); ?></span>
                             </div>
                             <div>
-                                <strong>Server Time:</strong><br>
-                                <span style="color: #666;"><?php echo date('M j, Y g:i A'); ?></span>
+                                <strong>Server Time</strong><br>
+                                <span style="color: var(--text-secondary);"><?php echo date('M j, Y g:i A'); ?></span>
                             </div>
                         </div>
                     </div>
