@@ -18,7 +18,7 @@
     <!-- Shared CVSU design system (green / gold / white) - loaded last on purpose -->
     <?php include __DIR__ . '/../../includes/theme.php'; ?>
 </head>
-<body>
+<body class="superadmin-settings-page">
     <!-- Sidebar Component -->
     <?php include 'components/sidebar.html'; ?>
 
@@ -443,31 +443,31 @@
                                 </button>
                             </form>
                             
-                            <a href="system_logs.php" class="admin-action-btn">
+                            <a href="activity_logs.php" class="admin-action-btn">
                                 <div class="admin-action-icon">
                                     <i class='bx bx-file'></i>
                                 </div>
-                                <div class="admin-action-label">View System Logs</div>
+                                <div class="admin-action-label">View Activity Logs</div>
                             </a>
                             
-                            <a href="user_management.php" class="admin-action-btn">
+                            <a href="users.php" class="admin-action-btn">
                                 <div class="admin-action-icon">
                                     <i class='bx bx-user-pin'></i>
                                 </div>
                                 <div class="admin-action-label">Manage Users</div>
                             </a>
                             
-                            <a href="backup.php" class="admin-action-btn">
+                            <a href="reports.php" class="admin-action-btn">
                                 <div class="admin-action-icon">
-                                    <i class='bx bx-data'></i>
+                                    <i class='bx bx-bar-chart'></i>
                                 </div>
-                                <div class="admin-action-label">Backup Database</div>
+                                <div class="admin-action-label">Reports &amp; Analytics</div>
                             </a>
                         </div>
                         
                         <div class="cache-info">
-                            <p><strong>Cache Information:</strong> Clearing the cache will remove temporary files and may improve system performance.</p>
-                            <p>Last cleared: September 2, 2025, 3:15 PM</p>
+                            <p><strong>Cache Information:</strong> Clearing the cache will remove temporary files and may improve system performance. The time of the last clear is shown below after each run.</p>
+                            <p id="cacheClearedAt">Last cleared: <?php echo $cacheClearedAt ? htmlspecialchars($cacheClearedAt) : 'not cleared during this session'; ?></p>
                         </div>
                     </div>
                 </div>
@@ -481,71 +481,70 @@
                         
                         <div class="system-stats-grid">
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;">
+                                <div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.12); color: #1e7e34;">
                                     <i class='bx bx-user'></i>
                                 </div>
-                                <div class="stat-value">34</div>
+                                <div class="stat-value"><?php echo $stats['total_users']; ?></div>
                                 <div class="stat-label">Total Users</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">32 Approved</span>
-                                    <span class="stat-detail-item">2 Pending</span>
+                                    <span class="stat-detail-item"><?php echo $stats['approved_users']; ?> Approved</span>
+                                    <span class="stat-detail-item"><?php echo $stats['pending_users']; ?> Pending</span>
                                 </div>
                             </div>
                             
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(46, 204, 113, 0.1); color: #2ecc71;">
+                                <div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.12); color: #1e7e34;">
                                     <i class='bx bx-building'></i>
                                 </div>
-                                <div class="stat-value">8</div>
+                                <div class="stat-value"><?php echo $stats['total_departments']; ?></div>
                                 <div class="stat-label">Departments</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">8 Active</span>
+                                    <span class="stat-detail-item"><?php echo $stats['active_departments']; ?> Active</span>
                                 </div>
                             </div>
                             
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                                <div class="stat-icon" style="background-color: rgba(240, 192, 0, 0.16); color: #8a6300;">
                                     <i class='bx bx-file'></i>
                                 </div>
-                                <div class="stat-value">156</div>
+                                <div class="stat-value"><?php echo $stats['total_files']; ?></div>
                                 <div class="stat-label">Files</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">148 Active</span>
-                                    <span class="stat-detail-item">1,234 Downloads</span>
+                                    <span class="stat-detail-item"><?php echo number_format($stats['file_downloads']); ?> Downloads</span>
                                 </div>
                             </div>
                             
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(241, 196, 15, 0.1); color: #f1c40f;">
+                                <div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.12); color: #1e7e34;">
                                     <i class='bx bx-megaphone'></i>
                                 </div>
-                                <div class="stat-value">12</div>
+                                <div class="stat-value"><?php echo $stats['total_announcements']; ?></div>
                                 <div class="stat-label">Announcements</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">8 Published</span>
+                                    <span class="stat-detail-item"><?php echo $stats['published_announcements']; ?> Published</span>
                                 </div>
                             </div>
                             
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(230, 126, 34, 0.1); color: #e67e22;">
+                                <div class="stat-icon" style="background-color: rgba(240, 192, 0, 0.16); color: #8a6300;">
                                     <i class='bx bx-task'></i>
                                 </div>
-                                <div class="stat-value">89</div>
+                                <div class="stat-value"><?php echo $stats['total_requests']; ?></div>
                                 <div class="stat-label">Document Requests</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">23 Pending</span>
-                                    <span class="stat-detail-item">66 Completed</span>
+                                    <span class="stat-detail-item"><?php echo $stats['pending_requests']; ?> Pending</span>
+                                    <span class="stat-detail-item"><?php echo $stats['completed_requests']; ?> Completed</span>
                                 </div>
                             </div>
                             
                             <div class="stat-card">
-                                <div class="stat-icon" style="background-color: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+                                <div class="stat-icon" style="background-color: rgba(220, 38, 38, 0.10); color: #dc2626;">
                                     <i class='bx bx-shield'></i>
                                 </div>
-                                <div class="stat-value">1</div>
+                                <div class="stat-value"><?php echo $stats['super_admins']; ?></div>
                                 <div class="stat-label">Super Admins</div>
                                 <div class="stat-details">
-                                    <span class="stat-detail-item">2 Admins</span>
+                                    <span class="stat-detail-item"><?php echo $stats['admins']; ?> Admins</span>
                                 </div>
                             </div>
                         </div>
