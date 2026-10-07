@@ -653,7 +653,7 @@ function showAlert(type, message) {
                     alertDiv.remove();
                 }, 300);
             }
-        }, 5000);
+        }, 1000);
     }
 }
 
