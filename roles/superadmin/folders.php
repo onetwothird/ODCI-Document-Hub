@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_POST['category'] ?: null,
                     $_POST['folder_type'],
                     $_POST['description'] ?: null,
-                    $_POST['folder_color'] ?: '#667eea',
+                    $_POST['folder_color'] ?: '#006b2e',
                     $_POST['folder_icon'] ?: 'fa-folder',
                     isset($_POST['is_public']) ? 1 : 0,
                     $permissions
@@ -159,6 +159,31 @@ $stats = $pdo->query("
     FROM folders 
     WHERE is_deleted = 0
 ")->fetch();
+// Normalise a stored folder icon so it always renders. Values saved by the
+// icon picker are bare names (e.g. "fa-folder"), which need the Font Awesome
+// base class to actually draw - without it the icon silently disappears.
+function folderIconClass($icon) {
+    $icon = trim((string) $icon);
+    if ($icon === '') {
+        return 'fa-solid fa-folder';
+    }
+    if (strpos($icon, ' ') !== false) {
+        return $icon; // already carries a base class, e.g. "fa fa-folder" / "bx bx-folder"
+    }
+    if (strpos($icon, 'fa-') === 0) {
+        return 'fa-solid ' . $icon;
+    }
+    if (strpos($icon, 'bx-') === 0) {
+        return 'bx ' . $icon;
+    }
+    return $icon;
+}
+
+// A folder with no stored colour falls back to the CVSU green.
+function folderIconColor($color) {
+    $color = trim((string) $color);
+    return $color !== '' ? $color : '#006b2e';
+}
 ?>
 
 <!DOCTYPE html>
@@ -177,7 +202,7 @@ $stats = $pdo->query("
     <style>
         .folder-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
             gap: 1.5rem;
             margin-top: 1rem;
         }
@@ -193,8 +218,8 @@ $stats = $pdo->query("
         }
 
         .folder-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(24,47,31,0.12);
+            transform: none;
         }
 
         .folder-header {
@@ -223,22 +248,26 @@ $stats = $pdo->query("
         }
 
         .folder-stats {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
             margin: 1rem 0;
             padding: 0.75rem;
             background: #f7fafc;
             border-radius: 8px;
+            text-align: center;
         }
 
         .stat-item {
             text-align: center;
+            min-width: 0;
         }
 
         .stat-value {
             font-weight: 600;
             color: #2d3748;
             display: block;
+            overflow-wrap: anywhere;
         }
 
         .stat-label {
@@ -265,34 +294,35 @@ $stats = $pdo->query("
         }
 
         .btn-primary {
-            background: #4299e1;
+            background: #006b2e;
             color: white;
         }
 
         .btn-secondary {
-            background: #e2e8f0;
-            color: #4a5568;
+            background: #fff;
+            color: #004d24;
+            border: 1px solid #e2e9e3;
         }
 
         .btn-danger {
-            background: #f56565;
+            background: #dc2626;
             color: white;
         }
 
         .btn-success {
-            background: #48bb78;
+            background: #006b2e;
             color: white;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);
             color: white;
             padding: 1.5rem;
             border-radius: 12px;
@@ -438,7 +468,7 @@ $stats = $pdo->query("
         }
 
         .icon-option.selected {
-            background: #4299e1;
+            background: #006b2e;
             color: white;
         }
 
@@ -484,7 +514,7 @@ $stats = $pdo->query("
         }
 
         .breadcrumb a {
-            color: #4299e1;
+            color: #006b2e;
             text-decoration: none;
         }
 
@@ -599,6 +629,30 @@ $stats = $pdo->query("
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .folder-stats {
+                gap: 4px;
+                padding: 0.625rem;
+            }
+
+            .stat-value {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .folder-stats {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 2px;
+            }
+
+            .stat-value {
+                font-size: 0.85rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
         }
     </style>
 
@@ -627,7 +681,7 @@ $stats = $pdo->query("
                         <li class="active">Folders</li>
                     </ul>
                 </div>
-                <button class="btn-download" onclick="showCreateModal()">
+                <button class="btn btn-primary" onclick="showCreateModal()">
                     <i class='bx bx-plus'></i>
                     <span class="text">New Folder</span>
                 </button>
@@ -639,15 +693,15 @@ $stats = $pdo->query("
                     <h3><?= number_format($stats['total_folders']) ?></h3>
                     <p>Total Folders</p>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);">
                     <h3><?= number_format($stats['total_files']) ?></h3>
                     <p>Total Files</p>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #e0b53b 0%, #b8860b 100%);">
                     <h3><?= number_format($stats['public_folders']) ?></h3>
                     <p>Public Folders</p>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #3aa564 0%, #1e7e34 100%);">
                     <h3><?= formatFileSize($stats['total_size']) ?></h3>
                     <p>Total Storage</p>
                 </div>
@@ -699,8 +753,8 @@ $stats = $pdo->query("
                              data-name="<?= strtolower($folder['folder_name']) ?>">
                             
                             <div class="folder-header">
-                                <i class="<?= $folder['folder_icon'] ?> folder-icon" 
-                                   style="color: <?= $folder['folder_color'] ?>"></i>
+                                <i class="<?= folderIconClass($folder['folder_icon']) ?> folder-icon" 
+                                   style="color: <?= folderIconColor($folder['folder_color']) ?>"></i>
                                 <div class="folder-info">
                                     <h3><?= htmlspecialchars($folder['folder_name']) ?></h3>
                                     <div class="folder-meta">
@@ -781,8 +835,8 @@ $stats = $pdo->query("
                                 data-name="<?= strtolower($folder['folder_name']) ?>">
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                        <i class="<?= $folder['folder_icon'] ?>" 
-                                           style="color: <?= $folder['folder_color'] ?>; font-size: 1.5rem;"></i>
+                                        <i class="<?= folderIconClass($folder['folder_icon']) ?>" 
+                                           style="color: <?= folderIconColor($folder['folder_color']) ?>; font-size: 1.5rem;"></i>
                                         <div>
                                             <strong><?= htmlspecialchars($folder['folder_name']) ?></strong>
                                             <?php if ($folder['description']): ?>
@@ -835,7 +889,7 @@ $stats = $pdo->query("
                                 if ($folder['parent_id'] == $parentId) {
                                     echo '<div class="tree-item level-' . $level . '" data-folder-id="' . $folder['id'] . '">';
                                     echo '<div style="display: flex; align-items: center; gap: 0.75rem;">';
-                                    echo '<i class="' . $folder['folder_icon'] . '" style="color: ' . $folder['folder_color'] . ';"></i>';
+                                    echo '<i class="' . folderIconClass($folder['folder_icon']) . '" style="color: ' . folderIconColor($folder['folder_color']) . ';"></i>';
                                     echo '<span><strong>' . htmlspecialchars($folder['folder_name']) . '</strong></span>';
                                     echo '<span class="folder-badge badge-' . ($folder['is_public'] ? 'public' : 'private') . '">';
                                     echo $folder['is_public'] ? 'Public' : 'Private';
@@ -877,8 +931,8 @@ $stats = $pdo->query("
                             <?php foreach ($deletedFolders as $folder): ?>
                                 <div class="folder-card" style="opacity: 0.7; border-color: #f56565;">
                                     <div class="folder-header">
-                                        <i class="<?= $folder['folder_icon'] ?> folder-icon" 
-                                           style="color: <?= $folder['folder_color'] ?>"></i>
+                                        <i class="<?= folderIconClass($folder['folder_icon']) ?> folder-icon" 
+                                           style="color: <?= folderIconColor($folder['folder_color']) ?>"></i>
                                         <div class="folder-info">
                                             <h3><?= htmlspecialchars($folder['folder_name']) ?></h3>
                                             <div class="folder-meta">
@@ -980,16 +1034,16 @@ $stats = $pdo->query("
                 <div class="form-group">
                     <label>Folder Color</label>
                     <div class="color-picker">
-                        <div class="color-option selected" data-color="#667eea" style="background: #667eea;"></div>
-                        <div class="color-option" data-color="#48bb78" style="background: #48bb78;"></div>
-                        <div class="color-option" data-color="#ed8936" style="background: #ed8936;"></div>
-                        <div class="color-option" data-color="#9f7aea" style="background: #9f7aea;"></div>
-                        <div class="color-option" data-color="#f56565" style="background: #f56565;"></div>
-                        <div class="color-option" data-color="#38b2ac" style="background: #38b2ac;"></div>
+                        <div class="color-option selected" data-color="#006b2e" style="background: #006b2e;"></div>
+                        <div class="color-option" data-color="#0a8f3c" style="background: #0a8f3c;"></div>
+                        <div class="color-option" data-color="#16a34a" style="background: #16a34a;"></div>
+                        <div class="color-option" data-color="#d4a72c" style="background: #d4a72c;"></div>
                         <div class="color-option" data-color="#ecc94b" style="background: #ecc94b;"></div>
+                        <div class="color-option" data-color="#b8860b" style="background: #b8860b;"></div>
+                        <div class="color-option" data-color="#7d8f83" style="background: #7d8f83;"></div>
                         <div class="color-option" data-color="#a0aec0" style="background: #a0aec0;"></div>
                     </div>
-                    <input type="hidden" id="folderColor" name="folder_color" value="#667eea">
+                    <input type="hidden" id="folderColor" name="folder_color" value="#006b2e">
                 </div>
 
                 <div class="form-group">
@@ -1187,8 +1241,8 @@ $stats = $pdo->query("
             
             // Reset color and icon selection
             document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector('.color-option[data-color="#667eea"]').classList.add('selected');
-            document.getElementById('folderColor').value = '#667eea';
+            document.querySelector('.color-option[data-color="#006b2e"]').classList.add('selected');
+            document.getElementById('folderColor').value = '#006b2e';
             
             document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
             document.querySelector('.icon-option[data-icon="fa-folder"]').classList.add('selected');
@@ -1421,7 +1475,7 @@ $stats = $pdo->query("
                 top: 20px;
                 right: 20px;
                 padding: 1rem 1.5rem;
-                background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#4299e1'};
+                background: ${type === 'success' ? '#006b2e' : type === 'error' ? '#dc2626' : '#006b2e'};
                 color: white;
                 border-radius: 8px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1453,16 +1507,6 @@ $stats = $pdo->query("
 
         // Initialize tooltips and other UI enhancements
         document.addEventListener('DOMContentLoaded', function() {
-            // Add hover effects and tooltips
-            document.querySelectorAll('.btn-action').forEach(btn => {
-                btn.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.05)';
-                });
-                btn.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1)';
-                });
-            });
-
             // Auto-refresh folder data every 30 seconds
             setInterval(() => {
                 // You could implement real-time updates here
@@ -1490,7 +1534,7 @@ $stats = $pdo->query("
             card.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
-                this.style.borderColor = '#4299e1';
+                this.style.borderColor = '#006b2e';
             });
 
             card.addEventListener('dragleave', function(e) {
@@ -1696,16 +1740,12 @@ $stats = $pdo->query("
             }
             
             .folder-card.selected {
-                border-color: #4299e1;
-                box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+                border-color: #006b2e;
+                box-shadow: 0 0 0 2px rgba(0, 107, 46, 0.25);
             }
             
             .folder-card {
                 cursor: pointer;
-            }
-            
-            .folder-card:active {
-                transform: scale(0.98);
             }
         `;
         document.head.appendChild(style);
