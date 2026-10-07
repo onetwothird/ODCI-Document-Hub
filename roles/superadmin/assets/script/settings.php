@@ -43,8 +43,71 @@ if (!$currentUser['is_approved']) {
     exit();
 }
 
+// Aliases used by settings.php markup / inline script
+$user     = $currentUser;
+$userName = $currentUser['name'];
+
+// Live statistics for the Statistics tab (real tables only - no placeholder data)
+$stats = [
+    'total_users'      => 0,
+    'approved_users'   => 0,
+    'pending_users'    => 0,
+    'total_departments'=> 0,
+    'active_departments'=> 0,
+    'total_files'      => 0,
+    'file_downloads'   => 0,
+    'total_announcements' => 0,
+    'published_announcements' => 0,
+    'total_requests'   => 0,
+    'pending_requests' => 0,
+    'completed_requests' => 0,
+    'super_admins'     => 0,
+    'admins'           => 0,
+];
+
+try {
+    $row = $pdo->query("SELECT COUNT(*) AS total, COALESCE(SUM(is_approved = 1), 0) AS approved,
+                               COALESCE(SUM(is_approved = 0), 0) AS pending
+                        FROM users")->fetch(PDO::FETCH_ASSOC);
+    $stats['total_users']    = (int) $row['total'];
+    $stats['approved_users'] = (int) $row['approved'];
+    $stats['pending_users']  = (int) $row['pending'];
+
+    $row = $pdo->query("SELECT COUNT(*) AS total, COALESCE(SUM(is_active = 1), 0) AS active
+                        FROM departments")->fetch(PDO::FETCH_ASSOC);
+    $stats['total_departments']  = (int) $row['total'];
+    $stats['active_departments'] = (int) $row['active'];
+
+    $row = $pdo->query("SELECT COUNT(*) AS total, COALESCE(SUM(download_count), 0) AS downloads
+                        FROM files WHERE is_deleted = 0")->fetch(PDO::FETCH_ASSOC);
+    $stats['total_files']    = (int) $row['total'];
+    $stats['file_downloads'] = (int) $row['downloads'];
+
+    $row = $pdo->query("SELECT COUNT(*) AS total, COALESCE(SUM(is_published = 1), 0) AS published
+                        FROM announcements WHERE is_deleted = 0")->fetch(PDO::FETCH_ASSOC);
+    $stats['total_announcements']     = (int) $row['total'];
+    $stats['published_announcements'] = (int) $row['published'];
+
+    $row = $pdo->query("SELECT COUNT(*) AS total,
+                               COALESCE(SUM(status = 'pending'), 0) AS pending,
+                               COALESCE(SUM(status = 'completed'), 0) AS completed
+                        FROM document_requests WHERE is_deleted = 0")->fetch(PDO::FETCH_ASSOC);
+    $stats['total_requests']     = (int) $row['total'];
+    $stats['pending_requests']   = (int) $row['pending'];
+    $stats['completed_requests'] = (int) $row['completed'];
+
+    $row = $pdo->query("SELECT COALESCE(SUM(role = 'super_admin'), 0) AS super_admins,
+                               COALESCE(SUM(role = 'admin'), 0) AS admins
+                        FROM users")->fetch(PDO::FETCH_ASSOC);
+    $stats['super_admins'] = (int) $row['super_admins'];
+    $stats['admins']       = (int) $row['admins'];
+} catch (Exception $e) {
+    error_log('Settings statistics query failed: ' . $e->getMessage());
+}
+
 $success_message = '';
 $error_message   = '';
+$cacheClearedAt  = null;
 
 $departmentImage = null;
 $departmentCode  = null;
@@ -452,6 +515,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $success_message = 'System cache cleared successfully!';
+            $cacheClearedAt  = date('F j, Y, g:i A');
             
             // Log cache clearing
             error_log("System cache cleared by Super Admin: " . $currentUser['id'] . " at " . date('Y-m-d H:i:s'));
