@@ -141,7 +141,7 @@ body {
 /* Common Box Info */
 #content main .box-info {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
     grid-gap: 24px;
     margin-top: 36px;
 }
@@ -149,18 +149,20 @@ body {
 #content main .box-info li {
     padding: 24px;
     background: var(--light);
-    border-radius: 20px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     grid-gap: 24px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+/* Hover policy: the tile holds its box, only its surface reacts. */
 #content main .box-info li:hover {
-    transform: translateY(-2px);
+    transform: none;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--cvsu-green-300, #6ee7a0);
 }
 
 #content main .box-info li .bx {
@@ -209,18 +211,20 @@ body {
 }
 
 #content main .table-data > div {
-    border-radius: 20px;
+    border-radius: 16px;
     background: var(--light);
     padding: 24px;
     overflow-x: auto;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+/* The panel is the container - it never translates on hover. */
 #content main .table-data > div:hover {
-    transform: translateY(-2px);
+    transform: none;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--cvsu-green-300, #6ee7a0);
 }
 
 #content main .table-data .head {
