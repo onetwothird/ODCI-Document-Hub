@@ -15,52 +15,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     header('Content-Type: application/json');
     
     try {
-        $faculty_id = $_GET['faculty_id'] ?? 0;
+        $faculty_id = (int)($_GET['faculty_id'] ?? 0);
         $doc_type = $_GET['document_type'] ?? '';
         $semester = $_GET['semester'] ?? '';
-        $academic_year = $_GET['academic_year'] ?? date('Y');
-        
-        // Convert semester format if needed (from UI format to DB format)
-        if (strpos($semester, 'AY') !== false) {
-            $semesterMap = [
-                '1st Semester AY 2024-2025' => '1st Semester',
-                '2nd Semester AY 2024-2025' => '2nd Semester', 
-                '1st Semester AY 2025-2026' => '1st Semester',
-                '2nd Semester AY 2025-2026' => '2nd Semester'
-            ];
-            $semester = $semesterMap[$semester] ?? '2nd Semester';
-        }
+        $academic_year = (int)($_GET['academic_year'] ?? date('Y'));
 
-        // Enhanced query to get file details from document_files table
+        // The period filter is sent as "1st Semester" / "2nd Semester" together
+        // with the AY start year, while the folders.php upload stores the
+        // semester as the files.semester enum ('first'/'second').
+        $parsed = odci_period_parse($semester);
+        if ($parsed['start_year'] > 0) {
+            $academic_year = $parsed['start_year'];
+        }
+        $folderSemester = $parsed['start_year'] > 0
+            ? $parsed['semester']
+            : odci_semester_column($semester);
+
+        // Map the tracker document type back to its folder category
+        $docTypeToCategory = odci_document_type_to_category();
+        $folderCategory = $docTypeToCategory[$doc_type] ?? $doc_type;
+
+        // Query the files table joined with folders (folders.php upload system)
         $stmt = $pdo->prepare("
             SELECT 
-                df.id, df.file_name, df.file_path, df.file_size, 
-                df.uploaded_at, df.description, df.file_type,
+                f.id, f.file_name, f.original_name, f.file_path, f.file_size,
+                f.uploaded_at, f.description, f.mime_type, f.file_extension,
+                COALESCE(f.download_count, 0) AS download_count,
+                fo.category as file_type,
                 CONCAT(u.name, ' ', u.surname) as uploader_name,
                 u.employee_id,
-                df.academic_year,
-                df.semester_period
-            FROM document_files df
-            INNER JOIN users u ON df.uploaded_by = u.id
-            WHERE df.uploaded_by = ? 
-            AND df.file_type = ?
-            AND df.semester_period = ?
-            AND df.academic_year = ?
-            ORDER BY df.uploaded_at DESC
+                f.academic_year,
+                f.semester
+            FROM files f
+            INNER JOIN folders fo ON f.folder_id = fo.id
+            INNER JOIN users u ON f.uploaded_by = u.id
+            WHERE f.uploaded_by = ? 
+            AND fo.category = ?
+            AND f.semester = ?
+            AND " . odci_academic_year_sql('f.academic_year') . "
+            AND f.is_deleted = 0
+            AND fo.is_deleted = 0
+            ORDER BY f.uploaded_at DESC
         ");
         
-        // Extract year from semester string if provided in AY format
-        if (strpos($_GET['semester'] ?? '', 'AY') !== false) {
-            preg_match('/AY (\d{4})-\d{4}/', $_GET['semester'], $matches);
-            if (!empty($matches[1])) {
-                $academic_year = (int)$matches[1];
-            }
-        }
-        
-        $stmt->execute([$faculty_id, $doc_type, $semester, $academic_year]);
+        $stmt->execute([$faculty_id, $folderCategory, $folderSemester, $academic_year]);
         $files = $stmt->fetchAll();
         
-        echo json_encode(['success' => true, 'files' => $files]);
+        echo json_encode([
+            'success' => true,
+            'files' => $files,
+            'period' => $academic_year . '-' . ($academic_year + 1),
+            'semester' => $folderSemester,
+            'document_type' => $doc_type
+        ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -78,11 +85,11 @@ if (isset($_GET['action'])) {
             try {
                 $stmt = $pdo->prepare("
                     SELECT u.*, d.department_name, d.department_code,
-                           COUNT(df.id) as total_files,
-                           MAX(df.uploaded_at) as last_upload
+                           COUNT(f.id) as total_files,
+                           MAX(f.uploaded_at) as last_upload
                     FROM users u 
                     LEFT JOIN departments d ON u.department_id = d.id 
-                    LEFT JOIN document_files df ON u.id = df.uploaded_by
+                    LEFT JOIN files f ON u.id = f.uploaded_by AND f.is_deleted = 0
                     WHERE u.id = :faculty_id 
                     GROUP BY u.id
                 ");
@@ -145,21 +152,24 @@ if (isset($_GET['action'])) {
             $semester = $_GET['semester'];
             
             try {
-                $semester_db = (strpos($semester, 'First') !== false || strpos($semester, '1st') !== false) ? '1st Semester' : '2nd Semester';
+                $folderSemester = odci_semester_column($semester);
                 
                 $stmt = $pdo->prepare("
-                    SELECT df.*
-                    FROM document_files df 
-                    WHERE df.uploaded_by = :faculty_id 
-                    AND df.academic_year = :academic_year 
-                    AND df.semester_period = :semester
-                    ORDER BY df.uploaded_at DESC
+                    SELECT f.*, fo.category as folder_category
+                    FROM files f
+                    INNER JOIN folders fo ON f.folder_id = fo.id
+                    WHERE f.uploaded_by = ? 
+                    AND " . odci_academic_year_sql('f.academic_year') . " 
+                    AND f.semester = ?
+                    AND f.is_deleted = 0
+                    AND fo.is_deleted = 0
+                    ORDER BY f.uploaded_at DESC
                 ");
                 
                 $stmt->execute([
-                    ':faculty_id' => $faculty_id,
-                    ':academic_year' => $academic_year,
-                    ':semester' => $semester_db
+                    $faculty_id,
+                    $academic_year,
+                    $folderSemester
                 ]);
                 
                 $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -200,16 +210,21 @@ $selectedSemester = $_GET['semester'] ?? '';
 $selectedYear = null;
 $normalizedSemester = '';
 
-// If no semester is selected, get the latest available period
+// If no semester is selected, get the latest available period.
+// Source of truth is the same `files` + `folders` pair the submission matrix
+// reads, so periods created by the folders.php uploads are always selectable.
 if (empty($selectedSemester)) {
     $latest_period_query = "
         SELECT DISTINCT 
-            df.academic_year, 
-            df.semester_period,
-            COUNT(df.id) as file_count
-        FROM document_files df
-        INNER JOIN users u ON df.uploaded_by = u.id
+            " . odci_academic_year_expr('f.academic_year') . " AS academic_year, 
+            f.semester AS semester,
+            COUNT(f.id) as file_count
+        FROM files f
+        INNER JOIN folders fo ON f.folder_id = fo.id
+        INNER JOIN users u ON f.uploaded_by = u.id
         WHERE u.role = 'user' AND u.is_approved = 1
+          AND f.is_deleted = 0 AND fo.is_deleted = 0
+          AND fo.category IS NOT NULL
     ";
     
     $latest_params = [];
@@ -219,11 +234,11 @@ if (empty($selectedSemester)) {
     }
     
     $latest_period_query .= " 
-        GROUP BY df.academic_year, df.semester_period 
-        ORDER BY df.academic_year DESC, 
-        CASE df.semester_period 
-            WHEN '1st Semester' THEN 1 
-            WHEN '2nd Semester' THEN 2 
+        GROUP BY academic_year, f.semester 
+        ORDER BY academic_year DESC, 
+        CASE f.semester 
+            WHEN 'first' THEN 1 
+            WHEN 'second' THEN 2 
             ELSE 3 
         END DESC
         LIMIT 1
@@ -233,15 +248,15 @@ if (empty($selectedSemester)) {
     $stmt->execute($latest_params);
     $latest_period = $stmt->fetch();
     
-    if ($latest_period) {
-        $selectedYear = $latest_period['academic_year'];
-        $normalizedSemester = $latest_period['semester_period'];
-        $selectedSemester = $normalizedSemester . ' AY ' . $selectedYear . '-' . ($selectedYear + 1);
+    if ($latest_period && (int)$latest_period['academic_year'] > 0) {
+        $selectedYear = (int)$latest_period['academic_year'];
+        $normalizedSemester = odci_semester_ordinal($latest_period['semester']);
+        $selectedSemester = $normalizedSemester . ' AY ' . odci_academic_year_range($selectedYear);
     } else {
         // Fallback to current year if no data
         $selectedYear = date('Y');
         $normalizedSemester = '2nd Semester';
-        $selectedSemester = '2nd Semester AY ' . $selectedYear . '-' . ($selectedYear + 1);
+        $selectedSemester = $normalizedSemester . ' AY ' . $selectedYear . '-' . ($selectedYear + 1);
     }
 } else {
     // Parse selected semester
@@ -254,25 +269,24 @@ if (empty($selectedSemester)) {
     }
 }
 
-// Document types from the admin system
-$document_types = [
-    'IPCR Accomplishment',
-    'IPCR Target',
-    'Workload',
-    'Course Syllabus',
-    'Course Syllabus Acceptance Form',
-    'Exam',
-    'TOS',
-    'Class Record',
-    'Grading Sheets',
-    'Attendance Sheet',
-    "Stakeholder's Feedback Form w/ Summary",
-    'Consultation',
-    'Lecture',
-    'Activities',
-    'CEIT-QF-03 Discussion Form',
-    'Others'
-];
+// Document types for the selected period: read what the folders.php upload
+// flow actually expects (document_requirements), falling back to the
+// canonical list when no requirements were configured for the period.
+$document_types = [];
+if ($selectedYear && $normalizedSemester) {
+    $req_stmt = $pdo->prepare("
+        SELECT DISTINCT document_type 
+        FROM document_requirements 
+        WHERE academic_year = ? AND semester = ? AND is_required = 1
+        ORDER BY document_type
+    ");
+    $req_stmt->execute([$selectedYear, $normalizedSemester]);
+    $document_types = $req_stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+if (empty($document_types)) {
+    $document_types = odci_default_document_types();
+}
 
 // Initialize variables
 $faculty = [];
@@ -344,44 +358,54 @@ if ($selected_department) {
             
             $total_faculty = count($faculty);
             
-            // Enhanced file submissions query using document_files table
+            // Enhanced file submissions query using files + folders (folders.php system)
             if (!empty($faculty) && $selectedYear && $normalizedSemester) {
                 $faculty_ids = array_column($faculty, 'id');
                 $placeholders = implode(',', array_fill(0, count($faculty_ids), '?'));
                 
-                // Query document_files directly for better performance
+                // normalizedSemester ('1st Semester') -> files.semester ('first')
+                $folderSemester = odci_semester_column($normalizedSemester);
+                
                 $file_query = "
                     SELECT 
-                        df.uploaded_by as faculty_id, 
-                        df.file_type as document_type, 
-                        COUNT(df.id) as file_count,
-                        MAX(df.uploaded_at) as latest_upload,
-                        MIN(df.uploaded_at) as first_upload,
-                        SUM(df.file_size) as total_size,
-                        df.academic_year,
-                        df.semester_period
-                    FROM document_files df
-                    WHERE df.uploaded_by IN ($placeholders)
-                    AND df.academic_year = ?
-                    AND df.semester_period = ?
-                    GROUP BY df.uploaded_by, df.file_type, df.academic_year, df.semester_period
+                        f.uploaded_by as faculty_id, 
+                        fo.category as folder_category, 
+                        COUNT(f.id) as file_count,
+                        MAX(f.uploaded_at) as latest_upload,
+                        MIN(f.uploaded_at) as first_upload,
+                        SUM(f.file_size) as total_size,
+                        f.academic_year,
+                        f.semester
+                    FROM files f
+                    INNER JOIN folders fo ON f.folder_id = fo.id
+                    WHERE f.uploaded_by IN ($placeholders)
+                    AND " . odci_academic_year_sql('f.academic_year') . "
+                    AND f.semester = ?
+                    AND f.is_deleted = 0
+                    AND fo.is_deleted = 0
+                    AND fo.category IS NOT NULL
+                    GROUP BY f.uploaded_by, fo.category, f.academic_year, f.semester
                 ";
                 
                 $stmt = $pdo->prepare($file_query);
                 
                 // Combine parameters: faculty_ids first, then year and semester
-                $params = array_merge($faculty_ids, [$selectedYear, $normalizedSemester]);
+                $params = array_merge($faculty_ids, [$selectedYear, $folderSemester]);
                 $stmt->execute($params);
                 
+                // Map folder categories back to the tracker's document types
+                $categoryToDocType = odci_category_to_document_type();
+                
                 while ($row = $stmt->fetch()) {
-                    $file_submissions[$row['faculty_id']][$row['document_type']] = [
+                    $matchedType = $categoryToDocType[$row['folder_category']] ?? $row['folder_category'];
+                    $file_submissions[$row['faculty_id']][$matchedType] = [
                         'file_count' => $row['file_count'] ?: 0,
                         'latest_upload' => $row['latest_upload'],
                         'first_upload' => $row['first_upload'],
                         'total_size' => $row['total_size'] ?: 0,
                         'status' => $row['file_count'] > 0 ? 'submitted' : 'pending',
                         'academic_year' => $row['academic_year'],
-                        'semester' => $row['semester_period']
+                        'semester' => $row['semester']
                     ];
                 }
             }
@@ -488,33 +512,53 @@ function formatFileSize($bytes) {
                 </div>
             <?php else: ?>
                 <!-- Department Info -->
-                <div class="department-info">
-                    <h2><?= htmlspecialchars($selected_department_name) ?></h2>
-                    <p>Document Submission Tracking System</p>
-                    <small>Department ID: <?= htmlspecialchars($selected_department) ?></small>
+                <div class="department-info" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2><?= htmlspecialchars($selected_department_name) ?></h2>
+                        <p>Document Submission Tracking System</p>
+                        <small>Department ID: <?= htmlspecialchars($selected_department) ?></small>
+                    </div>
+                    <button onclick="selectDepartment(null)" class="btn-modern btn-secondary-modern" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="bx bx-arrow-back"></i> Back to Departments
+                    </button>
                 </div>
 
                 <!-- Stats -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3><?= $total_faculty ?></h3>
-                        <p>Total Faculty</p>
-                        <small>In Department</small>
+                        <div class="stat-icon"><i class='bx bxs-group'></i></div>
+                        <div class="stat-body">
+                            <h3><?= $total_faculty ?></h3>
+                            <p>Total Faculty</p>
+                            <small>In this department</small>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3><?= $submitted_count ?></h3>
-                        <p>Documents Submitted</p>
-                        <small>Out of <?= $total_possible ?> required</small>
+                        <div class="stat-icon"><i class='bx bxs-file-doc'></i></div>
+                        <div class="stat-body">
+                            <h3><?= $submitted_count ?></h3>
+                            <p>Documents Submitted</p>
+                            <small>Out of <?= $total_possible ?> required</small>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3><?= $complete_faculty ?></h3>
-                        <p>Complete Submissions</p>
-                        <small><?= $faculty_completion_rate ?>% of faculty</small>
+                        <div class="stat-icon gold"><i class='bx bxs-check-circle'></i></div>
+                        <div class="stat-body">
+                            <h3><?= $complete_faculty ?></h3>
+                            <p>Complete Submissions</p>
+                            <small><?= $faculty_completion_rate ?>% of faculty</small>
+                        </div>
                     </div>
-                    <div class="stat-card completion">
-                        <h3><?= $completion_rate ?>%</h3>
-                        <p>Overall Completion</p>
-                        <small>Document submission rate</small>
+                       <div class="stat-card completion">
+                            <div class="stat-icon gold">
+                                <i class='bx bxs-bar-chart-alt-2'></i>
+                            </div>
+                            <div class="stat-body">
+                                <h3><?= $completion_rate ?>%</h3>
+                                <p>Overall Completion</p>
+                                <small>Document submission rate</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -530,15 +574,18 @@ function formatFileSize($bytes) {
                             <div class="select-wrapper">
                                 <select name="semester" class="period-select" id="semesterSelect">
                                     <?php
-                                    // Get available periods from document_files table
+                                    // Get available periods from the files + folders tables
                                     $period_query = "
                                         SELECT DISTINCT 
-                                            df.academic_year, 
-                                            df.semester_period,
-                                            COUNT(df.id) as file_count
-                                        FROM document_files df
-                                        INNER JOIN users u ON df.uploaded_by = u.id
+                                            " . odci_academic_year_expr('f.academic_year') . " AS academic_year, 
+                                            f.semester,
+                                            COUNT(f.id) as file_count
+                                        FROM files f
+                                        INNER JOIN folders fo ON f.folder_id = fo.id
+                                        INNER JOIN users u ON f.uploaded_by = u.id
                                         WHERE u.role = 'user' AND u.is_approved = 1
+                                          AND f.is_deleted = 0 AND fo.is_deleted = 0
+                                          AND fo.category IS NOT NULL
                                     ";
                                     
                                     $period_params = [];
@@ -548,11 +595,11 @@ function formatFileSize($bytes) {
                                     }
                                     
                                     $period_query .= " 
-                                        GROUP BY df.academic_year, df.semester_period 
-                                        ORDER BY df.academic_year DESC, 
-                                        CASE df.semester_period 
-                                            WHEN '1st Semester' THEN 1 
-                                            WHEN '2nd Semester' THEN 2 
+                                        GROUP BY academic_year, f.semester 
+                                        ORDER BY academic_year DESC, 
+                                        CASE f.semester 
+                                            WHEN 'first' THEN 1 
+                                            WHEN 'second' THEN 2 
                                             ELSE 3 
                                         END ASC
                                     ";
@@ -565,8 +612,12 @@ function formatFileSize($bytes) {
                                         echo '<option value="">No data available</option>';
                                     } else {
                                         foreach ($available_periods as $period) {
-                                            $period_value = $period['semester_period'] . ' AY ' . $period['academic_year'] . '-' . ($period['academic_year'] + 1);
-                                            $period_display = $period['semester_period'] . ' AY ' . $period['academic_year'] . '-' . ($period['academic_year'] + 1) . ' (' . $period['file_count'] . ' files)';
+                                            if ((int)$period['academic_year'] <= 0) {
+                                                continue;
+                                            }
+                                            $ordinal = odci_semester_ordinal($period['semester']);
+                                            $period_value = $ordinal . ' AY ' . $period['academic_year'] . '-' . ($period['academic_year'] + 1);
+                                            $period_display = $ordinal . ' AY ' . $period['academic_year'] . '-' . ($period['academic_year'] + 1) . ' (' . $period['file_count'] . ' files)';
                                             $selected = ($selectedSemester == $period_value) ? 'selected' : '';
                                             echo "<option value=\"{$period_value}\" {$selected}>{$period_display}</option>";
                                         }
@@ -611,7 +662,10 @@ function formatFileSize($bytes) {
                             <i class='bx bx-user-x'></i>
                             <h3>No Faculty Members Found</h3>
                             <p>No faculty members match the selected period or filters.</p>
-                            <a href="document-tracker.php" class="btn btn-primary">Reset Filters</a>
+                            <button type="button" onclick="window.location.href='document-tracker.php'" class="btn-modern btn-secondary-modern" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <i class="bx bx-refresh"></i>
+                                Reset Filters
+                            </button>
                         </div>
                     <?php else: ?>
                         <div class="table-scroll-wrapper">
@@ -814,7 +868,7 @@ function formatFileSize($bytes) {
         
         // Enhanced modal functions
         function showModal(modal) {
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
             modal.offsetHeight; // Force reflow
             modal.classList.add('show');
         }
@@ -937,7 +991,6 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #006b2e; transition: transform 0.2s ease;"
                             onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
                             onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -953,7 +1006,6 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #28a745; transition: transform 0.2s ease;"
                             onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
                             onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -969,7 +1021,6 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #d4a72c; transition: transform 0.2s ease;"
                             onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
                             onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -989,7 +1040,6 @@ function formatFileSize($bytes) {
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #0a8f3c; transition: transform 0.2s ease;"
                             onmouseover="this.style.boxShadow='0 6px 18px rgba(24,47,31,0.12)'"
                             onmouseout="this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1091,7 +1141,7 @@ function formatFileSize($bytes) {
                                     <div style="margin-bottom: 10px;"><strong>Type:</strong> ${file.file_type || docType}</div>
                                     ${file.description ? `<div style="margin-bottom: 10px;"><strong>Description:</strong> ${file.description}</div>` : ''}
                                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                        <a href="handler/download_file.php?id=${file.id}" 
+                                        <a href="api/files.php?action=download&id=${file.id}" 
                                            class="btn btn-primary" target="_blank" style="text-decoration: none;">
                                            <i class='bx bx-download'></i> Download
                                         </a>
@@ -1269,7 +1319,6 @@ function formatFileSize($bytes) {
                 backdrop-filter: blur(10px);
                 background: ${style.bg};
                 color: ${style.color};
-                border-left: 5px solid ${style.border};
                 transform: translateX(400px);
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             `;
