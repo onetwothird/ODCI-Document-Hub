@@ -645,7 +645,6 @@ if (!$currentUser) {
             padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border-left: 4px solid;
         }
 
         .alert-success {
@@ -1184,7 +1183,7 @@ if (!$currentUser) {
         // Load departments for filters
         async function loadDepartments() {
             try {
-                const response = await fetch('api/departments.php?action=list');
+                const response = await fetch('api/get_departments.php');
                 const departments = await response.json();
                 
                 const select = document.getElementById('filterDepartment');
