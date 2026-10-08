@@ -139,7 +139,6 @@
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #007bff; transition: transform 0.2s ease;"
                             onmouseover="this.style.transform='translateY(-2px)'"
                             onmouseout="this.style.transform='translateY(0)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -155,7 +154,6 @@
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #28a745; transition: transform 0.2s ease;"
                             onmouseover="this.style.transform='translateY(-2px)'"
                             onmouseout="this.style.transform='translateY(0)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -171,7 +169,6 @@
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #ffc107; transition: transform 0.2s ease;"
                             onmouseover="this.style.transform='translateY(-2px)'"
                             onmouseout="this.style.transform='translateY(0)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -191,7 +188,6 @@
                         <div class="info-item" 
                             style="background: white; padding: 15px; border-radius: 10px; 
                                     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-                                    border-left: 4px solid #17a2b8; transition: transform 0.2s ease;"
                             onmouseover="this.style.transform='translateY(-2px)'"
                             onmouseout="this.style.transform='translateY(0)'">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -613,7 +609,6 @@
                 backdrop-filter: blur(10px);
                 background: ${style.bg};
                 color: ${style.color};
-                border-left: 5px solid ${style.border};
                 transform: translateX(400px);
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             `;

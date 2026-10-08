@@ -199,7 +199,6 @@
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border-left: 4px solid;
             transition: all 0.3s ease;
         }
 
