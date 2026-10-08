@@ -213,7 +213,7 @@
                             </button>
                             
                             <?php if ($user['role'] !== 'super_admin'): ?>
-                                <button onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name'] . ' ' . $user['surname']); ?>')" class="btn btn-danger">
+                                <button type="button" onclick="confirmDeleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars(addslashes($user['name'] . ' ' . $user['surname'])); ?>')" class="btn btn-danger">
                                     <i class='bx bx-trash'></i> Delete
                                 </button>
                             <?php endif; ?>
@@ -463,6 +463,24 @@
                     <button type="submit" class="btn btn-warning">Reset Password</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Delete User Modal -->
+    <div id="deleteUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete User</h3>
+                <button type="button" class="close" onclick="closeModal('deleteUserModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteUserName"></strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions" style="justify-content: flex-end; margin-top: 30px; padding: 0 20px 20px;">
+                <button type="button" onclick="closeModal('deleteUserModal')" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="deleteUser(document.getElementById('delete_user_id').value)" class="btn btn-danger">Delete</button>
+            </div>
+            <input type="hidden" id="delete_user_id" name="user_id">
         </div>
     </div>
 

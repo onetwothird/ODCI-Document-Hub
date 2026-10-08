@@ -1,6 +1,6 @@
 // Modal functions
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+            document.getElementById(modalId).style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
@@ -19,8 +19,8 @@
 
         // Filter functions
         function filterUsers() {
-            const department = document.getElementById('department-filter').value;
-            const role = document.getElementById('role-filter').value;
+            const department = document.getElementById('department-filter') ? document.getElementById('department-filter').value : '';
+            const role = document.getElementById('role-filter') ? document.getElementById('role-filter').value : '';
             
             const params = new URLSearchParams(window.location.search);
             
@@ -44,16 +44,25 @@
         function editUser(userId) {
             // Fetch user data via AJAX
             fetch(`get_user.php?id=${userId}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user data');
+                    }
+                    return response.json();
+                })
                 .then(user => {
+                    if (user.error) {
+                        alert(user.error);
+                        return;
+                    }
                     document.getElementById('edit_user_id').value = user.id;
-                    document.getElementById('edit_name').value = user.name;
+                    document.getElementById('edit_name').value = user.name || '';
                     document.getElementById('edit_mi').value = user.mi || '';
-                    document.getElementById('edit_surname').value = user.surname;
+                    document.getElementById('edit_surname').value = user.surname || '';
                     document.getElementById('edit_employee_id').value = user.employee_id || '';
                     document.getElementById('edit_position').value = user.position || '';
                     document.getElementById('edit_department_id').value = user.department_id || '';
-                    document.getElementById('edit_role').value = user.role;
+                    document.getElementById('edit_role').value = user.role || '';
                     document.getElementById('edit_phone').value = user.phone || '';
                     document.getElementById('edit_address').value = user.address || '';
                     document.getElementById('edit_is_approved').checked = user.is_approved == 1;
@@ -92,21 +101,25 @@
         }
 
         // Delete user function
-        function deleteUser(userId, userName) {
-            if (confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '?action=delete';
-                
-                const userIdInput = document.createElement('input');
-                userIdInput.type = 'hidden';
-                userIdInput.name = 'user_id';
-                userIdInput.value = userId;
-                
-                form.appendChild(userIdInput);
-                document.body.appendChild(form);
-                form.submit();
-            }
+        function deleteUser(userId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '?action=delete';
+            
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'user_id';
+            userIdInput.value = userId;
+            
+            form.appendChild(userIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function confirmDeleteUser(userId, userName) {
+            document.getElementById('delete_user_id').value = userId;
+            document.getElementById('deleteUserName').textContent = userName;
+            openModal('deleteUserModal');
         }
 
         // Password confirmation validation
