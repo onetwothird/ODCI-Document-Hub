@@ -86,21 +86,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="stat-card info">
-                    <div class="stat-content">
-                        <div class="stat-info">
-                            <h3>Analytics</h3>
-                            <p>View Detailed Charts</p>
-                        </div>
-                        <div class="stat-icon info">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                    </div>
-                    <button class="btn-modern btn-primary-modern w-100 mt-3" onclick="showAnalytics()" style="margin-top: 1rem !important; width: 100% !important;">
-                        <i class="fas fa-chart-line"></i>
-                        View Analytics
-                    </button>
-                </div>
             </div>
 
             <!-- Filters Card -->
@@ -110,6 +95,10 @@
                         <i class="fas fa-filter"></i>
                         Filters
                     </h5>
+                    <button class="btn-modern btn-primary-modern" onclick="showAnalytics()">
+                        <i class="fas fa-chart-line"></i>
+                        View Analytics
+                    </button>
                 </div>
 
                 <div class="filter-row">
@@ -254,7 +243,7 @@
 
         <!-- Analytics Modal -->
         <div class="modal fade" id="analyticsModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">

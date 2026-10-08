@@ -109,6 +109,7 @@ function getActivityLogs($pdo, $params) {
             u.name,
             u.surname,
             u.role,
+            u.profile_image,
             d.department_name,
             d.department_code
         FROM activity_logs al
@@ -128,6 +129,20 @@ function getActivityLogs($pdo, $params) {
         $log['user_full_name'] = trim(($log['name'] ?? '') . ' ' . ($log['surname'] ?? ''));
         if (empty($log['user_full_name'])) {
             $log['user_full_name'] = $log['username'] ?? 'Unknown User';
+        }
+        
+        // Process profile image
+        if (!empty($log['profile_image'])) {
+            $profileImg = $log['profile_image'];
+            if (strpos($profileImg, 'uploads/profile/') === 0) {
+                $log['profile_image_url'] = '../../' . $profileImg;
+            } elseif (strpos($profileImg, '../../') !== 0 && strpos($profileImg, '/') !== 0) {
+                $log['profile_image_url'] = '../../uploads/profile/' . $profileImg;
+            } else {
+                $log['profile_image_url'] = $profileImg;
+            }
+        } else {
+            $log['profile_image_url'] = null;
         }
         
         $log['formatted_date'] = date('Y-m-d H:i:s', strtotime($log['created_at']));
