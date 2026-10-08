@@ -349,7 +349,6 @@ $maxFiles = ini_get('max_file_uploads');
             background: #f8f9fa;
             border-radius: 8px;
             margin-bottom: 10px;
-            border-left: 4px solid #667eea;
         }
         
         .file-info {
@@ -486,7 +485,6 @@ $maxFiles = ini_get('max_file_uploads');
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid #17a2b8;
         }
         
         .upload-guidelines h4 {
@@ -509,7 +507,6 @@ $maxFiles = ini_get('max_file_uploads');
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid #6c757d;
             font-size: 12px;
             color: #6c757d;
         }

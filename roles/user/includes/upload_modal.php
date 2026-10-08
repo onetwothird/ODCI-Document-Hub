@@ -134,7 +134,7 @@
                 </button>
             </div>
             
-            <div style="margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid #10b981; font-family: 'Poppins', sans-serif;">
+            <div style="margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; font-family: 'Poppins', sans-serif;">
                 <p style="margin: 0; font-size: 12px; color: #065f46; line-height: 1.4; font-family: 'Poppins', sans-serif;">
                     <i class='bx bx-shield-check' style="margin-right: 4px;"></i>
                     Your files will be securely stored and organized by department and semester for easy access.

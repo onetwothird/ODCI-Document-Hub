@@ -333,7 +333,6 @@ function getFileTypeColor($filename) {
             margin: 10px 0;
             font-style: italic;
             color: #555;
-            border-left: 3px solid #667eea;
         }
         
         .file-actions {
