@@ -250,9 +250,9 @@
     box-shadow: none;
 }
 
-/* Contents respond on hover; the tile itself stays put (hover policy). */
+/* Contents respond on hover with colour only; the tile itself stays put. */
 .stat-card:hover .stat-icon {
-    transform: translateY(-2px) scale(1.04);
+    transform: none;
 }
 
 .stat-icon.users,
@@ -383,15 +383,15 @@
     gap: 14px;
     padding: 15px 22px;
     border-bottom: 1px solid var(--cvsu-muted-bg);
-    transition: background-color .18s ease, transform .18s ease;
+    transition: background-color .18s ease, box-shadow .18s ease;
     position: relative;
 }
 
-/* A row is a sub-container of the panel, so it - not the panel - is what
-   responds to the pointer. */
+/* A row is a sub-container of the panel: it holds its position and only its
+   surface (background + a whisper of shadow) reacts to the pointer. */
 .activity-item:hover {
     background: var(--cvsu-green-50);
-    transform: translateX(4px);
+    box-shadow: inset 3px 0 0 var(--cvsu-green-500);
 }
 
 .activity-item:last-child {
@@ -414,7 +414,7 @@
 }
 
 .activity-item:hover .activity-icon {
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .activity-content {
@@ -489,7 +489,7 @@
 }
 
 .quick-action:hover i {
-    transform: translateY(-2px) scale(1.05);
+    transform: none;
     background: var(--cvsu-green-500);
     color: #fff;
 }
