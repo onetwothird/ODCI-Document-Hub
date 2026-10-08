@@ -95,6 +95,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 echo json_encode(['success' => true, 'message' => 'Folder moved successfully']);
                 break;
 
+            case 'import_folder':
+                if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+                    echo json_encode(['success' => false, 'message' => 'No file uploaded or upload error']);
+                    break;
+                }
+
+                $fileContent = file_get_contents($_FILES['import_file']['tmp_name']);
+                $importData = json_decode($fileContent, true);
+
+                if (!$importData || !isset($importData['folders'])) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid import file format']);
+                    break;
+                }
+
+                $targetParentId = $_POST['target_parent_id'] ?: null;
+                $preserveIds = isset($_POST['preserve_ids']) && $_POST['preserve_ids'] == '1';
+                $importedCount = 0;
+
+                // Recursive function to import folders
+                function importFoldersRecursive($folders, $parentId, $pdo, $currentUser, &$importedCount, $preserveIds) {
+                    foreach ($folders as $folder) {
+                        $folderId = $preserveIds && isset($folder['id']) ? $folder['id'] : null;
+                        
+                        $stmt = $pdo->prepare("
+                            INSERT INTO folders (folder_name, created_by, parent_id, department_id, category, 
+                                               folder_type, description, folder_color, folder_icon, is_public, permissions) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        $permissions = json_encode(['read' => [], 'write' => [], 'admin' => [$currentUser['id']]]);
+                        $stmt->execute([
+                            $folder['folder_name'],
+                            $currentUser['id'],
+                            $parentId,
+                            $folder['department_id'] ?: null,
+                            $folder['category'] ?: null,
+                            $folder['folder_type'] ?? 'custom',
+                            $folder['description'] ?: null,
+                            $folder['folder_color'] ?? '#006b2e',
+                            $folder['folder_icon'] ?? 'fa-folder',
+                            $folder['is_public'] ?? 0,
+                            $permissions
+                        ]);
+                        
+                        $newFolderId = $preserveIds && $folderId ? $folderId : $pdo->lastInsertId();
+                        $importedCount++;
+
+                        // Import subfolders
+                        if (isset($folder['children']) && is_array($folder['children'])) {
+                            importFoldersRecursive($folder['children'], $newFolderId, $pdo, $currentUser, $importedCount, $preserveIds);
+                        }
+                    }
+                }
+
+                importFoldersRecursive($importData['folders'], $targetParentId, $pdo, $currentUser['id'], $importedCount, $preserveIds);
+                
+                echo json_encode(['success' => true, 'message' => "Successfully imported {$importedCount} folders"]);
+                break;
+
             default:
                 echo json_encode(['success' => false, 'message' => 'Invalid action']);
         }
@@ -250,29 +308,65 @@ function folderIconColor($color) {
         .folder-stats {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 6px;
+            gap: 8px;
             margin: 1rem 0;
             padding: 0.75rem;
             background: #f7fafc;
-            border-radius: 8px;
+            border: 1px solid #e6ebe7;
+            border-radius: 10px;
             text-align: center;
         }
 
         .stat-item {
             text-align: center;
             min-width: 0;
+            padding: 4px 2px;
+            border-right: 1px solid #e6ebe7;
+        }
+
+        /* The shared theme (loaded later) paints a rail + padding on generic
+           .stat-item tiles; inside this compact strip we want plain cells. */
+        .superadmin-management-page .folder-stats .stat-item {
+            background: transparent !important;
+            border: none !important;
+            border-right: 1px solid #e6ebe7 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 4px 2px !important;
+            display: block !important;
+            gap: 0 !important;
+        }
+
+        .superadmin-management-page .folder-stats .stat-item:last-child {
+            border-right: none !important;
+        }
+
+        .superadmin-management-page .folder-stats {
+            background: #f7fafc !important;
+            border: 1px solid #e6ebe7 !important;
+            box-shadow: none !important;
+            border-radius: 10px !important;
+        }
+
+        .stat-item:last-child {
+            border-right: none;
         }
 
         .stat-value {
-            font-weight: 600;
-            color: #2d3748;
+            font-weight: 700;
+            color: #1e7e34;
             display: block;
+            font-size: 0.95rem;
+            line-height: 1.3;
             overflow-wrap: anywhere;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
         }
 
         .folder-actions {
@@ -316,23 +410,64 @@ function folderIconColor($color) {
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);
-            color: white;
-            padding: 1.5rem;
+            background: #fff;
+            color: #16241c;
+            padding: 1.1rem 1.25rem;
             border-radius: 12px;
-            text-align: center;
+            border: 1px solid #e6ebe7;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            min-width: 0;
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
+        }
+
+        .stat-card .stat-icon {
+            width: 46px;
+            height: 46px;
+            min-width: 46px;
+            border-radius: 12px;
+            background: rgba(30, 126, 52, 0.10);
+            border: 1px solid rgba(30, 126, 52, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e7e34;
+            font-size: 22px;
+        }
+
+        .stat-card .stat-icon.gold {
+            background: rgba(240, 192, 0, 0.16);
+            border-color: rgba(240, 192, 0, 0.35);
+            color: #8a6300;
+        }
+
+        .stat-card .stat-info {
+            min-width: 0;
         }
 
         .stat-card h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 2rem;
+            margin: 0;
+            font-size: 1.5rem;
             font-weight: 700;
+            line-height: 1.15;
+            color: #1e7e34;
+            overflow-wrap: anywhere;
+        }
+
+        .stat-card p {
+            margin: 2px 0 0;
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .controls-bar {
@@ -389,24 +524,50 @@ function folderIconColor($color) {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(3px);
+            z-index: 2500;
             align-items: center;
             justify-content: center;
+            padding: 32px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        /* Center the dialog within the content area (right of the sidebar) */
+        @media (min-width: 769px) {
+            .modal { padding-left: calc(60px + 32px); }
+            body:has(#sidebar.expanded) .modal { padding-left: calc(280px + 32px); }
         }
 
         .modal.show {
             display: flex;
         }
 
+        @media (max-width: 1024px) {
+            .modal { padding: 20px 16px; }
+        }
+
         .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.75rem;
+            max-width: 520px;
+            width: 100%;
+            max-height: calc(100vh - 64px);
             overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+            animation: modalSlide 0.28s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(14px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
 
         .form-group {
@@ -522,14 +683,6 @@ function folderIconColor($color) {
             text-decoration: underline;
         }
 
-        .table-view {
-            display: none;
-        }
-
-        .table-view.active {
-            display: block;
-        }
-
         .folders-table {
             width: 100%;
             background: white;
@@ -551,12 +704,35 @@ function folderIconColor($color) {
             color: #2d3748;
         }
 
+        /* Views are exclusive: only the selected one renders. */
+        .grid-view,
+        .table-view,
+        .tree-view,
+        .trash-view {
+            display: none;
+        }
+
+        .grid-view.active,
+        .table-view.active,
+        .tree-view.active,
+        .trash-view.active {
+            display: block;
+        }
+
+        .table-view {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
         .folder-tree {
             background: white;
             border-radius: 12px;
             padding: 1.5rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
+            border: 1px solid #e6ebe7;
+            margin-top: 1.25rem;
         }
 
         .tree-item {
@@ -622,7 +798,16 @@ function folderIconColor($color) {
             }
             
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .stat-card {
+                padding: 0.9rem 1rem;
+                gap: 0.65rem;
+            }
+
+            .stat-card h3 {
+                font-size: 1.25rem;
             }
             
             .controls-bar {
@@ -637,6 +822,12 @@ function folderIconColor($color) {
 
             .stat-value {
                 font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -681,29 +872,47 @@ function folderIconColor($color) {
                         <li class="active">Folders</li>
                     </ul>
                 </div>
-                <button class="btn btn-primary" onclick="showCreateModal()">
-                    <i class='bx bx-plus'></i>
-                    <span class="text">New Folder</span>
-                </button>
+                <div class="head-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-action btn-secondary" onclick="showImportModal()" title="Import Folder Structure">
+                        <i class='bx bx-import'></i>
+                        <span class="text">Import</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="showCreateModal()">
+                        <i class='bx bx-plus'></i>
+                        <span class="text">New Folder</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3><?= number_format($stats['total_folders']) ?></h3>
-                    <p>Total Folders</p>
+                    <div class="stat-icon"><i class='bx bxs-folder'></i></div>
+                    <div class="stat-info">
+                        <h3><?= number_format($stats['total_folders']) ?></h3>
+                        <p>Total Folders</p>
+                    </div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #0a8f3c 0%, #006b2e 100%);">
-                    <h3><?= number_format($stats['total_files']) ?></h3>
-                    <p>Total Files</p>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class='bx bxs-file-doc'></i></div>
+                    <div class="stat-info">
+                        <h3><?= number_format($stats['total_files']) ?></h3>
+                        <p>Total Files</p>
+                    </div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #e0b53b 0%, #b8860b 100%);">
-                    <h3><?= number_format($stats['public_folders']) ?></h3>
-                    <p>Public Folders</p>
+                <div class="stat-card">
+                    <div class="stat-icon gold"><i class='bx bxs-show'></i></div>
+                    <div class="stat-info">
+                        <h3><?= number_format($stats['public_folders']) ?></h3>
+                        <p>Public Folders</p>
+                    </div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #3aa564 0%, #1e7e34 100%);">
-                    <h3><?= formatFileSize($stats['total_size']) ?></h3>
-                    <p>Total Storage</p>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class='bx bxs-cloud'></i></div>
+                    <div class="stat-info">
+                        <h3><?= formatFileSize($stats['total_size']) ?></h3>
+                        <p>Total Storage</p>
+                    </div>
                 </div>
             </div>
 
@@ -1185,6 +1394,54 @@ function folderIconColor($color) {
         </div>
     </div>
 
+    <!-- Import Folder Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Import Folder Structure</h2>
+                <button onclick="closeImportModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <form id="importForm" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="import_folder">
+
+                <div class="form-group">
+                    <label for="importFile">Import File (JSON) *</label>
+                    <input type="file" id="importFile" name="import_file" accept=".json" required>
+                    <small style="color: #718096;">Select a JSON file exported from the folder structure export feature.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="importTargetParent">Import Under Folder</label>
+                    <select id="importTargetParent" name="target_parent_id">
+                        <option value="">Root Level</option>
+                        <?php foreach ($folders as $folder): ?>
+                            <option value="<?= $folder['id'] ?>">
+                                <?= str_repeat('— ', $folder['folder_level']) ?><?= htmlspecialchars($folder['folder_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="importPreserveIds" name="preserve_ids" value="1">
+                        Preserve original folder IDs (use with caution)
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" onclick="closeImportModal()" class="btn-action btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-action btn-primary">
+                        <i class='bx bx-import'></i> Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="assets/js/script.js?v=<?= time() ?>"></script>
     <script>
         let currentView = 'grid';
@@ -1249,6 +1506,11 @@ function folderIconColor($color) {
             document.getElementById('folderIcon').value = 'fa-folder';
             
             document.getElementById('folderModal').classList.add('show');
+        }
+
+        // Show import modal
+        function showImportModal() {
+            document.getElementById('importModal').classList.add('show');
         }
 
         // Edit folder
@@ -1453,6 +1715,35 @@ function folderIconColor($color) {
             });
         });
 
+        // Import form submission
+        document.getElementById('importForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            document.getElementById('loading').style.display = 'block';
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeImportModal();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showNotification('An error occurred', 'error');
+                console.error('Error:', error);
+            });
+        });
+
         // Modal functions
         function closeModal() {
             document.getElementById('folderModal').classList.remove('show');
@@ -1464,6 +1755,10 @@ function folderIconColor($color) {
 
         function closeMoveModal() {
             document.getElementById('moveModal').classList.remove('show');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('show');
         }
 
         // Notification system
@@ -1502,6 +1797,7 @@ function folderIconColor($color) {
                 closeModal();
                 closePermissionsModal();
                 closeMoveModal();
+                closeImportModal();
             }
         });
 
