@@ -788,7 +788,8 @@ a.card, a.folder-card, a.category-card, a.department-card,
 .stat-item {
     background: var(--cvsu-white) !important;
     border: 1px solid var(--cvsu-line) !important;
-    border-left: 3px solid var(--cvsu-green-500) !important;
+    border-left: 1px solid var(--cvsu-line) !important;
+    border-left-width: 1px !important;
     border-radius: var(--cvsu-radius) !important;
     box-shadow: var(--cvsu-shadow) !important;
     padding: var(--sp-5) !important;

@@ -251,10 +251,24 @@
 .superadmin-management-page .stats-grid .stat-card {
     min-width: 0;
     border: 1px solid var(--management-line) !important;
+    border-left: 1px solid var(--management-line) !important;
     border-radius: 10px !important;
     background: #fff !important;
     color: var(--management-ink) !important;
     box-shadow: 0 1px 3px rgba(24,47,31,.045) !important;
+}
+
+/* The shared theme paints a coloured rail down every stat tile. These pages
+   use a bordered white tile instead, so drop the rail here. */
+.superadmin-management-page .stat-card,
+.superadmin-management-page .stats-cards .stat-card,
+.superadmin-management-page .stats-grid .stat-card,
+.superadmin-management-page .stat-item,
+.superadmin-management-page .summary-card {
+    border-left-width: 1px !important;
+    border-left-style: solid !important;
+    border-left-color: var(--management-line) !important;
+    background: #fff !important;
 }
 
 .superadmin-management-page .stats-cards,
@@ -636,7 +650,7 @@
 .activity-logs-page .logs-header .form-control-modern { width: auto; }
 .activity-logs-page .log-item {
     display: grid;
-    grid-template-columns: 40px 32px minmax(0, 1fr);
+    grid-template-columns: 44px 36px minmax(0, 1fr);
     align-items: start;
     gap: 12px;
     min-width: 0;
@@ -752,10 +766,15 @@
     .superadmin-management-page .controls-bar .view-toggle {
         grid-column: 1;
         width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding: 2px;
+        gap: 2px;
     }
 
-    .superadmin-management-page .controls-bar .view-btn { flex: 1 0 auto; }
-    .activity-logs-page .log-item { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+    .superadmin-management-page .controls-bar .view-btn { flex: 0 0 auto; white-space: nowrap; min-width: 65px; padding: 4px 6px !important; font-size: 10px !important; height: 30px !important; }
+    .activity-logs-page .log-item { grid-template-columns: 2.25rem minmax(0, 1fr); gap: 8px; }
     .activity-logs-page .log-icon { display: none; }
     .activity-logs-page .log-time { width: 100%; margin-left: 0; }
     .activity-logs-page .pagination-modern { align-items: stretch; flex-direction: column; }

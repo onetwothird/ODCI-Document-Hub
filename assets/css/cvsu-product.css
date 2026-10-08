@@ -831,7 +831,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
 }
 .box-info li .text p { margin: 0 !important; }
 .stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px !important;
     margin: 24px 0 !important;
 }
@@ -860,7 +860,7 @@ body :not(i):not(.bx):not([class*="fa"]) {
 #content main .todo {
     border: 1px solid var(--cvsu-line) !important;
     border-radius: var(--cvsu-radius) !important;
-    background: linear-gradient(90deg, var(--cvsu-gold-400), var(--cvsu-green-500));
+    background: var(--cvsu-white) !important;
     box-shadow: var(--cvsu-shadow-sm) !important;
 }
 #content main .status-item::before,
@@ -878,6 +878,9 @@ body :not(i):not(.bx):not([class*="fa"]) {
     min-width: 0;
     min-height: 112px;
     padding: 20px !important;
+    background: var(--cvsu-white) !important;
+    border-left: 1px solid var(--cvsu-line) !important;
+    border-left-width: 1px !important;
 }
 #content main .status-item {
     flex-direction: column !important;
@@ -916,6 +919,8 @@ body :not(i):not(.bx):not([class*="fa"]) {
     justify-content: space-between !important;
     gap: 16px !important;
     text-align: left !important;
+    border-left: 1px solid var(--cvsu-line) !important;
+    background: var(--cvsu-white) !important;
 }
 #content main .stat-card .stat-info {
     display: flex;
