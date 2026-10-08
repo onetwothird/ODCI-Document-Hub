@@ -497,24 +497,159 @@ function folderIconColor($color) {
         }
 
         .view-toggle {
-            display: flex;
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 0.25rem;
+            display: inline-flex;
+            align-items: center;
+            background: var(--cvsu-surface, #f7fafc);
+            border: 1px solid var(--cvsu-line, #e6ebe7);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 2px;
         }
 
         .view-btn {
-            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
             border: none;
             background: transparent;
+            color: var(--cvsu-text-muted, #64748b);
             cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            min-width: fit-content;
+        }
+
+        .view-btn:hover:not(.active) {
+            background: var(--cvsu-surface-hover, #eef3ef);
+            color: var(--cvsu-text, #1e293b);
         }
 
         .view-btn.active {
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: var(--cvsu-green-500, #28a745);
+            color: white;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.25);
+        }
+
+        .view-btn.active:hover {
+            background: var(--cvsu-green-600, #1e7e34);
+        }
+
+        .view-btn i {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .view-label {
+            display: inline-block;
+        }
+
+        /* Override management-pages.css for this specific page */
+        .folders-management-page .controls-bar .view-toggle {
+            display: inline-flex !important;
+            background: var(--cvsu-surface, #f7fafc) !important;
+            border: 1px solid var(--cvsu-line, #e6ebe7) !important;
+            border-radius: 10px !important;
+            padding: 4px !important;
+            gap: 2px !important;
+            flex-wrap: nowrap !important;
+            overflow-x: visible !important;
+        }
+
+        .folders-management-page .controls-bar .view-btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            padding: 8px 14px !important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--cvsu-text-muted, #64748b) !important;
+            cursor: pointer !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            transition: all 0.2s ease !important;
+            min-width: fit-content !important;
+            min-height: auto !important;
+        }
+
+        .folders-management-page .controls-bar .view-btn:hover:not(.active) {
+            background: var(--cvsu-surface-hover, #eef3ef) !important;
+            color: var(--cvsu-text, #1e293b) !important;
+        }
+
+        .folders-management-page .controls-bar .view-btn.active {
+            background: var(--cvsu-green-500, #28a745) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.25) !important;
+            border-color: transparent !important;
+        }
+
+        .folders-management-page .controls-bar .view-btn i {
+            font-size: 16px !important;
+        }
+
+        /* Responsive behavior */
+        @media (max-width: 992px) {
+            .folders-management-page .controls-bar .view-toggle {
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                scrollbar-width: thin !important;
+                scrollbar-color: var(--cvsu-green-300, #6ee7a0) transparent !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-right: 8px !important;
+                margin-right: -4px !important;
+            }
+
+            .folders-management-page .controls-bar .view-toggle::-webkit-scrollbar {
+                height: 4px !important;
+            }
+
+            .folders-management-page .controls-bar .view-toggle::-webkit-scrollbar-track {
+                background: transparent !important;
+            }
+
+            .folders-management-page .controls-bar .view-toggle::-webkit-scrollbar-thumb {
+                background: var(--cvsu-green-300, #6ee7a0) !important;
+                border-radius: 2px !important;
+            }
+
+            .folders-management-page .controls-bar .view-btn {
+                flex: 0 0 auto !important;
+                padding: 8px 12px !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .folders-management-page .controls-bar .view-btn .view-label {
+                display: none !important;
+            }
+
+            .folders-management-page .controls-bar .view-btn {
+                padding: 8px 10px !important;
+                min-width: 44px !important;
+            }
+
+            .folders-management-page .controls-bar .view-btn i {
+                font-size: 18px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .folders-management-page .controls-bar .view-btn {
+                padding: 6px 8px !important;
+                min-width: 40px !important;
+            }
+
+            .folders-management-page .controls-bar .view-btn i {
+                font-size: 17px !important;
+            }
         }
 
         .modal {
@@ -873,6 +1008,10 @@ function folderIconColor($color) {
                     </ul>
                 </div>
                 <div class="head-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-action btn-secondary" onclick="showKeyboardShortcuts()" title="Keyboard Shortcuts">
+                        <i class='bx bx-keyboard'></i>
+                        <span class="text">Shortcuts</span>
+                    </button>
                     <button class="btn-action btn-secondary" onclick="showImportModal()" title="Import Folder Structure">
                         <i class='bx bx-import'></i>
                         <span class="text">Import</span>
@@ -922,18 +1061,22 @@ function folderIconColor($color) {
                     <input type="text" id="searchInput" placeholder="Search folders..." onkeyup="filterFolders()">
                 </div>
                 
-                <div class="view-toggle">
-                    <button class="view-btn active" onclick="setView('grid')" data-view="grid">
-                        <i class='bx bx-grid-alt'></i> Grid
+                <div class="view-toggle" role="group" aria-label="View mode">
+                    <button class="view-btn active" onclick="setView('grid')" data-view="grid" title="Grid View (Ctrl+1)">
+                        <i class='bx bx-grid-alt'></i>
+                        <span class="view-label">Grid</span>
                     </button>
-                    <button class="view-btn" onclick="setView('table')" data-view="table">
-                        <i class='bx bx-list-ul'></i> Table
+                    <button class="view-btn" onclick="setView('table')" data-view="table" title="Table View (Ctrl+2)">
+                        <i class='bx bx-list-ul'></i>
+                        <span class="view-label">Table</span>
                     </button>
-                    <button class="view-btn" onclick="setView('tree')" data-view="tree">
-                        <i class='bx bx-sitemap'></i> Tree
+                    <button class="view-btn" onclick="setView('tree')" data-view="tree" title="Tree View (Ctrl+3)">
+                        <i class='bx bx-sitemap'></i>
+                        <span class="view-label">Tree</span>
                     </button>
-                    <button class="view-btn" onclick="setView('trash')" data-view="trash">
-                        <i class='bx bx-trash'></i> Trash
+                    <button class="view-btn" onclick="setView('trash')" data-view="trash" title="Trash (Ctrl+4)">
+                        <i class='bx bx-trash'></i>
+                        <span class="view-label">Trash</span>
                     </button>
                 </div>
 
@@ -2138,13 +2281,6 @@ function folderIconColor($color) {
         function showKeyboardShortcuts() {
             showNotification('Ctrl+N: New Folder | Ctrl+1-4: Switch Views | Ctrl+A: Select All | Ctrl+E: Export', 'info');
         }
-
-        // Add help button
-        document.querySelector('.head-title .left').insertAdjacentHTML('afterend', `
-            <button class="btn-action btn-secondary" onclick="showKeyboardShortcuts()" title="Keyboard Shortcuts">
-                <i class='bx bx-help-circle'></i>
-            </button>
-        `);
     </script>
 </body>
 </html>
