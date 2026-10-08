@@ -77,13 +77,15 @@
 
 .dept-card {
     background: white;
-    border-radius: 12px;
-    padding: 28px;
+    border-radius: 16px;
+    padding: 26px;
     box-shadow: var(--cvsu-shadow, 0 2px 8px rgba(11, 61, 30, .07));
     transition: box-shadow .18s ease, border-color .18s ease;
     border: 1px solid var(--cvsu-line, #e6ebe7);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Default department card styling */
@@ -94,7 +96,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(90deg, var(--cvsu-green-600, #1e7e34), var(--cvsu-green-400, #43c76a));
 }
 
 
@@ -117,40 +119,26 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     position: relative;
     z-index: 2;
+    gap: 12px;
 }
 
 .dept-icon {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
     border-radius: 14px;
-    background: linear-gradient(135deg, var(--cvsu-green-600, #1e7e34), var(--cvsu-green-800, #14532d));
+    background: linear-gradient(135deg, rgba(30, 126, 52, 0.12), rgba(20, 83, 45, 0.06));
+    border: 1px solid rgba(30, 126, 52, 0.18);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--cvsu-green-700, #1e7e34);
     font-size: 26px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.22);
-}
-
-.dept-icon::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
-    animation: shimmer 6s infinite linear;
-}
-
-@keyframes shimmer {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 .dept-status {
@@ -207,18 +195,41 @@
 
 .dept-stats {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    margin: 25px 0;
-    padding: 25px;
-    background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
-    border-radius: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 18px 0;
+    padding: 14px 8px;
+    background: var(--gray-50);
+    border-radius: 14px;
     border: 1px solid var(--gray-200);
+}
+
+/* The shared theme (loaded later) paints a rail + padding on generic
+   .stat-item tiles; these live inside a compact stat strip, so undo it. */
+.superadmin-departments-page .dept-stats .stat-item {
+    background: transparent !important;
+    border: none !important;
+    border-right: 1px solid var(--gray-200) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 4px 2px !important;
+    display: block !important;
+    gap: 0 !important;
+}
+
+.superadmin-departments-page .dept-stats .stat-item:last-child {
+    border-right: none !important;
 }
 
 .stat-item {
     text-align: center;
-    transition: color .18s ease;
+    padding: 4px 2px;
+    border-right: 1px solid var(--gray-200);
+    min-width: 0;
+}
+
+.stat-item:last-child {
+    border-right: none;
 }
 
 .stat-item:hover {
@@ -226,19 +237,22 @@
 }
 
 .stat-number {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--primary-color);
+    color: var(--cvsu-green-700, #1e7e34);
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--gray-500);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-weight: 600;
+    letter-spacing: 0.7px;
+    font-weight: 700;
 }
 
 .dept-contact {
@@ -246,9 +260,9 @@
     color: var(--gray-600);
     margin: 20px 0;
     background: var(--gray-50);
-    padding: 20px;
+    padding: 16px 18px;
     border-radius: 12px;
-    border-left: 4px solid var(--primary-color);
+    border: 1px solid var(--gray-200);
 }
 
 .dept-contact div {
@@ -272,8 +286,8 @@
 .dept-actions {
     display: flex;
     gap: 8px;
-    margin-top: 25px;
-    padding-top: 20px;
+    margin-top: auto;
+    padding-top: 18px;
     border-top: 2px solid var(--gray-100);
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -413,23 +427,45 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 1000;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 2500;
     backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    box-sizing: border-box;
+    animation: fadeIn 0.25s ease;
+}
+
+/* Center the dialog within the content area (right of the sidebar) */
+@media (min-width: 769px) {
+    .modal { padding-left: calc(60px + 32px); }
+    body:has(#sidebar.expanded) .modal { padding-left: calc(280px + 32px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 .modal-content {
     background: white;
-    border-radius: 24px;
+    border-radius: 20px;
     padding: 40px;
     max-width: 600px;
-    width: 90%;
-    margin: 50px auto;
-    max-height: 80vh;
+    width: 100%;
+    margin: 0;
+    max-height: calc(100vh - 64px);
     overflow-y: auto;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--gray-200);
     position: relative;
+    animation: modalSlide 0.28s ease;
+}
+
+@keyframes modalSlide {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-content::before {
@@ -802,26 +838,30 @@
     
     .dept-stats {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 20px;
+        gap: 10px;
+        padding: 14px 10px;
     }
-    
+
+    .stat-item { border-right: none; }
+    .stat-item:nth-child(odd) { border-right: 1px solid var(--gray-200); }
+
     .dept-actions {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: flex-start;
         gap: 8px;
     }
-    
+
     .btn {
         flex: 0 0 auto;
         min-width: auto;
     }
-    
+
     .modal-content {
-        margin: 20px auto;
+        margin: 0;
         padding: 25px;
-        max-height: 90vh;
+        max-height: calc(100vh - 40px);
+        border-radius: 16px;
     }
     
     .overview-card {

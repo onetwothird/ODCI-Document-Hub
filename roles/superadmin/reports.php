@@ -30,81 +30,161 @@ if (!$currentUser) {
             --warning: #b8860b;
             --danger: #dc2626;
             --info: #006b2e;
-            --light: #f0f7f1;
-            --dark: #202c25;
+            --light: #f4f8f5;
+            --dark: #16241c;
+            --line: #e6ebe7;
+            --muted: #6b7280;
         }
         
         body {
-            background-color: #f8f9fa;
+            background-color: #f4f8f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark);
+        }
+
+        .reports-management-page #content main {
+            padding-top: 8px;
         }
         
+        /* Stat cards: white, bordered, tinted icon chip - no gradient floods. */
         .stat-card {
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: box-shadow .18s ease, border-color .18s ease;
             border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid var(--line);
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
+            background: #fff;
+            color: var(--dark);
+            overflow: hidden;
         }
         
         .stat-card:hover {
             transform: none;
-            box-shadow: 0 10px 20px rgba(24,47,31,0.1);
+            border-color: #c8dccb;
+            box-shadow: 0 6px 18px rgba(24,47,31,.09);
+        }
+
+        .stat-card .card-body {
+            padding: 1.25rem 1rem;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 0 0 4px;
+            line-height: 1.1;
+        }
+
+        .stat-card p {
+            color: var(--muted);
+            font-size: .82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .stat-card .badge {
+            font-weight: 600;
+            border: 1px solid var(--line);
         }
         
         .card {
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: none;
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
+            border: 1px solid var(--line);
             margin-bottom: 24px;
+            background: #fff;
         }
         
         .card-header {
-            background: linear-gradient(120deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 12px 12px 0 0 !important;
+            background: #fff;
+            color: var(--dark);
+            border-radius: 11px 11px 0 0 !important;
+            border-bottom: 1px solid var(--line);
             padding: 15px 20px;
-            font-weight: 600;
+            font-weight: 650;
+        }
+
+        .card-header h5,
+        .card-header h5.mb-0 {
+            color: var(--dark);
+            font-weight: 650;
+        }
+
+        .card-header .btn-outline {
+            color: var(--secondary);
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .card-header .btn-outline:hover {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: #fff;
         }
         
         .report-nav {
             background: white;
+            border: 1px solid var(--line);
             border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 8px;
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
         }
         
         .report-nav .nav-link {
             border-radius: 8px;
-            padding: 10px 15px;
-            margin: 0 5px;
+            padding: 9px 16px;
+            margin: 0;
             color: var(--dark);
-            font-weight: 500;
-            transition: all 0.3s;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: background-color .16s ease, color .16s ease;
+            border: 1px solid transparent;
         }
         
         .report-nav .nav-link:hover {
-            background-color: rgba(44, 62, 80, 0.1);
+            background-color: rgba(0, 107, 46, .07);
+            color: var(--secondary);
         }
         
         .report-nav .nav-link.active {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            background: var(--secondary);
             color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border-color: var(--secondary);
+            box-shadow: none;
+        }
+
+        .report-nav .nav-link i {
+            margin-right: 6px;
         }
         
+        /* Activity entries: bordered rows with an icon, no thick left bar. */
         .activity-item {
-            border-left: 4px solid var(--secondary);
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
+            border: 1px solid var(--line);
+            padding: 14px 16px;
+            background: #fbfcfb;
+            border-radius: 10px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.3s;
+            box-shadow: none;
+            transition: box-shadow .18s ease, border-color .18s ease;
+            height: 100%;
         }
         
         .activity-item:hover {
-            box-shadow: 0 4px 8px rgba(24,47,31,0.1);
+            border-color: #c8dccb;
+            box-shadow: 0 4px 12px rgba(24,47,31,.07);
+            transform: none;
+        }
+
+        .activity-item .badge.bg-primary {
+            background: rgba(0, 107, 46, .10) !important;
+            color: var(--secondary) !important;
+            border: 1px solid rgba(0, 107, 46, .18);
         }
         
         .chart-container {
@@ -114,23 +194,75 @@ if (!$currentUser) {
         
         .filter-section {
             background: white;
+            border: 1px solid var(--line);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
             margin-bottom: 20px;
         }
+
+        .filter-section h5 {
+            font-weight: 650;
+            color: var(--dark);
+        }
+
+        .filter-section .alert {
+            background: #f2f8f3;
+            border: 1px solid #d5e9d8;
+            color: #1e5631;
+            border-radius: 8px;
+        }
         
+        /* Page header: white card with a slim brand rule instead of a gradient slab */
         .page-header {
-            background: linear-gradient(120deg, var(--primary), var(--secondary));
-            color: white;
+            background: #fff;
+            color: var(--dark);
+            border: 1px solid var(--line);
             border-radius: 12px;
-            padding: 20px;
+            padding: 22px 24px;
             margin-bottom: 25px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(24,47,31,.045);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary) 0%, #34c759 55%, #f0c000 100%);
+        }
+        
+        .page-header h2 {
+            color: var(--dark);
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin: 0 0 4px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+        }
+
+        .page-header .btn-light {
+            background: #fff;
+            border: 1px solid var(--line);
+            color: var(--dark);
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .page-header .btn-light:hover {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: #fff;
         }
         
         .badge {
-            font-weight: 500;
+            font-weight: 600;
             padding: 6px 10px;
             border-radius: 20px;
         }
@@ -140,73 +272,146 @@ if (!$currentUser) {
             background: #006b2e !important;
             color: #fff !important;
         }
+
+        .badge.bg-warning {
+            background: #d9a507 !important;
+            color: #2b2100 !important;
+        }
+        
+        .table {
+            color: var(--dark);
+            margin-bottom: 0;
+        }
+
+        .table > :not(caption) > * > * {
+            background: transparent;
+            border-color: #edf1ed;
+            padding: .8rem .95rem;
+        }
         
         .table th {
             border-top: none;
-            font-weight: 600;
-            color: var(--dark);
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #647168;
+        }
+
+        .table thead.table-dark,
+        .table thead.table-dark th {
+            background: #f6f8f6 !important;
+            color: #647168 !important;
+            border-color: var(--line) !important;
+        }
+
+        .table tbody tr:hover td {
+            background: rgba(0, 107, 46, .04);
         }
         
         .progress {
-            height: 10px;
+            height: 8px;
             border-radius: 10px;
+            background: #e8efe9;
+        }
+
+        .progress-bar.bg-success {
+            background: var(--secondary) !important;
         }
         
         .btn {
             border-radius: 8px;
             padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.3s;
+            font-weight: 600;
+            transition: background-color .16s ease, border-color .16s ease, color .16s ease;
         }
         
         .btn-primary {
             background: var(--secondary);
-            border: none;
+            border: 1px solid var(--secondary);
+            color: #fff;
         }
         
         .btn-primary:hover {
             background: var(--primary);
-            box-shadow: 0 4px 8px rgba(24,47,31,0.15);
+            border-color: var(--primary);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .form-select,
+        .form-control {
+            border-color: var(--line);
+            border-radius: 8px;
+            padding: .55rem .8rem;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 .18rem rgba(0, 107, 46, .12);
         }
         
         .custom-range-inputs {
             background: var(--light);
+            border: 1px solid var(--line);
             padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
         }
         
         .stat-icon {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.2);
-            width: 60px;
-            height: 60px;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            background: rgba(0, 107, 46, .09);
+            color: var(--secondary);
+            width: 52px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 107, 46, .14);
+        }
+
+        .card.stat-card.text-white .stat-icon {
+            background: rgba(0, 107, 46, .09);
+            color: var(--secondary);
         }
         
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #6c757d;
+            color: var(--muted);
         }
         
         .empty-state i {
             font-size: 4rem;
             margin-bottom: 15px;
-            opacity: 0.5;
+            opacity: 0.35;
+            color: var(--secondary);
+        }
+
+        .avatar-placeholder {
+            font-weight: 700;
+            font-size: .85rem;
         }
         
         @media (max-width: 768px) {
             .stat-card {
                 margin-bottom: 15px;
             }
+
+            .stat-card h3 {
+                font-size: 1.4rem;
+            }
             
             .chart-container {
                 height: 250px;
+            }
+
+            .page-header {
+                padding: 18px;
             }
         }
     </style>
@@ -230,7 +435,7 @@ if (!$currentUser) {
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h2 class="mb-1"><i class="fas fa-chart-bar me-2"></i>Reports & Analytics</h2>
-                        <p class="mb-0 opacity-75">Comprehensive system insights and statistics</p>
+                        <p class="mb-0 text-muted">Comprehensive system insights and statistics</p>
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-light" onclick="window.print()">
@@ -315,7 +520,7 @@ if (!$currentUser) {
                 <!-- Statistics Cards -->
                 <div class="row mb-4">
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #0a8f3c, #006b2e);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-file"></i>
@@ -328,7 +533,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #e0b53b, #b8860b);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-folder"></i>
@@ -341,7 +546,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #3aa564, #1e7e34);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-users"></i>
@@ -354,7 +559,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #7d8f83, #5b6b60);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-file-alt"></i>
@@ -367,7 +572,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #d4a72c, #9a6f0a);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-share-alt"></i>
@@ -380,7 +585,7 @@ if (!$currentUser) {
                     </div>
                     
                     <div class="col-md-2 col-sm-6">
-                        <div class="card stat-card text-white" style="background: linear-gradient(120deg, #004d24, #003318);">
+                        <div class="card stat-card">
                             <div class="card-body text-center">
                                 <div class="stat-icon">
                                     <i class="fas fa-hdd"></i>

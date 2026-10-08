@@ -147,14 +147,39 @@
                                     <div class="activity-icon">
                                         <?php
                                         $icons = [
-                                            'login' => 'bx-log-in',
-                                            'upload_file' => 'bx-upload',
-                                            'create_folder' => 'bx-folder-plus',
-                                            'approve_user' => 'bx-check',
-                                            'create_announcement' => 'bx-megaphone',
-                                            'delete_file' => 'bx-trash'
+                                            // Authentication
+                                            'login' => 'bxs-log-in',
+                                            'logout' => 'bxs-log-out',
+                                            'register' => 'bxs-user-rectangle',
+                                            // Users
+                                            'create_user' => 'bxs-user-plus',
+                                            'approve_user' => 'bxs-check-circle',
+                                            'reject_user' => 'bxs-x-circle',
+                                            'delete_user' => 'bxs-user-minus',
+                                            'update_profile' => 'bxs-user',
+                                            'update_role' => 'bxs-shield',
+                                            'reset_password' => 'bxs-lock-alt',
+                                            // Files & folders
+                                            'upload_file' => 'bxs-up-arrow-alt',
+                                            'delete_file' => 'bxs-trash',
+                                            'download_file' => 'bxs-download',
+                                            'create_folder' => 'bxs-folder-plus',
+                                            'update_folder' => 'bxs-folder',
+                                            'delete_folder' => 'bxs-folder-minus',
+                                            // Departments
+                                            'create_department' => 'bxs-buildings',
+                                            'update_department' => 'bxs-building-house',
+                                            'delete_department' => 'bxs-buildings',
+                                            // Content & system
+                                            'create_announcement' => 'bxs-megaphone',
+                                            'update_announcement' => 'bxs-megaphone',
+                                            'delete_announcement' => 'bxs-message-x',
+                                            'create_post' => 'bxs-news',
+                                            'submit_document' => 'bxs-file',
+                                            'update_settings' => 'bxs-cog',
+                                            'system' => 'bxs-bolt'
                                         ];
-                                        $icon = $icons[$activity['action']] ?? 'bx-activity';
+                                        $icon = $icons[$activity['action'] ?? ''] ?? 'bxs-bell';
                                         ?>
                                         <i class='bx <?php echo $icon; ?>'></i>
                                     </div>
